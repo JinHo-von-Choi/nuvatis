@@ -5,8 +5,8 @@
     <Company>NerdVana</Company>
     <Copyright>Copyright (c) 2026 Jinho Choi</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/nerdvana-kr/nuvatis</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/nerdvana-kr/nuvatis</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/JinHo-von-Choi/nuvatis</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/JinHo-von-Choi/nuvatis</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>nuvatis;mybatis;orm;sql-mapper;source-generator;aot;dotnet</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>

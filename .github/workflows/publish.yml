@@ -13,7 +13,7 @@
 #
 # 사전 요구사항:
 #   - NuGet.org에서 Trusted Publishing 정책 등록
-#     - Repository owner: nerdvana-kr
+#     - Repository owner: JinHo-von-Choi
 #     - Repository name: nuvatis
 #     - Workflow file: publish.yml
 #     - Environment: release (선택사항)
