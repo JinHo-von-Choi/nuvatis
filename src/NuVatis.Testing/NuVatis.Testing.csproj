@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net7.0;net8.0</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>NuVatis.Testing</RootNamespace>
+    <PackageId>NuVatis.Testing</PackageId>
+    <Description>NuVatis - Test support utilities. InMemorySqlSession, QueryCapture.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../NuVatis.Core/NuVatis.Core.csproj" />
+  </ItemGroup>
+
+</Project>

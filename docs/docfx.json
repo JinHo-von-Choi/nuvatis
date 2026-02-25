@@ -1,0 +1,43 @@
+{
+    "metadata": [
+        {
+            "src": [
+                {
+                    "files": ["src/**/*.csproj"],
+                    "src": ".."
+                }
+            ],
+            "dest": "api",
+            "filter": "filterConfig.yml"
+        }
+    ],
+    "build": {
+        "content": [
+            {
+                "files": ["api/**.yml", "api/index.md"]
+            },
+            {
+                "files": [
+                    "*.md",
+                    "getting-started/**.md",
+                    "cookbook/**.md",
+                    "security/**.md",
+                    "architecture/**.md",
+                    "toc.yml"
+                ]
+            }
+        ],
+        "resource": [
+            {
+                "files": ["images/**"]
+            }
+        ],
+        "dest": "_site",
+        "globalMetadata": {
+            "_appTitle": "NuVatis Documentation",
+            "_appFooter": "Copyright (c) 2026 Jinho Choi. MIT License.",
+            "_enableSearch": true
+        },
+        "template": ["default", "modern"]
+    }
+}

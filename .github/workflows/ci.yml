@@ -1,0 +1,153 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+
+jobs:
+  build-and-test:
+    name: ${{ matrix.os }} / ${{ matrix.dotnet }} / ${{ matrix.db }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        dotnet: ['7.0.x', '8.0.x']
+        db: [postgresql, mysql, sqlserver]
+        exclude:
+          - os: windows-latest
+            dotnet: '7.0.x'
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: nuvatis_test
+          POSTGRES_PASSWORD: nuvatis_test_pass
+          POSTGRES_DB: nuvatis_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U nuvatis_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        if: matrix.db == 'postgresql' && matrix.os == 'ubuntu-latest'
+
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: nuvatis_test_pass
+          MYSQL_DATABASE: nuvatis_test
+          MYSQL_USER: nuvatis_test
+          MYSQL_PASSWORD: nuvatis_test_pass
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping -h localhost"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        if: matrix.db == 'mysql' && matrix.os == 'ubuntu-latest'
+
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: Y
+          SA_PASSWORD: NuVatis_Test_Pass1!
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'NuVatis_Test_Pass1!' -Q 'SELECT 1' -C"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+        if: matrix.db == 'sqlserver' && matrix.os == 'ubuntu-latest'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET ${{ matrix.dotnet }}
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.dotnet }}
+
+      - name: Restore
+        run: dotnet restore NuVatis.sln
+
+      - name: Build
+        run: dotnet build NuVatis.sln --configuration Release --no-restore
+
+      - name: Unit Tests (Generators)
+        run: dotnet test tests/NuVatis.Generators.Tests/ --configuration Release --no-build --verbosity normal --logger "trx;LogFileName=generators.trx"
+
+      - name: Unit Tests (Core)
+        run: dotnet test tests/NuVatis.Tests/ --configuration Release --no-build --verbosity normal --logger "trx;LogFileName=core.trx" --filter "Category!=E2E"
+
+      - name: E2E Tests (PostgreSQL)
+        if: matrix.db == 'postgresql' && matrix.os == 'ubuntu-latest'
+        env:
+          NUVATIS_TEST_PG_CONNECTION: "Host=localhost;Port=5432;Database=nuvatis_test;Username=nuvatis_test;Password=nuvatis_test_pass"
+        run: dotnet test tests/NuVatis.Tests/ --configuration Release --no-build --verbosity normal --filter "Category=E2E&Provider=PostgreSql"
+
+      - name: E2E Tests (MySQL)
+        if: matrix.db == 'mysql' && matrix.os == 'ubuntu-latest'
+        env:
+          NUVATIS_TEST_MYSQL_CONNECTION: "Server=localhost;Port=3306;Database=nuvatis_test;User=nuvatis_test;Password=nuvatis_test_pass"
+        run: dotnet test tests/NuVatis.Tests/ --configuration Release --no-build --verbosity normal --filter "Category=E2E&Provider=MySql"
+
+      - name: E2E Tests (SQL Server)
+        if: matrix.db == 'sqlserver' && matrix.os == 'ubuntu-latest'
+        env:
+          NUVATIS_TEST_MSSQL_CONNECTION: "Server=localhost,1433;Database=nuvatis_test;User Id=sa;Password=NuVatis_Test_Pass1!;TrustServerCertificate=True"
+        run: dotnet test tests/NuVatis.Tests/ --configuration Release --no-build --verbosity normal --filter "Category=E2E&Provider=SqlServer"
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-${{ matrix.os }}-${{ matrix.dotnet }}-${{ matrix.db }}
+          path: "**/TestResults/*.trx"
+          retention-days: 7
+
+  pack-verify:
+    name: NuGet Pack (Verify Only)
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Pack
+        run: dotnet pack NuVatis.sln --configuration Release --output ./nupkg
+
+      - name: Verify package count
+        run: |
+          COUNT=$(ls ./nupkg/*.nupkg 2>/dev/null | wc -l)
+          echo "Generated ${COUNT} package(s)"
+          if [[ ${COUNT} -lt 9 ]]; then
+            echo "::error::Expected at least 9 packages, got ${COUNT}"
+            exit 1
+          fi
+
+      - name: Upload NuGet Packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: nupkg
+          path: ./nupkg/*.nupkg
+          retention-days: 30

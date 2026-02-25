@@ -1,0 +1,38 @@
+- name: Home
+  href: index.md
+- name: Getting Started
+  href: getting-started/
+  items:
+    - name: Installation
+      href: getting-started/installation.md
+    - name: Quick Start
+      href: getting-started/quick-start.md
+    - name: Configuration
+      href: getting-started/configuration.md
+- name: Cookbook
+  href: cookbook/
+  items:
+    - name: CRUD Operations
+      href: cookbook/crud-operations.md
+    - name: Dynamic SQL
+      href: cookbook/dynamic-sql.md
+    - name: Performance Optimization
+      href: cookbook/performance-optimization.md
+    - name: EF Core Integration
+      href: cookbook/ef-core-integration.md
+    - name: Testing
+      href: cookbook/testing.md
+- name: Security
+  href: security/
+  items:
+    - name: SQL Injection Prevention
+      href: security/sql-injection-prevention.md
+- name: Architecture
+  href: architecture/
+  items:
+    - name: Source Generator
+      href: architecture/source-generator.md
+    - name: Session Lifecycle
+      href: architecture/session-lifecycle.md
+- name: API Reference
+  href: api/

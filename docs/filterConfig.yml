@@ -1,0 +1,10 @@
+apiRules:
+  - exclude:
+      uidRegex: ^NuVatis\.Generators
+      type: Namespace
+  - exclude:
+      uidRegex: Internal$
+      type: Type
+  - include:
+      uidRegex: ^NuVatis
+      type: Namespace

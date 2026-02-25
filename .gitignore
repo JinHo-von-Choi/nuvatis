@@ -1,0 +1,59 @@
+## .NET
+bin/
+obj/
+nupkg/
+*.nupkg
+*.snupkg
+*.user
+*.suo
+*.cache
+*.vs/
+*.DotSettings.user
+
+## NuGet
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+## Build
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+bld/
+[Bb]uild[Ll]og.*
+*.VisualState.xml
+TestResult.xml
+
+## IDE
+.vs/
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+## AI / Cursor
+.cursor/
+.cursorignore
+.cursorindexingignore
+.cursorrules
+agent-transcripts/
+.aider*
+.claude*
+CLAUDE.md
+AGENTS.md
+
+## OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+## DocFX generated
+docs/api/*.yml
+docs/api/.manifest
+docs/_site/
+
+## Test results
+**/TestResults/
+*.trx

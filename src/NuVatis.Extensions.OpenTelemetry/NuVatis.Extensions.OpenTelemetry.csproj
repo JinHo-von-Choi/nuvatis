@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net7.0;net8.0</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>NuVatis.Extensions.OpenTelemetry</RootNamespace>
+    <PackageId>NuVatis.Extensions.OpenTelemetry</PackageId>
+    <Description>NuVatis - OpenTelemetry distributed tracing integration via ActivitySource.</Description>
+    <IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">true</IsAotCompatible>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../NuVatis.Core/NuVatis.Core.csproj" />
+  </ItemGroup>
+
+</Project>
