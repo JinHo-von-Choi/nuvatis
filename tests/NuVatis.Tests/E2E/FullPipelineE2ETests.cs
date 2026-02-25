@@ -16,6 +16,7 @@ namespace NuVatis.Tests.E2E;
  * @author 최진호
  * @date   2026-02-24
  */
+[Trait("Category", "E2E")]
 public class FullPipelineE2ETests : IDisposable {
 
     private readonly SqliteConnection _keepAlive;
