@@ -70,9 +70,16 @@ jobs:
             --no-restore \
             /p:Version=${{ steps.version.outputs.VERSION }}
 
-      - name: Test
+      - name: Unit Tests (Generators)
         run: |
-          dotnet test NuVatis.sln \
+          dotnet test tests/NuVatis.Generators.Tests/ \
+            --configuration Release \
+            --no-build \
+            --verbosity normal
+
+      - name: Unit Tests (Core)
+        run: |
+          dotnet test tests/NuVatis.Tests/ \
             --configuration Release \
             --no-build \
             --verbosity normal \
