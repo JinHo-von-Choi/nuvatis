@@ -1,8 +1,10 @@
 # NuVatis
 
-MyBatis-style SQL Mapper for .NET, powered by Roslyn Source Generators.
+[![CI](https://github.com/JinHo-von-Choi/nuvatis/actions/workflows/ci.yml/badge.svg)](https://github.com/JinHo-von-Choi/nuvatis/actions/workflows/ci.yml)
+[![NuGet](https://img.shields.io/nuget/vpre/NuVatis.Core)](https://www.nuget.org/packages/NuVatis.Core)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Version: 0.1.0-alpha.1 | License: MIT | .NET 7 / .NET 8 | Tests: 220 passing
+MyBatis-style SQL Mapper for .NET, powered by Roslyn Source Generators.
 
 ## Overview
 
