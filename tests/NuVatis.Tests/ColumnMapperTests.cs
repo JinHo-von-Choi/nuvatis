@@ -173,8 +173,23 @@ public class ColumnMapperTests {
 
         Assert.NotNull(cacheField);
 
-        var cache = cacheField.GetValue(null);
+        var cache = (System.Collections.Concurrent.ConcurrentDictionary<Type, Dictionary<string, PropertyInfo>>)cacheField.GetValue(null)!;
         Assert.NotNull(cache);
+
+        // 첫 번째 호출 후 캐시에서 Dictionary 참조 획득
+        Assert.True(cache.TryGetValue(typeof(UserDto), out var dictBefore));
+
+        // 동일 타입으로 두 번째 호출
+        var reader2 = new FakeDataReader(
+            names:  ["UserId"],
+            values: [2]
+        );
+        reader2.Read();
+        ColumnMapper.MapRow<UserDto>(reader2);
+
+        // 두 번째 호출 후 동일 Dictionary 인스턴스가 재사용되어야 한다
+        Assert.True(cache.TryGetValue(typeof(UserDto), out var dictAfter));
+        Assert.Same(dictBefore, dictAfter);
 
         // ConcurrentDictionary<Type, Dictionary<string, PropertyInfo>>이어야 한다
         var cacheType = cache!.GetType();
@@ -195,9 +210,13 @@ public class ColumnMapperTests {
         );
 
         reader.Read();
-        var ex = Record.Exception(() => ColumnMapper.MapRow<DuplicateNormalizedDto>(reader));
+        DuplicateNormalizedDto? result = null;
+        var ex = Record.Exception(() => result = ColumnMapper.MapRow<DuplicateNormalizedDto>(reader));
 
         Assert.Null(ex);
+        Assert.NotNull(result);
+        Assert.True(result.UserName == "Bob" || result.User_Name == "Bob",
+            "Either UserName or User_Name should have been mapped to 'Bob'");
     }
 
     /**

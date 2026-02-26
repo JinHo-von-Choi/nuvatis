@@ -85,10 +85,13 @@ public static class ColumnMapper {
             if (reader.IsDBNull(i)) continue;
 
             var columnName = reader.GetName(i);
+            if (string.IsNullOrEmpty(columnName)) continue;
 
-            if (!columnMap.TryGetValue(columnName, out var prop) &&
-                !columnMap.TryGetValue(columnName.Replace("_", ""), out prop))
-                continue;
+            if (!columnMap.TryGetValue(columnName, out var prop)) {
+                if (!columnName.Contains('_') ||
+                    !columnMap.TryGetValue(columnName.Replace("_", ""), out prop))
+                    continue;
+            }
 
             var value      = reader.GetValue(i);
             var targetType = Nullable.GetUnderlyingType(prop!.PropertyType) ?? prop.PropertyType;
