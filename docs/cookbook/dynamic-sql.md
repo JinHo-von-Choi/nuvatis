@@ -87,6 +87,27 @@ var users = mapper.GetByIds(new { Ids = new[] { 1, 2, 3, 4, 5 } });
 </insert>
 ```
 
+## bind - 변수 바인딩
+
+표현식 결과를 변수로 바인딩하여 SQL에서 재사용한다. LIKE 패턴 생성에 유용하다.
+
+```xml
+<select id="SearchByName" resultMap="UserResult">
+  <bind name="namePattern" value="'%' + UserName + '%'" />
+  SELECT * FROM users
+  WHERE user_name LIKE #{namePattern}
+</select>
+```
+
+`[SqlConstant]` 어트리뷰트가 적용된 필드/프로퍼티는 SQL Injection 검사(NV004)에서 안전한 상수로 간주된다.
+
+```csharp
+public class TableConstants {
+    [SqlConstant]
+    public const string UsersTable = "users";
+}
+```
+
 ## sql/include - SQL Fragment 재사용
 
 ```xml

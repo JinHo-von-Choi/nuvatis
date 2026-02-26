@@ -60,6 +60,28 @@ public IList<User> SearchSorted(string sortColumn) {
 
 화이트리스트로 검증된 값만 `${}` 에 전달한다. 사용자 입력을 절대 직접 전달하지 않는다.
 
+## [SqlConstant] 어트리뷰트
+
+컴파일타임 상수로 사용되는 필드/프로퍼티에 `[SqlConstant]`를 적용하면 NV004 경고가 억제된다. 이 값은 Source Generator가 안전한 상수로 간주한다.
+
+```csharp
+public class TableConstants {
+    [SqlConstant]
+    public const string UsersTable = "users";
+
+    [SqlConstant]
+    public const string OrdersTable = "orders";
+}
+```
+
+```xml
+<select id="GetAllUsers">
+  SELECT * FROM ${UsersTable}
+</select>
+```
+
+`[SqlConstant]`가 적용된 `UsersTable`은 NV004 경고를 발생시키지 않는다.
+
 ## NV004 경고 억제
 
 화이트리스트 검증이 완료된 정당한 사용이라면 `#pragma warning disable`로 억제할 수 있다. 단, 팀 코드 리뷰에서 반드시 검증해야 한다.

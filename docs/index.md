@@ -10,7 +10,7 @@ NuVatis는 Entity Framework의 성능 오버헤드와 인라인 SQL의 유지보
 - Roslyn Source Generator가 빌드타임에 매핑 코드를 자동 생성
 - 런타임 리플렉션 제로, Native AOT 호환 (.NET 8)
 - ADO.NET 기반 최소 추상화, 최대 성능
-- PostgreSQL, MySQL, SQL Server 멀티 DB 지원
+- PostgreSQL, MySQL, SQL Server, SQLite 멀티 DB 지원
 
 ## When to Use NuVatis
 
@@ -30,4 +30,8 @@ CQRS 패턴에서 Command(CUD)는 EF Core, Query(R)는 NuVatis로 분리하는 �
 - [Quick Start](getting-started/quick-start.md)
 - [Cookbook](cookbook/crud-operations.md)
 - [Security Guide](security/sql-injection-prevention.md)
-- [API Reference](api/)
+- [API Reference](api/public-api-reference.md)
+- [Migration from Dapper](cookbook/migration-from-dapper.md)
+- [Migration from EF Core](cookbook/migration-from-efcore.md)
+- [Hybrid EF Core + NuVatis](cookbook/hybrid-efcore-nuvatis.md)
+- [CHANGELOG](../CHANGELOG.md)

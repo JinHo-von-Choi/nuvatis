@@ -8,6 +8,7 @@ dotnet add package NuVatis.Generators
 dotnet add package NuVatis.PostgreSql          # PostgreSQL
 dotnet add package NuVatis.MySql               # MySQL/MariaDB
 dotnet add package NuVatis.SqlServer           # SQL Server
+dotnet add package NuVatis.Sqlite              # SQLite
 dotnet add package NuVatis.Extensions.DependencyInjection  # ASP.NET Core DI
 ```
 
@@ -16,6 +17,7 @@ dotnet add package NuVatis.Extensions.DependencyInjection  # ASP.NET Core DI
 ```bash
 dotnet add package NuVatis.Extensions.OpenTelemetry         # 분산 추적
 dotnet add package NuVatis.Extensions.EntityFrameworkCore    # EF Core 통합
+dotnet add package NuVatis.Extensions.Aspire                # .NET Aspire 통합
 dotnet add package NuVatis.Testing                          # 테스트 유틸리티
 ```
 

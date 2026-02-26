@@ -79,6 +79,32 @@ Write 연산(Insert/Update/Delete) 실행 시 해당 namespace의 캐시가 자�
 </select>
 ```
 
+## Object Pooling - GC 할당 감소
+
+NuVatis 내부에서 빈번히 생성/해제되는 객체를 풀링하여 GC 압력을 줄인다.
+
+| Pool | 대상 | 효과 |
+|------|------|------|
+| `StringBuilderCache` | 동적 SQL 문자열 빌드 | StringBuilder 할당 제거 |
+| `DbParameterListPool` | DbParameter 리스트 | List 할당 제거 |
+| `InterceptorContextPool` | Interceptor 컨텍스트 객체 | 컨텍스트 할당 제거 |
+
+이 최적화는 자동 적용되며 별도 설정이 불필요하다. BenchmarkDotNet 기준 고부하 시나리오에서 Gen0 GC 발생을 50% 이상 감소시킨다.
+
+## BatchExecutor - DbBatch API
+
+.NET 8의 DbBatch API를 활용하여 여러 SQL을 단일 라운드트립으로 실행한다.
+
+```csharp
+await session.ExecuteBatchAsync(batch => {
+    batch.Insert("Users.Insert", user1);
+    batch.Insert("Users.Insert", user2);
+    batch.Insert("Users.Insert", user3);
+});
+```
+
+3건의 INSERT가 1회의 DB 라운드트립으로 처리된다. .NET 7에서는 개별 실행으로 폴백한다.
+
 ## Connection Pooling 최적화
 
 NuVatis는 Lazy Connection을 사용한다. 세션 생성 시점이 아닌 첫 쿼리 시점에 커넥션을 획득하므로, 커넥션 풀 고갈 위험을 줄인다.

@@ -33,6 +33,7 @@ using var session = factory.OpenSession();
 | PostgreSQL | `PostgreSqlProvider` | NuVatis.PostgreSql |
 | MySQL/MariaDB | `MySqlProvider` | NuVatis.MySql |
 | SQL Server | `SqlServerProvider` | NuVatis.SqlServer |
+| SQLite | `SqliteProvider` | NuVatis.Sqlite |
 
 ## autoCommit 모드
 
@@ -75,6 +76,47 @@ builder.Services.AddNuVatis(options => {
     options.AddInterceptor(new OpenTelemetryInterceptor());
 });
 ```
+
+## TypeHandler
+
+커스텀 타입 변환을 등록한다. 내장 TypeHandler:
+
+| TypeHandler | 변환 |
+|-------------|------|
+| `DateOnlyTypeHandler` | DateOnly <-> DateTime |
+| `TimeOnlyTypeHandler` | TimeOnly <-> TimeSpan |
+| `EnumStringTypeHandler<T>` | Enum <-> string |
+| `JsonTypeHandler<T>` | POCO <-> JSON string |
+
+```csharp
+builder.Services.AddNuVatis(options => {
+    options.RegisterTypeHandler<DateOnly>(new DateOnlyTypeHandler());
+    options.RegisterTypeHandler<OrderStatus>(new EnumStringTypeHandler<OrderStatus>());
+});
+```
+
+## Fluent Builder API (Non-DI)
+
+```csharp
+var factory = new SqlSessionFactoryBuilder()
+    .ConnectionString("Host=localhost;Database=mydb;Username=app;Password=***")
+    .Provider(new PostgreSqlProvider())
+    .AddXmlMapperDirectory("Mappers")
+    .AddInterceptor(new LoggingInterceptor(logger))
+    .RegisterTypeHandler<DateOnly>(new DateOnlyTypeHandler())
+    .Build();
+```
+
+## .NET Aspire 통합
+
+```csharp
+builder.AddNuVatisAspire(options => {
+    options.ConnectionString = builder.Configuration.GetConnectionString("Default");
+    options.Provider         = new PostgreSqlProvider();
+});
+```
+
+Aspire 통합 시 Health Check와 OpenTelemetry 트레이싱이 자동 구성된다.
 
 ## Health Check
 

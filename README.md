@@ -25,9 +25,11 @@ NuVatis는 Entity Framework의 성능 오버헤드와 인라인 SQL의 유지보
 | `NuVatis.PostgreSql` | PostgreSQL Provider (Npgsql) |
 | `NuVatis.MySql` | MySQL/MariaDB Provider (MySqlConnector) |
 | `NuVatis.SqlServer` | SQL Server Provider (Microsoft.Data.SqlClient) |
+| `NuVatis.Sqlite` | SQLite Provider (Microsoft.Data.Sqlite) |
 | `NuVatis.Extensions.DependencyInjection` | Microsoft DI 통합 + Health Check |
 | `NuVatis.Extensions.OpenTelemetry` | OpenTelemetry 분산 추적 (ActivitySource) |
 | `NuVatis.Extensions.EntityFrameworkCore` | EF Core DbContext 커넥션/트랜잭션 공유 |
+| `NuVatis.Extensions.Aspire` | .NET Aspire 통합 (Health Check + OTel 자동 구성) |
 | `NuVatis.Testing` | 테스트 지원 (InMemorySqlSession, QueryCapture) |
 
 ## Quick Start
@@ -275,6 +277,7 @@ Statement 단위로 SQL 실행 타임아웃을 설정할 수 있다. 우선순�
 | `<where>` | 자동 WHERE 절 처리 |
 | `<set>` | 자동 SET 절 처리 |
 | `<foreach>` | 컬렉션 반복 |
+| `<bind>` | 변수 바인딩 (OGNL 표현식) |
 | `<sql>/<include>` | SQL 프래그먼트 재사용 |
 
 ## External Connection Sharing
@@ -343,10 +346,10 @@ dotnet pack --configuration Release --output ./nupkg
 Pack (스크립트):
 ```bash
 ./pack.sh                       # Directory.Build.props 버전 사용
-./pack.sh 0.2.0-beta.1          # 버전 지정
+./pack.sh 1.0.1                 # 버전 지정
 ```
 
-pack.sh는 빌드, 테스트, 패키징, 9개 패키지 검증을 자동 수행한다.
+pack.sh는 빌드, 테스트, 패키징, 11개 패키지 검증을 자동 수행한다.
 
 ## CI/CD
 
@@ -354,18 +357,21 @@ GitHub Actions 기반 CI/CD 파이프라인:
 
 | Workflow | Trigger | 역할 |
 |----------|---------|------|
-| `ci.yml` | push (main, develop), PR | 빌드, 테스트, 패키지 생성 검증 |
-| `publish.yml` | `v*` 태그 push | 빌드, 테스트, NuGet.org 배포 |
+| `ci.yml` | push (main, develop), PR | 빌드, 테스트, 코드 커버리지, 패키지 생성 검증 |
+| `publish.yml` | `v*` 태그 push | 빌드, 테스트, NuGet.org 배포, GitHub Release 생성 |
+| `benchmark.yml` | push (main), PR | BenchmarkDotNet 성능 벤치마크 실행 및 회귀 감지 |
+| `e2e-testcontainers.yml` | push (main), PR | Testcontainers 기반 PostgreSQL/MySQL 멀티버전 E2E 테스트 |
+| `docs.yml` | push (main, docs/**) | DocFX 문서 빌드 및 GitHub Pages 배포 |
 
 NuGet 배포는 Trusted Publishing (OIDC) 방식을 사용한다. API 키를 저장하지 않고, GitHub Actions가 발급하는 단기 OIDC 토큰으로 NuGet.org 임시 API 키를 획득하여 배포한다.
 
 릴리스 방법:
 ```bash
-git tag v0.1.0-alpha.1
-git push origin v0.1.0-alpha.1
+git tag v1.0.0
+git push origin v1.0.0
 ```
 
-태그 push 시 publish.yml이 자동 실행되어 9개 패키지를 NuGet.org에 배포한다.
+태그 push 시 publish.yml이 자동 실행되어 11개 패키지를 NuGet.org에 배포하고 GitHub Release를 자동 생성한다.
 
 ## Project Structure
 
@@ -382,13 +388,15 @@ src/
   NuVatis.PostgreSql/                # PostgreSQL Provider
   NuVatis.MySql/                     # MySQL/MariaDB Provider
   NuVatis.SqlServer/                 # SQL Server Provider
+  NuVatis.Sqlite/                    # SQLite Provider
   NuVatis.Extensions.DependencyInjection/  # DI + Health Check
   NuVatis.Extensions.OpenTelemetry/  # OpenTelemetry 분산 추적
   NuVatis.Extensions.EntityFrameworkCore/  # EF Core 통합
+  NuVatis.Extensions.Aspire/         # .NET Aspire 통합
   NuVatis.Testing/                   # 테스트 유틸리티
 tests/
-  NuVatis.Tests/                     # 단위/통합/E2E 테스트 (181개)
-  NuVatis.Generators.Tests/          # Source Generator 테스트 (33개)
+  NuVatis.Tests/                     # 단위/통합/E2E 테스트 (311개)
+  NuVatis.Generators.Tests/          # Source Generator 테스트 (68개)
 benchmarks/
   NuVatis.Benchmarks/                # 성능 벤치마크
 samples/
