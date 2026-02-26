@@ -9,6 +9,7 @@ namespace NuVatis.Generators.Diagnostics;
  * @author 최진호
  * @date   2026-02-24
  * @modified 2026-02-26 NV007 미사용 ResultMap, NV008 ResultMap Property 불일치 추가
+ * @modified 2026-02-27 NV004 Warning → Error 승격
  */
 public static class DiagnosticDescriptors {
     private const string Category = "NuVatis";
@@ -42,7 +43,7 @@ public static class DiagnosticDescriptors {
         title:              "SQL Injection Warning",
         messageFormat:      "${{{0}}} in '{1}.{2}' uses string substitution which is vulnerable to SQL injection; use #{{{0}}} instead",
         category:           Category,
-        defaultSeverity:    DiagnosticSeverity.Warning,
+        defaultSeverity:    DiagnosticSeverity.Error,
         isEnabledByDefault: true,
         helpLinkUri:        "https://nuvatis.dev/docs/security/string-substitution");
 
