@@ -89,7 +89,7 @@ jobs:
         run: |
           dotnet pack NuVatis.sln \
             --configuration Release \
-            --no-build \
+            --no-restore \
             --output ./nupkg \
             /p:Version=${{ steps.version.outputs.VERSION }}
 
