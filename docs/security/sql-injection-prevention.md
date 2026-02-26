@@ -14,7 +14,7 @@
 
 값이 DB 드라이버의 파라미터로 전달된다. SQL Injection이 불가능하다.
 
-### ${param} - 문자열 치환 (위험)
+### ${param} - 문자열 치환 (위험, 컴파일 오류)
 
 ```xml
 <select id="GetByTable">
@@ -24,53 +24,79 @@
 
 생성되는 SQL: `SELECT * FROM users WHERE id = @p0`
 
-`${tableName}`의 값이 SQL 문자열에 직접 삽입된다. 사용자 입력이 그대로 SQL에 포함되므로 SQL Injection 공격에 취약하다.
+`${tableName}`의 값이 SQL 문자열에 직접 삽입된다. 사용자 입력이 그대로 SQL에 포함되므로
+SQL Injection 공격에 취약하다.
 
-## NV004 컴파일 경고
+**v2.0.0부터 `${}` 파라미터 타입이 `string`이면 NV004 빌드 오류가 발생한다.**
 
-NuVatis Source Generator는 XML 매퍼에서 `${}` 사용을 감지하면 컴파일 시 NV004 경고를 발생시킨다.
+## NV004 진단
+
+NuVatis Source Generator는 XML 매퍼에서 `${}` 사용을 감지하면 컴파일 시 NV004를 발생시킨다.
 
 ```
-warning NV004: ${tableName} in 'MyApp.Mappers.IUserMapper.GetByTable' uses string substitution
+error NV004: ${tableName} in 'MyApp.Mappers.IUserMapper.GetByTable' uses string substitution
 which is vulnerable to SQL injection; use #{tableName} instead
 ```
 
-## ${} 사용이 불가피한 경우
+v2.0.0부터 Error로 승격되어 빌드가 실패한다.
 
-동적 테이블명, 컬럼명, ORDER BY 방향 등은 파라미터 바인딩이 불가능하다. 이 경우 반드시 화이트리스트 검증을 수행한다.
+## ${} 사용이 불가피한 경우: 3가지 안전한 경로
+
+동적 테이블명, 컬럼명, ORDER BY 방향 등은 파라미터 바인딩이 불가능하다.
+이 경우 아래 세 가지 경로 중 하나를 선택한다.
+
+### 경로 1. SqlIdentifier.FromEnum — enum 기반 (가장 안전)
+
+값의 집합이 컴파일 타임에 확정된다면 enum을 정의하고 `SqlIdentifier.FromEnum`을 사용한다.
 
 ```csharp
-private static readonly HashSet<string> AllowedSortColumns = new() {
-    "user_name", "email", "created_at", "id"
-};
+using NuVatis.Core.Sql;
 
-public IList<User> SearchSorted(string sortColumn) {
-    if (!AllowedSortColumns.Contains(sortColumn)) {
-        throw new ArgumentException($"Invalid sort column: {sortColumn}");
-    }
-    return _mapper.SearchSorted(new { SortColumn = sortColumn });
-}
+public enum SortColumn { CreatedAt, UserName, Id }
+
+public record SortParam(SqlIdentifier Column);
+
+// 사용
+var result = mapper.GetSorted(
+    new SortParam(SqlIdentifier.FromEnum(SortColumn.CreatedAt)));
 ```
 
 ```xml
-<select id="SearchSorted" resultMap="UserResult">
-  SELECT * FROM users ORDER BY ${SortColumn}
+<select id="GetSorted" resultMap="UserResult">
+  SELECT * FROM users ORDER BY ${Column}
 </select>
 ```
 
-화이트리스트로 검증된 값만 `${}` 에 전달한다. 사용자 입력을 절대 직접 전달하지 않는다.
+enum 이름이 직접 SQL에 삽입된다. enum 값은 컴파일 타임에 확정되므로 Injection이 불가능하다.
 
-## [SqlConstant] 어트리뷰트
+### 경로 2. SqlIdentifier.FromAllowed — 화이트리스트 기반
 
-컴파일타임 상수로 사용되는 필드/프로퍼티에 `[SqlConstant]`를 적용하면 NV004 경고가 억제된다. 이 값은 Source Generator가 안전한 상수로 간주한다.
+런타임에 결정되지만 허용 값 목록이 정해진 경우 화이트리스트 검증을 수행한다.
 
 ```csharp
-public class TableConstants {
-    [SqlConstant]
-    public const string UsersTable = "users";
+using NuVatis.Core.Sql;
 
-    [SqlConstant]
-    public const string OrdersTable = "orders";
+public record SortParam(SqlIdentifier Column);
+
+public IList<User> GetSorted(string userInput) {
+    var column = SqlIdentifier.FromAllowed(
+        userInput,
+        "id", "user_name", "created_at", "email");  // 허용 목록
+
+    return _mapper.GetSorted(new SortParam(column));
+}
+```
+
+허용 목록에 없는 값은 `ArgumentException`이 발생한다.
+
+### 경로 3. [SqlConstant] 어트리뷰트 — 컴파일타임 상수 전용
+
+값이 리터럴 상수이고 런타임에 변하지 않을 때 사용한다. NV004가 억제되지만 **런타임 검증은 없다**.
+
+```csharp
+public static class TableRef {
+    [SqlConstant] public const string Users  = "users";
+    [SqlConstant] public const string Orders = "orders";
 }
 ```
 
@@ -80,16 +106,34 @@ public class TableConstants {
 </select>
 ```
 
-`[SqlConstant]`가 적용된 `UsersTable`은 NV004 경고를 발생시키지 않는다.
+주의: 나중에 `UsersTable`의 소스가 사용자 입력으로 변경되면 컴파일러가 침묵한다.
+반드시 진짜 상수에만 적용하라.
 
-## NV004 경고 억제
+## SqlIdentifier 타입
 
-화이트리스트 검증이 완료된 정당한 사용이라면 `#pragma warning disable`로 억제할 수 있다. 단, 팀 코드 리뷰에서 반드시 검증해야 한다.
+`SqlIdentifier`는 `NuVatis.Core.Sql` 네임스페이스에 있다.
+
+```csharp
+using NuVatis.Core.Sql;
+```
+
+생성자는 private이며 세 가지 팩토리 메서드로만 생성된다.
+
+| 메서드 | 설명 | 안전 수준 |
+|--------|------|-----------|
+| `SqlIdentifier.FromEnum<T>(T value)` | enum 값 → 이름 문자열 | 최고 |
+| `SqlIdentifier.FromAllowed(string, params string[])` | 화이트리스트 검증 | 높음 |
+| `SqlIdentifier.From(string)` | 패턴 검사만 수행 | 보통 (리터럴 전용) |
+
+`SqlIdentifier.From`이 차단하는 패턴:
+- 금지 문자: `;` `'` `"` `\n` `\r` `\0`
+- 금지 시퀀스: `--` `/*` `*/`
+- SQL 키워드 (단어 경계): `union`, `select`, `drop`, `insert`, `or`, `and`
 
 ## Best Practices
 
 1. 항상 `#{}` 사용을 기본으로 한다
-2. `${}` 사용 시 반드시 화이트리스트 검증을 동반한다
-3. 사용자 입력을 `${}` 에 직접 전달하지 않는다
-4. NV004 경고를 무시하지 않는다
-5. 코드 리뷰에서 `${}` 사용을 반드시 점검한다
+2. `${}` 가 필요하면 `SqlIdentifier.FromEnum` 또는 `SqlIdentifier.FromAllowed`를 사용한다
+3. `[SqlConstant]`는 리터럴 상수에만 사용하고, 런타임 값에는 사용하지 않는다
+4. `SqlIdentifier.From`은 코드에 하드코딩된 리터럴에만 사용한다
+5. 사용자 입력을 어떤 경로로도 `${}` 에 직접 전달하지 않는다

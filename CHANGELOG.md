@@ -5,6 +5,90 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2026-02-27
+
+### Breaking Changes
+
+#### NV004: `${}` string substitution is now a **compile error**
+
+이전 버전에서 NV004는 경고(Warning)였다. 2.0.0부터 **빌드 오류(Error)**로 승격된다.
+`${}` 파라미터의 타입이 `string`이면 코드가 컴파일되지 않는다.
+
+**영향 범위**: XML 매퍼에서 `${}` 를 사용하고, 해당 파라미터의 C# 타입이 `string`인 경우.
+
+**마이그레이션 — 3가지 경로 중 선택:**
+
+경로 1. `#{}` 파라미터 바인딩으로 교체 (권장)
+
+`${}` 가 실제로는 파라미터 바인딩으로도 충분한 경우 `#{}` 로 교체한다.
+
+```xml
+<!-- 변경 전 -->
+<select id="GetUser">
+  SELECT * FROM users WHERE name = ${name}
+</select>
+
+<!-- 변경 후 -->
+<select id="GetUser">
+  SELECT * FROM users WHERE name = #{name}
+</select>
+```
+
+경로 2. `SqlIdentifier` 타입으로 교체 (런타임 검증 포함, 권장)
+
+동적 테이블명·컬럼명처럼 `${}` 가 불가피한 경우 파라미터 타입을 `string` 대신 `SqlIdentifier`로 변경한다.
+`SqlIdentifier`는 생성 시점에 SQL Injection 패턴을 검사하여 런타임에서도 안전하다.
+
+```csharp
+using NuVatis.Core.Sql;
+
+// 변경 전
+public record SortParam(string SortColumn);
+
+// 변경 후: SqlIdentifier.FromEnum (enum 기반, 가장 안전)
+public enum SortColumn { CreatedAt, UserName, Id }
+public record SortParam(SqlIdentifier SortColumn);
+
+// 사용 예시
+mapper.GetSorted(new SortParam(SqlIdentifier.FromEnum(SortColumn.CreatedAt)));
+
+// 또는 SqlIdentifier.FromAllowed (화이트리스트 기반)
+mapper.GetSorted(new SortParam(
+    SqlIdentifier.FromAllowed(userInput, "id", "created_at", "user_name")));
+```
+
+경로 3. `[SqlConstant]` 어트리뷰트로 억제 (컴파일타임 상수 전용)
+
+값이 런타임에 변하지 않는 진짜 상수인 경우에만 사용한다. 이 경우 NV004가 억제되지만 런타임 검증은 없다.
+
+```csharp
+public static class TableRef {
+    [SqlConstant] public const string Users  = "users";
+    [SqlConstant] public const string Orders = "orders";
+}
+```
+
+주의: `[SqlConstant]`를 런타임에 변경될 수 있는 값에 적용하면 SQL Injection에 노출된다.
+`[SqlConstant]` 는 리터럴 상수 또는 컴파일타임 확정 값에만 사용하라.
+
+### Added
+
+- `SqlIdentifier` 타입 (`NuVatis.Core.Sql` 네임스페이스)
+  - `SqlIdentifier.From(string)`: SQL Injection 패턴 런타임 검증 후 생성
+  - `SqlIdentifier.FromEnum<T>(T)`: enum 기반 안전한 생성 (Flags enum 조합 거부)
+  - `SqlIdentifier.FromAllowed(string, params string[])`: 화이트리스트 기반 생성
+- .NET 9.0 / 10.0 멀티 타겟팅 추가 (`net7.0;net8.0;net9.0;net10.0`)
+- `NuVatis.Extensions.Aspire`: `net8.0;net9.0;net10.0` 지원 확대
+
+### Changed
+
+- `ColumnMapper` 내부 최적화: 타입별 컬럼 룩업 딕셔너리 캐시 도입 (O(n²) → O(1))
+  기존 API는 변경 없음. 런타임 성능 개선만 적용.
+- NV004 진단 심각도: `Warning` → `Error`
+  `[SqlConstant]` 또는 `SqlIdentifier` 타입 사용 시 억제 가능.
+
+---
+
 ## [1.0.0] - 2026-02-26
 
 ### Added
