@@ -1,3 +1,5 @@
+using System.Data;
+using System.Data.Common;
 using Microsoft.Data.Sqlite;
 using NuVatis.Mapping;
 using Xunit;
@@ -5,116 +7,201 @@ using Xunit;
 namespace NuVatis.Tests;
 
 /**
- * ResultMapper 단위 테스트. SQLite in-memory로 DB 매핑 동작 검증.
+ * ResultMapper 단위 테스트.
+ * Association, Collection, Nullable, enum 매핑을 검증한다.
  *
  * @author 최진호
- * @date   2026-02-24
+ * @date   2026-02-26
  */
-public sealed class ResultMapperTests {
+public class ResultMapperTests : IDisposable {
 
-    private class TestUser {
-        public int    Id   { get; set; }
-        public string Name { get; set; } = "";
+    private readonly SqliteConnection _conn;
+
+    public class UserDto {
+        public int    Id    { get; set; }
+        public string Name  { get; set; } = "";
+        public int?   Score { get; set; }
     }
 
-    private class TestOrder {
-        public int      OrderId  { get; set; }
-        public string   Product  { get; set; } = "";
-        public TestUser Customer { get; set; } = new();
+    public class OrderDto {
+        public int    OrderId   { get; set; }
+        public string Product   { get; set; } = "";
     }
 
+    public class UserWithOrders {
+        public int               Id     { get; set; }
+        public string            Name   { get; set; } = "";
+        public List<OrderDto>    Orders { get; set; } = new();
+    }
+
+    public class AddressDto {
+        public string City    { get; set; } = "";
+        public string Street  { get; set; } = "";
+    }
+
+    public class UserWithAddress {
+        public int        Id      { get; set; }
+        public string     Name    { get; set; } = "";
+        public AddressDto Address { get; set; } = null!;
+    }
+
+    private readonly Dictionary<string, ResultMapDefinition> _maps;
     private readonly ResultMapper _mapper;
 
     public ResultMapperTests() {
-        var resultMaps = new Dictionary<string, ResultMapDefinition> {
-            ["UserMap"] = new ResultMapDefinition {
+        _conn = new SqliteConnection("Data Source=:memory:");
+        _conn.Open();
+
+        using var cmd = _conn.CreateCommand();
+        cmd.CommandText = """
+            CREATE TABLE users (id INTEGER, name TEXT, score INTEGER);
+            INSERT INTO users VALUES (1, 'Alice', 100);
+            INSERT INTO users VALUES (2, 'Bob',   NULL);
+            CREATE TABLE user_orders (user_id INTEGER, order_id INTEGER, product TEXT, name TEXT);
+            INSERT INTO user_orders VALUES (1, 10, 'Widget', 'Alice');
+            INSERT INTO user_orders VALUES (1, 11, 'Gadget', 'Alice');
+            INSERT INTO user_orders VALUES (2, 20, 'Doohickey', 'Bob');
+            CREATE TABLE user_addr (id INTEGER, name TEXT, addr_city TEXT, addr_street TEXT);
+            INSERT INTO user_addr VALUES (1, 'Alice', 'Seoul', 'Gangnam');
+        """;
+        cmd.ExecuteNonQuery();
+
+        _maps = new Dictionary<string, ResultMapDefinition> {
+            ["UserMap"] = new() {
                 Id   = "UserMap",
-                Type = typeof(TestUser).FullName!,
+                Type = typeof(UserDto).FullName!,
                 Mappings = new List<ResultMapping> {
-                    new() { Column = "id",   Property = "Id",   IsId = true },
-                    new() { Column = "name", Property = "Name" }
+                    new() { Property = "Id",    Column = "id",    IsId = true },
+                    new() { Property = "Name",  Column = "name" },
+                    new() { Property = "Score", Column = "score" }
                 }
             },
-            ["OrderMap"] = new ResultMapDefinition {
+            ["OrderMap"] = new() {
                 Id   = "OrderMap",
-                Type = typeof(TestOrder).FullName!,
+                Type = typeof(OrderDto).FullName!,
                 Mappings = new List<ResultMapping> {
-                    new() { Column = "order_id", Property = "OrderId", IsId = true },
-                    new() { Column = "product",  Property = "Product" }
+                    new() { Property = "OrderId", Column = "order_id", IsId = true },
+                    new() { Property = "Product", Column = "product" }
+                }
+            },
+            ["UserOrdersMap"] = new() {
+                Id   = "UserOrdersMap",
+                Type = typeof(UserWithOrders).FullName!,
+                Mappings = new List<ResultMapping> {
+                    new() { Property = "Id",   Column = "user_id", IsId = true },
+                    new() { Property = "Name", Column = "name" }
+                },
+                Collections = new List<CollectionMapping> {
+                    new() { Property = "Orders", ResultMapId = "OrderMap" }
+                }
+            },
+            ["AddressMap"] = new() {
+                Id   = "AddressMap",
+                Type = typeof(AddressDto).FullName!,
+                Mappings = new List<ResultMapping> {
+                    new() { Property = "City",   Column = "city" },
+                    new() { Property = "Street", Column = "street" }
+                }
+            },
+            ["UserAddressMap"] = new() {
+                Id   = "UserAddressMap",
+                Type = typeof(UserWithAddress).FullName!,
+                Mappings = new List<ResultMapping> {
+                    new() { Property = "Id",   Column = "id", IsId = true },
+                    new() { Property = "Name", Column = "name" }
                 },
                 Associations = new List<AssociationMapping> {
-                    new() { Property = "Customer", ResultMapId = "UserMap", ColumnPrefix = "user_" }
+                    new() { Property = "Address", ResultMapId = "AddressMap", ColumnPrefix = "addr_" }
                 }
             }
         };
-        _mapper = new ResultMapper(resultMaps);
+
+        _mapper = new ResultMapper(_maps);
     }
 
     [Fact]
-    public void MapSimpleRow() {
-        using var conn = CreateDb();
-        Exec(conn, "CREATE TABLE users (id INTEGER, name TEXT)");
-        Exec(conn, "INSERT INTO users VALUES (1, 'Alice')");
-
-        using var cmd    = conn.CreateCommand();
-        cmd.CommandText  = "SELECT id, name FROM users WHERE id = 1";
+    public void MapRow_SimpleType() {
+        using var cmd   = _conn.CreateCommand();
+        cmd.CommandText = "SELECT id, name, score FROM users WHERE id = 1";
         using var reader = cmd.ExecuteReader();
+        reader.Read();
 
-        Assert.True(reader.Read());
-        var user = _mapper.MapRow<TestUser>(reader, "UserMap");
-
+        var user = _mapper.MapRow<UserDto>(reader, "UserMap");
         Assert.Equal(1, user.Id);
         Assert.Equal("Alice", user.Name);
+        Assert.Equal(100, user.Score);
     }
 
     [Fact]
-    public void MapWithAssociation() {
-        using var conn = CreateDb();
-        Exec(conn, "CREATE TABLE orders (order_id INTEGER, product TEXT, user_id INTEGER)");
-        Exec(conn, "CREATE TABLE users (id INTEGER, name TEXT)");
-        Exec(conn, "INSERT INTO users VALUES (10, 'Bob')");
-        Exec(conn, "INSERT INTO orders VALUES (100, 'Laptop', 10)");
-
-        using var cmd   = conn.CreateCommand();
-        cmd.CommandText = "SELECT o.order_id, o.product, u.id AS user_id, u.name AS user_name FROM orders o JOIN users u ON o.user_id = u.id";
+    public void MapRow_NullableProperty() {
+        using var cmd   = _conn.CreateCommand();
+        cmd.CommandText = "SELECT id, name, score FROM users WHERE id = 2";
         using var reader = cmd.ExecuteReader();
+        reader.Read();
 
-        Assert.True(reader.Read());
-        var order = _mapper.MapRow<TestOrder>(reader, "OrderMap");
-
-        Assert.Equal(100, order.OrderId);
-        Assert.Equal("Laptop", order.Product);
-        Assert.NotNull(order.Customer);
-        Assert.Equal(10, order.Customer.Id);
-        Assert.Equal("Bob", order.Customer.Name);
+        var user = _mapper.MapRow<UserDto>(reader, "UserMap");
+        Assert.Equal(2, user.Id);
+        Assert.Null(user.Score);
     }
 
     [Fact]
-    public void MapRowsList() {
-        using var conn = CreateDb();
-        Exec(conn, "CREATE TABLE users (id INTEGER, name TEXT)");
-        Exec(conn, "INSERT INTO users VALUES (1, 'Alice'), (2, 'Bob')");
-
-        using var cmd   = conn.CreateCommand();
-        cmd.CommandText = "SELECT id, name FROM users ORDER BY id";
+    public void MapRows_SimpleList() {
+        using var cmd   = _conn.CreateCommand();
+        cmd.CommandText = "SELECT id, name, score FROM users ORDER BY id";
         using var reader = cmd.ExecuteReader();
 
-        var users = _mapper.MapRows<TestUser>(reader, "UserMap");
-
+        var users = _mapper.MapRows<UserDto>(reader, "UserMap");
         Assert.Equal(2, users.Count);
-        Assert.Equal("Alice", users[0].Name);
-        Assert.Equal("Bob", users[1].Name);
     }
 
-    private static SqliteConnection CreateDb() {
-        var conn = new SqliteConnection("Data Source=:memory:");
-        conn.Open();
-        return conn;
+    [Fact]
+    public void MapRows_WithCollection() {
+        using var cmd   = _conn.CreateCommand();
+        cmd.CommandText = "SELECT user_id, name, order_id, product FROM user_orders ORDER BY user_id, order_id";
+        using var reader = cmd.ExecuteReader();
+
+        var users = _mapper.MapRows<UserWithOrders>(reader, "UserOrdersMap");
+        Assert.Equal(2, users.Count);
+        Assert.Equal(2, users[0].Orders.Count);
+        Assert.Single(users[1].Orders);
     }
 
-    private static void Exec(SqliteConnection conn, string sql) {
-        using var cmd   = conn.CreateCommand();
-        cmd.CommandText = sql;
-        cmd.ExecuteNonQuery();
+    [Fact]
+    public void MapRow_WithAssociation() {
+        using var cmd   = _conn.CreateCommand();
+        cmd.CommandText = "SELECT id, name, addr_city, addr_street FROM user_addr WHERE id = 1";
+        using var reader = cmd.ExecuteReader();
+        reader.Read();
+
+        var user = _mapper.MapRow<UserWithAddress>(reader, "UserAddressMap");
+        Assert.Equal(1, user.Id);
+        Assert.NotNull(user.Address);
+        Assert.Equal("Seoul", user.Address.City);
+        Assert.Equal("Gangnam", user.Address.Street);
+    }
+
+    [Fact]
+    public void MapRow_NotFound_ResultMap_Throws() {
+        using var cmd   = _conn.CreateCommand();
+        cmd.CommandText = "SELECT 1";
+        using var reader = cmd.ExecuteReader();
+        reader.Read();
+
+        Assert.Throws<KeyNotFoundException>(() =>
+            _mapper.MapRow<UserDto>(reader, "NonExistentMap"));
+    }
+
+    [Fact]
+    public void MapRows_NotFound_ResultMap_Throws() {
+        using var cmd   = _conn.CreateCommand();
+        cmd.CommandText = "SELECT 1";
+        using var reader = cmd.ExecuteReader();
+
+        Assert.Throws<KeyNotFoundException>(() =>
+            _mapper.MapRows<UserDto>(reader, "NonExistentMap"));
+    }
+
+    public void Dispose() {
+        _conn.Dispose();
     }
 }

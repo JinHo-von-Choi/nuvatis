@@ -1,4 +1,4 @@
 using BenchmarkDotNet.Running;
 using NuVatis.Benchmarks;
 
-BenchmarkRunner.Run<SqliteReadBenchmark>();
+BenchmarkSwitcher.FromAssembly(typeof(SqliteReadBenchmark).Assembly).Run(args);

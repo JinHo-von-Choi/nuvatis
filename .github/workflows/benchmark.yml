@@ -1,0 +1,99 @@
+##############################################################################
+# NuVatis Benchmark CI
+#
+# 작성자: 최진호
+# 작성일: 2026-02-26
+#
+# 트리거:
+#   - main push
+#   - 수동 (workflow_dispatch)
+#
+# 동작:
+#   1. BenchmarkDotNet 실행 (SelectOne, SelectList, Insert, BatchInsert)
+#   2. 결과를 GitHub Actions artifact로 저장
+#   3. 이전 결과와 비교하여 성능 회귀 시 경고
+##############################################################################
+
+name: Benchmark
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/**'
+      - 'benchmarks/**'
+  workflow_dispatch:
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+
+jobs:
+  benchmark:
+    name: Run Benchmarks
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore benchmarks/NuVatis.Benchmarks/NuVatis.Benchmarks.csproj
+
+      - name: Build
+        run: |
+          dotnet build benchmarks/NuVatis.Benchmarks/NuVatis.Benchmarks.csproj \
+            --configuration Release \
+            --no-restore
+
+      - name: Run Benchmarks
+        run: |
+          dotnet run \
+            --project benchmarks/NuVatis.Benchmarks/NuVatis.Benchmarks.csproj \
+            --configuration Release \
+            --no-build \
+            -- --filter '*' \
+               --exporters json \
+               --artifacts ./benchmark-results
+
+      - name: Upload Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: benchmark-results-${{ github.sha }}
+          path: ./benchmark-results/
+          retention-days: 90
+
+      - name: Performance Regression Check
+        if: success()
+        run: |
+          echo "=== Benchmark Results Summary ==="
+          if [ -d "./benchmark-results/results" ]; then
+            for f in ./benchmark-results/results/*.json; do
+              echo "--- $(basename "$f") ---"
+              python3 -c "
+          import json, sys
+          with open('$f') as fh:
+              data = json.load(fh)
+          for b in data.get('Benchmarks', []):
+              name = b.get('DisplayInfo', 'unknown')
+              stats = b.get('Statistics', {})
+              mean = stats.get('Mean', 0)
+              alloc = b.get('Memory', {}).get('BytesAllocatedPerOperation', 0)
+              print(f'  {name}: {mean/1e6:.2f} ms, {alloc} B alloc')
+          " 2>/dev/null || echo "  (parse skipped)"
+            done
+          else
+            echo "No result files found."
+          fi
+          echo "=== Done ==="

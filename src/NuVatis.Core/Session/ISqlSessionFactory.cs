@@ -9,7 +9,7 @@ namespace NuVatis.Session;
  *
  * @author 최진호
  * @date   2026-02-24
- * @modified 2026-02-25 FromExistingConnection 추가 (Phase 6.2 B-1)
+ * @modified 2026-02-26 OpenBatchSession 추가
  */
 public interface ISqlSessionFactory {
 
@@ -18,6 +18,15 @@ public interface ISqlSessionFactory {
 
     /** autoCommit=true인 읽기 전용 세션을 생성한다. */
     ISqlSession OpenReadOnlySession();
+
+    /**
+     * 배치 모드 세션을 생성한다.
+     * Insert/Update/Delete 호출 시 쿼리를 배치에 누적하고,
+     * FlushStatements() 호출 시 일괄 실행한다.
+     * Select 연산은 즉시 실행된다.
+     * Commit 전 미처리 배치가 있으면 자동 Flush 후 Commit한다.
+     */
+    ISqlSession OpenBatchSession();
 
     /**
      * 이미 열린 DbConnection과 선택적 DbTransaction을 사용하여 세션을 생성한다.

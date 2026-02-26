@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using NuVatis.Generators.Diagnostics;
 using NuVatis.Generators.Models;
@@ -7,10 +8,12 @@ namespace NuVatis.Generators.Tests;
 
 /**
  * StringSubstitutionAnalyzer 단위 테스트.
- * ${} 문자열 치환 탐지가 다양한 SQL 노드 구조에서 정확히 동작하는지 검증한다.
+ * ${} 문자열 치환 탐지가 다양한 SQL 노드 구조에서 정확히 동작하는지,
+ * [SqlConstant] 화이트리스트에 의한 NV004 억제가 올바르게 동작하는지 검증한다.
  *
  * @author 최진호
  * @date   2026-02-25
+ * @modified 2026-02-26 [SqlConstant] 억제 테스트 추가
  */
 public class StringSubstitutionAnalyzerTests {
 
@@ -162,6 +165,52 @@ public class StringSubstitutionAnalyzerTests {
         var results = StringSubstitutionAnalyzer.Analyze(mapper);
 
         Assert.Empty(results);
+    }
+
+    [Fact]
+    public void SqlConstant_Suppresses_Warning() {
+        var mapper = BuildMapper("TestNs", "dynamicOrder",
+            new MixedNode(ImmutableArray.Create<ParsedSqlNode>(
+                new TextNode("SELECT * FROM users ORDER BY "),
+                new ParameterNode("OrderColumn", IsStringSubstitution: true)
+            )));
+
+        var sqlConstants = new HashSet<string> { "OrderColumn", "orderColumn" };
+        var results      = StringSubstitutionAnalyzer.Analyze(mapper, sqlConstants);
+
+        Assert.Empty(results);
+    }
+
+    [Fact]
+    public void NonSqlConstant_Still_Triggers_Warning() {
+        var mapper = BuildMapper("TestNs", "dynamicOrder",
+            new MixedNode(ImmutableArray.Create<ParsedSqlNode>(
+                new TextNode("SELECT * FROM users ORDER BY "),
+                new ParameterNode("userInput", IsStringSubstitution: true)
+            )));
+
+        var sqlConstants = new HashSet<string> { "OrderColumn" };
+        var results      = StringSubstitutionAnalyzer.Analyze(mapper, sqlConstants);
+
+        Assert.Single(results);
+        Assert.Equal("userInput", results[0].ParameterName);
+    }
+
+    [Fact]
+    public void MixedSqlConstant_And_NonConstant_Reports_Only_NonConstant() {
+        var mapper = BuildMapper("TestNs", "mixed",
+            new MixedNode(ImmutableArray.Create<ParsedSqlNode>(
+                new TextNode("SELECT * FROM "),
+                new ParameterNode("tableName", IsStringSubstitution: true),
+                new TextNode(" ORDER BY "),
+                new ParameterNode("sortColumn", IsStringSubstitution: true)
+            )));
+
+        var sqlConstants = new HashSet<string> { "sortColumn" };
+        var results      = StringSubstitutionAnalyzer.Analyze(mapper, sqlConstants);
+
+        Assert.Single(results);
+        Assert.Equal("tableName", results[0].ParameterName);
     }
 
     private static ParsedMapper BuildMapper(string ns, string statementId, ParsedSqlNode rootNode) {

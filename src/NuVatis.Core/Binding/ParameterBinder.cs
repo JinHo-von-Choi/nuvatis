@@ -4,6 +4,7 @@ using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using NuVatis.Internal;
 
 namespace NuVatis.Binding;
 
@@ -38,7 +39,7 @@ public static class ParameterBinder {
         string paramPrefix = "@",
         DbProviderFactory? dbFactory = null) {
 
-        var parameters = new List<DbParameter>();
+        var parameters = DbParameterListPool.Rent();
         var index      = 0;
 
         var sql = ParamPattern.Replace(sqlSource, match => {

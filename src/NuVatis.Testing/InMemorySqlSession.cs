@@ -1,3 +1,4 @@
+using System.Data.Common;
 using System.Runtime.CompilerServices;
 using NuVatis.Mapping;
 using NuVatis.Session;
@@ -10,7 +11,7 @@ namespace NuVatis.Testing;
  *
  * @author 최진호
  * @date   2026-02-24
- * @modified 2026-02-25 SelectStream 추가 (Phase 6.1 A-1)
+ * @modified 2026-02-26 SG 매핑 함수 오버로드 추가
  */
 public sealed class InMemorySqlSession : ISqlSession {
 
@@ -88,6 +89,24 @@ public sealed class InMemorySqlSession : ISqlSession {
         throw new NotSupportedException("InMemorySqlSession does not support SelectMultipleAsync.");
     }
 
+    public T? SelectOne<T>(string statementId, object? parameter, Func<DbDataReader, T> mapper) {
+        return SelectOne<T>(statementId, parameter);
+    }
+
+    public Task<T?> SelectOneAsync<T>(
+        string statementId, object? parameter, Func<DbDataReader, T> mapper, CancellationToken ct = default) {
+        return SelectOneAsync<T>(statementId, parameter, ct);
+    }
+
+    public IList<T> SelectList<T>(string statementId, object? parameter, Func<DbDataReader, T> mapper) {
+        return SelectList<T>(statementId, parameter);
+    }
+
+    public Task<IList<T>> SelectListAsync<T>(
+        string statementId, object? parameter, Func<DbDataReader, T> mapper, CancellationToken ct = default) {
+        return SelectListAsync<T>(statementId, parameter, ct);
+    }
+
     public int Insert(string statementId, object? parameter = null) {
         _capturedQueries.Add(new(statementId, parameter, "Insert"));
         return _results.TryGetValue(statementId, out var result) ? (int)result : 0;
@@ -127,6 +146,9 @@ public sealed class InMemorySqlSession : ISqlSession {
     public void Rollback() { }
     public Task RollbackAsync(CancellationToken ct = default) => Task.CompletedTask;
     public Task ExecuteInTransactionAsync(Func<Task> action, CancellationToken ct = default) => action();
+    public int FlushStatements() => 0;
+    public Task<int> FlushStatementsAsync(CancellationToken ct = default) => Task.FromResult(0);
+    public bool IsBatchMode => false;
     public void Dispose() { }
     public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 }

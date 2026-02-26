@@ -1,4 +1,4 @@
-
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
@@ -36,6 +36,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuVatis.Extensions.OpenTelemetry", "src\NuVatis.Extensions.OpenTelemetry\NuVatis.Extensions.OpenTelemetry.csproj", "{19AA09FC-4818-4AB9-AF01-64CCA05BF585}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuVatis.Extensions.EntityFrameworkCore", "src\NuVatis.Extensions.EntityFrameworkCore\NuVatis.Extensions.EntityFrameworkCore.csproj", "{0FEA2E12-8315-4817-A2D3-C50D5245DECA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuVatis.Sqlite", "src\NuVatis.Sqlite\NuVatis.Sqlite.csproj", "{C43B345C-9A15-47C4-B929-07663EA0C67A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuVatis.Extensions.Aspire", "src\NuVatis.Extensions.Aspire\NuVatis.Extensions.Aspire.csproj", "{72A114A1-FC77-4558-BD6D-783D511B748C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -98,6 +102,14 @@ Global
 		{0FEA2E12-8315-4817-A2D3-C50D5245DECA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0FEA2E12-8315-4817-A2D3-C50D5245DECA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0FEA2E12-8315-4817-A2D3-C50D5245DECA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C43B345C-9A15-47C4-B929-07663EA0C67A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C43B345C-9A15-47C4-B929-07663EA0C67A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C43B345C-9A15-47C4-B929-07663EA0C67A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C43B345C-9A15-47C4-B929-07663EA0C67A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{72A114A1-FC77-4558-BD6D-783D511B748C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{72A114A1-FC77-4558-BD6D-783D511B748C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{72A114A1-FC77-4558-BD6D-783D511B748C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{72A114A1-FC77-4558-BD6D-783D511B748C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{55FB60E4-6C05-490C-8B03-FD0D2543B1B0} = {F0870B8B-A820-4738-BBDA-691350D7AA0A}
@@ -113,5 +125,7 @@ Global
 		{402D8E95-1B27-4E6C-A574-B595D63AE930} = {F0870B8B-A820-4738-BBDA-691350D7AA0A}
 		{19AA09FC-4818-4AB9-AF01-64CCA05BF585} = {F0870B8B-A820-4738-BBDA-691350D7AA0A}
 		{0FEA2E12-8315-4817-A2D3-C50D5245DECA} = {F0870B8B-A820-4738-BBDA-691350D7AA0A}
+		{C43B345C-9A15-47C4-B929-07663EA0C67A} = {F0870B8B-A820-4738-BBDA-691350D7AA0A}
+		{72A114A1-FC77-4558-BD6D-783D511B748C} = {F0870B8B-A820-4738-BBDA-691350D7AA0A}
 	EndGlobalSection
 EndGlobal

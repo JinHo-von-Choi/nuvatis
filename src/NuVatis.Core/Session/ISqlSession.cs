@@ -12,7 +12,7 @@ namespace NuVatis.Session;
  *
  * @author 최진호
  * @date   2026-02-24
- * @modified 2026-02-25 SelectStream 추가 (Phase 6.1 A-1)
+ * @modified 2026-02-26 SG 매핑 함수 오버로드 추가
  */
 public interface ISqlSession : IDisposable, IAsyncDisposable {
 
@@ -67,4 +67,32 @@ public interface ISqlSession : IDisposable, IAsyncDisposable {
      * 성공 시 자동 Commit, 예외 시 자동 Rollback 후 rethrow.
      */
     Task ExecuteInTransactionAsync(Func<Task> action, CancellationToken ct = default);
+
+    /**
+     * 배치 모드에서 누적된 Write 쿼리를 일괄 실행한다.
+     * 배치 모드가 아닌 세션에서 호출하면 0을 반환한다.
+     *
+     * @return 영향받은 총 행 수
+     */
+    int FlushStatements();
+
+    /** FlushStatements의 비동기 버전. */
+    Task<int> FlushStatementsAsync(CancellationToken ct = default);
+
+    /** 현재 세션이 배치 모드인지 여부. */
+    bool IsBatchMode { get; }
+
+    /**
+     * SG 생성 매핑 함수를 사용하여 단일 행을 조회한다.
+     * 런타임 리플렉션 매핑을 우회하여 성능을 개선한다.
+     */
+    T? SelectOne<T>(string statementId, object? parameter, Func<DbDataReader, T> mapper);
+    Task<T?> SelectOneAsync<T>(string statementId, object? parameter, Func<DbDataReader, T> mapper, CancellationToken ct = default);
+
+    /**
+     * SG 생성 매핑 함수를 사용하여 복수 행을 조회한다.
+     * 런타임 리플렉션 매핑을 우회하여 성능을 개선한다.
+     */
+    IList<T> SelectList<T>(string statementId, object? parameter, Func<DbDataReader, T> mapper);
+    Task<IList<T>> SelectListAsync<T>(string statementId, object? parameter, Func<DbDataReader, T> mapper, CancellationToken ct = default);
 }

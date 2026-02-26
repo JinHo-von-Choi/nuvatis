@@ -220,6 +220,12 @@ public static class XmlMapperParser {
             case "include":
                 return new IncludeNode(RequireAttr(element, "refid"));
 
+            case "bind":
+                return new BindNode(
+                    Name:  RequireAttr(element, "name"),
+                    Value: RequireAttr(element, "value")
+                );
+
             default:
                 return ParseChildNodes(element);
         }

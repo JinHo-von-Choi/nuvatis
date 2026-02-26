@@ -284,4 +284,26 @@ public class XmlMapperParserTests {
 
         Assert.Null(mapper.Statements[0].Timeout);
     }
+
+    [Fact]
+    public void ParseBindTag() {
+        const string xml = @"
+<mapper namespace=""UserMapper"">
+    <select id=""SearchByName"">
+        <bind name=""pattern"" value=""'%' + name + '%'"" />
+        SELECT * FROM users WHERE name LIKE #{pattern}
+    </select>
+</mapper>";
+
+        var mapper = XmlMapperParser.Parse(xml, CancellationToken.None);
+        var stmt   = mapper.Statements[0];
+
+        Assert.Equal("SearchByName", stmt.Id);
+
+        var mixed = Assert.IsType<MixedNode>(stmt.RootNode);
+        var bind  = mixed.Children.OfType<BindNode>().FirstOrDefault();
+        Assert.NotNull(bind);
+        Assert.Equal("pattern", bind!.Name);
+        Assert.Equal("'%' + name + '%'", bind.Value);
+    }
 }

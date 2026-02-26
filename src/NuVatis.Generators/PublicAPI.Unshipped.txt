@@ -1,0 +1,189 @@
+#nullable enable
+Analyze
+BindNode
+ChooseNode
+CollectSqlConstantNames
+ConvertTestExpression
+CreateLocation
+DiagnosticDescriptors
+DynamicSqlEmitter
+Emit
+EmitBuildSqlMethod
+EmitMapMethod
+EmitSqlBuilder
+FindMapperInterfaces
+ForEachNode
+GetCollectionElementType
+GetFullyQualifiedName
+HasDynamicNodes
+IfNode
+IncludeNode
+IncludeResolver
+Initialize
+InterfaceAnalyzer
+IsCollectionType
+IsNullableType
+IsTaskType
+MapperInterfaceInfo
+MapperMethodInfo
+MapperParameterInfo
+MappingEmitter
+MixedNode
+NuVatisIncrementalGenerator
+ParameterEmitter
+ParameterNode
+ParameterNotFound
+Parse
+ParsedAssociation
+ParsedCollection
+ParsedConfig
+ParsedMapper
+ParsedResultMap
+ParsedResultMapping
+ParsedSqlFragment
+ParsedSqlNode
+ParsedStatement
+ProxyEmitter
+RegistryEmitter
+ResolveIncludes
+ResultMapColumnMismatch
+ResultMapNotFound
+ResultMapPropertyAnalyzer
+ResultMapPropertyMismatch
+ResultMapPropertyNotFound
+SanitizeIdPublic
+SetNode
+SqlInjectionWarning
+StatementNotFound
+StringSubstitutionAnalyzer
+StringSubstitutionUsage
+TestExpressionCompilationFailed
+TextNode
+TypeResolver
+UnusedResultMap
+UnusedResultMapAnalyzer
+UnwrapNullable
+UnwrapTask
+WhenClause
+WhereNode
+XmlConfigParser
+XmlLocationMapper
+XmlMapperParser
+implicit constructor for 'NuVatisIncrementalGenerator'
+implicit constructor for 'ResultMapPropertyMismatch'
+implicit constructor for 'StringSubstitutionUsage'
+implicit constructor for 'UnusedResultMap'
+implicit get-accessor for 'Associations'
+implicit get-accessor for 'Children'
+implicit get-accessor for 'Close'
+implicit get-accessor for 'Collection'
+implicit get-accessor for 'Collections'
+implicit get-accessor for 'Column'
+implicit get-accessor for 'ColumnPrefix'
+implicit get-accessor for 'ConnectionString'
+implicit get-accessor for 'ElementType'
+implicit get-accessor for 'Extends'
+implicit get-accessor for 'FullyQualifiedName'
+implicit get-accessor for 'Id'
+implicit get-accessor for 'IsAsync'
+implicit get-accessor for 'IsCancellationToken'
+implicit get-accessor for 'IsId'
+implicit get-accessor for 'IsStringSubstitution'
+implicit get-accessor for 'Item'
+implicit get-accessor for 'MapperResources'
+implicit get-accessor for 'Mappings'
+implicit get-accessor for 'Methods'
+implicit get-accessor for 'Name'
+implicit get-accessor for 'Namespace'
+implicit get-accessor for 'OfType'
+implicit get-accessor for 'Open'
+implicit get-accessor for 'Otherwise'
+implicit get-accessor for 'ParameterName'
+implicit get-accessor for 'ParameterType'
+implicit get-accessor for 'Parameters'
+implicit get-accessor for 'Property'
+implicit get-accessor for 'PropertyName'
+implicit get-accessor for 'Provider'
+implicit get-accessor for 'RefId'
+implicit get-accessor for 'ResultMapAttributeValue'
+implicit get-accessor for 'ResultMapId'
+implicit get-accessor for 'ResultMaps'
+implicit get-accessor for 'ResultType'
+implicit get-accessor for 'ReturnType'
+implicit get-accessor for 'ReturnsList'
+implicit get-accessor for 'RootNode'
+implicit get-accessor for 'Select'
+implicit get-accessor for 'Separator'
+implicit get-accessor for 'SqlAttributeType'
+implicit get-accessor for 'SqlAttributeValue'
+implicit get-accessor for 'SqlFragments'
+implicit get-accessor for 'StatementId'
+implicit get-accessor for 'StatementType'
+implicit get-accessor for 'Statements'
+implicit get-accessor for 'Test'
+implicit get-accessor for 'Text'
+implicit get-accessor for 'Timeout'
+implicit get-accessor for 'Type'
+implicit get-accessor for 'TypeAliases'
+implicit get-accessor for 'TypeHandler'
+implicit get-accessor for 'TypeName'
+implicit get-accessor for 'UnwrappedReturnType'
+implicit get-accessor for 'Value'
+implicit get-accessor for 'Whens'
+implicit set-accessor for 'Associations'
+implicit set-accessor for 'Children'
+implicit set-accessor for 'Close'
+implicit set-accessor for 'Collection'
+implicit set-accessor for 'Collections'
+implicit set-accessor for 'Column'
+implicit set-accessor for 'ColumnPrefix'
+implicit set-accessor for 'ConnectionString'
+implicit set-accessor for 'ElementType'
+implicit set-accessor for 'Extends'
+implicit set-accessor for 'FullyQualifiedName'
+implicit set-accessor for 'Id'
+implicit set-accessor for 'IsAsync'
+implicit set-accessor for 'IsCancellationToken'
+implicit set-accessor for 'IsId'
+implicit set-accessor for 'IsStringSubstitution'
+implicit set-accessor for 'Item'
+implicit set-accessor for 'MapperResources'
+implicit set-accessor for 'Mappings'
+implicit set-accessor for 'Methods'
+implicit set-accessor for 'Name'
+implicit set-accessor for 'Namespace'
+implicit set-accessor for 'OfType'
+implicit set-accessor for 'Open'
+implicit set-accessor for 'Otherwise'
+implicit set-accessor for 'ParameterName'
+implicit set-accessor for 'ParameterType'
+implicit set-accessor for 'Parameters'
+implicit set-accessor for 'Property'
+implicit set-accessor for 'PropertyName'
+implicit set-accessor for 'Provider'
+implicit set-accessor for 'RefId'
+implicit set-accessor for 'ResultMapAttributeValue'
+implicit set-accessor for 'ResultMapId'
+implicit set-accessor for 'ResultMaps'
+implicit set-accessor for 'ResultType'
+implicit set-accessor for 'ReturnType'
+implicit set-accessor for 'ReturnsList'
+implicit set-accessor for 'RootNode'
+implicit set-accessor for 'Select'
+implicit set-accessor for 'Separator'
+implicit set-accessor for 'SqlAttributeType'
+implicit set-accessor for 'SqlAttributeValue'
+implicit set-accessor for 'SqlFragments'
+implicit set-accessor for 'StatementId'
+implicit set-accessor for 'StatementType'
+implicit set-accessor for 'Statements'
+implicit set-accessor for 'Test'
+implicit set-accessor for 'Text'
+implicit set-accessor for 'Timeout'
+implicit set-accessor for 'Type'
+implicit set-accessor for 'TypeAliases'
+implicit set-accessor for 'TypeHandler'
+implicit set-accessor for 'TypeName'
+implicit set-accessor for 'UnwrappedReturnType'
+implicit set-accessor for 'Value'
+implicit set-accessor for 'Whens'

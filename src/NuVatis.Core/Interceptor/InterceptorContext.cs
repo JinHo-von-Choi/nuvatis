@@ -11,11 +11,11 @@ namespace NuVatis.Interceptor;
  * @date   2026-02-24
  */
 public sealed class InterceptorContext {
-    public required string                     StatementId         { get; init; }
+    public required string                     StatementId         { get; set; }
     public required string                     Sql                 { get; set; }
     public required IReadOnlyList<DbParameter> Parameters          { get; set; }
-    public object?                             Parameter           { get; init; }
-    public StatementType                       StatementType       { get; init; }
+    public object?                             Parameter           { get; set; }
+    public StatementType                       StatementType       { get; set; }
     public long                                ElapsedMilliseconds { get; set; }
     public int?                                AffectedRows        { get; set; }
     public Exception?                          Exception           { get; set; }

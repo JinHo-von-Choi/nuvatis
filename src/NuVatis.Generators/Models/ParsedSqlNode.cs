@@ -32,6 +32,12 @@ public sealed record ForEachNode(
 
 public sealed record IncludeNode(string RefId) : ParsedSqlNode;
 
+/**
+ * <bind> 태그. name에 value 표현식의 결과를 바인딩한다.
+ * SG에서는 로컬 변수 선언 코드로 변환된다.
+ */
+public sealed record BindNode(string Name, string Value) : ParsedSqlNode;
+
 public sealed record ParameterNode(string Name, bool IsStringSubstitution) : ParsedSqlNode;
 
 public sealed record MixedNode(ImmutableArray<ParsedSqlNode> Children) : ParsedSqlNode;

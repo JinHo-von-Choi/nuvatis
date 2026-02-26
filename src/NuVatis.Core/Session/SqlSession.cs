@@ -7,6 +7,7 @@ using NuVatis.Cache;
 using NuVatis.Configuration;
 using NuVatis.Executor;
 using NuVatis.Interceptor;
+using NuVatis.Internal;
 using NuVatis.Mapping;
 using NuVatis.Statement;
 
@@ -14,23 +15,26 @@ namespace NuVatis.Session;
 
 /**
  * ISqlSession의 기본 구현.
- * Lazy Connection, Thread Safety 보호, autoCommit 지원.
+ * Lazy Connection, Thread Safety 보호, autoCommit, 배치 모드 지원.
  *
  * @author   최진호
  * @date     2026-02-24
- * @modified 2026-02-25 Stopwatch+Interceptor 반복 패턴 DRY 리팩토링
+ * @modified 2026-02-26 배치 모드 지원 (FlushStatements, OpenBatchSession)
  */
 public sealed class SqlSession : ISqlSession {
     private readonly NuVatisConfiguration _configuration;
     private readonly IExecutor _executor;
+    private readonly BatchExecutor? _batchExecutor;
     private readonly Func<Type, ISqlSession, object>? _mapperFactory;
     private readonly InterceptorPipeline? _interceptorPipeline;
     private readonly ILogger? _logger;
     private readonly bool _autoCommit;
 
-    private int _isBusy;
+    private int  _isBusy;
     private bool _committed;
     private bool _disposed;
+
+    public bool IsBatchMode => _batchExecutor is not null;
 
     internal SqlSession(
         NuVatisConfiguration configuration,
@@ -38,13 +42,15 @@ public sealed class SqlSession : ISqlSession {
         bool autoCommit = false,
         Func<Type, ISqlSession, object>? mapperFactory = null,
         ILogger? logger = null,
-        InterceptorPipeline? interceptorPipeline = null) {
+        InterceptorPipeline? interceptorPipeline = null,
+        BatchExecutor? batchExecutor = null) {
         _configuration       = configuration;
         _executor            = executor;
         _autoCommit          = autoCommit;
         _mapperFactory       = mapperFactory;
         _logger              = logger;
         _interceptorPipeline = interceptorPipeline;
+        _batchExecutor       = batchExecutor;
     }
 
     public T? SelectOne<T>(string statementId, object? parameter = null) {
@@ -191,6 +197,78 @@ public sealed class SqlSession : ISqlSession {
         }
     }
 
+    public T? SelectOne<T>(string statementId, object? parameter, Func<DbDataReader, T> mapper) {
+        EnsureNotDisposed();
+        EnsureNotBusy();
+        try {
+            var statement         = ResolveStatement(statementId);
+            var (sql, parameters) = BuildSql(statement, parameter);
+            var ctx               = CreateInterceptorContext(statement, sql, parameters, parameter);
+
+            var result = ExecuteTimed(ctx,
+                () => _executor.SelectOne(statement, ctx.Sql, ctx.Parameters, mapper));
+            PutCache(statement, parameter, result);
+            return result;
+        } finally {
+            ReleaseBusy();
+        }
+    }
+
+    public async Task<T?> SelectOneAsync<T>(
+        string statementId, object? parameter, Func<DbDataReader, T> mapper, CancellationToken ct = default) {
+        EnsureNotDisposed();
+        EnsureNotBusy();
+        try {
+            var statement         = ResolveStatement(statementId);
+            var (sql, parameters) = BuildSql(statement, parameter);
+            var ctx               = CreateInterceptorContext(statement, sql, parameters, parameter);
+
+            var result = await ExecuteTimedAsync(ctx,
+                () => _executor.SelectOneAsync(statement, ctx.Sql, ctx.Parameters, mapper, ct), ct)
+                .ConfigureAwait(false);
+            PutCache(statement, parameter, result);
+            return result;
+        } finally {
+            ReleaseBusy();
+        }
+    }
+
+    public IList<T> SelectList<T>(string statementId, object? parameter, Func<DbDataReader, T> mapper) {
+        EnsureNotDisposed();
+        EnsureNotBusy();
+        try {
+            var statement         = ResolveStatement(statementId);
+            var (sql, parameters) = BuildSql(statement, parameter);
+            var ctx               = CreateInterceptorContext(statement, sql, parameters, parameter);
+
+            var result = ExecuteTimed(ctx,
+                () => _executor.SelectList(statement, ctx.Sql, ctx.Parameters, mapper));
+            PutCache(statement, parameter, result);
+            return result;
+        } finally {
+            ReleaseBusy();
+        }
+    }
+
+    public async Task<IList<T>> SelectListAsync<T>(
+        string statementId, object? parameter, Func<DbDataReader, T> mapper, CancellationToken ct = default) {
+        EnsureNotDisposed();
+        EnsureNotBusy();
+        try {
+            var statement         = ResolveStatement(statementId);
+            var (sql, parameters) = BuildSql(statement, parameter);
+            var ctx               = CreateInterceptorContext(statement, sql, parameters, parameter);
+
+            var result = await ExecuteTimedAsync(ctx,
+                () => _executor.SelectListAsync(statement, ctx.Sql, ctx.Parameters, mapper, ct), ct)
+                .ConfigureAwait(false);
+            PutCache(statement, parameter, result);
+            return result;
+        } finally {
+            ReleaseBusy();
+        }
+    }
+
     public int Insert(string statementId, object? parameter = null) => ExecuteWrite(statementId, parameter);
     public Task<int> InsertAsync(string statementId, object? parameter = null, CancellationToken ct = default) => ExecuteWriteAsync(statementId, parameter, ct);
     public int Update(string statementId, object? parameter = null) => ExecuteWrite(statementId, parameter);
@@ -200,12 +278,18 @@ public sealed class SqlSession : ISqlSession {
 
     public void Commit() {
         EnsureNotDisposed();
+        if (_batchExecutor is { Count: > 0 }) {
+            _batchExecutor.Flush();
+        }
         _executor.Commit();
         _committed = true;
     }
 
     public async Task CommitAsync(CancellationToken ct = default) {
         EnsureNotDisposed();
+        if (_batchExecutor is { Count: > 0 }) {
+            await _batchExecutor.FlushAsync(ct).ConfigureAwait(false);
+        }
         await _executor.CommitAsync(ct).ConfigureAwait(false);
         _committed = true;
     }
@@ -269,6 +353,30 @@ public sealed class SqlSession : ISqlSession {
         await _executor.DisposeAsync().ConfigureAwait(false);
     }
 
+    public int FlushStatements() {
+        EnsureNotDisposed();
+        if (_batchExecutor is null) return 0;
+
+        EnsureNotBusy();
+        try {
+            return _batchExecutor.Flush();
+        } finally {
+            ReleaseBusy();
+        }
+    }
+
+    public async Task<int> FlushStatementsAsync(CancellationToken ct = default) {
+        EnsureNotDisposed();
+        if (_batchExecutor is null) return 0;
+
+        EnsureNotBusy();
+        try {
+            return await _batchExecutor.FlushAsync(ct).ConfigureAwait(false);
+        } finally {
+            ReleaseBusy();
+        }
+    }
+
     private int ExecuteWrite(string statementId, object? parameter) {
         EnsureNotDisposed();
         EnsureNotBusy();
@@ -276,6 +384,14 @@ public sealed class SqlSession : ISqlSession {
             var statement         = ResolveStatement(statementId);
             var (sql, parameters) = BuildSql(statement, parameter);
             var ctx               = CreateInterceptorContext(statement, sql, parameters, parameter);
+
+            if (_batchExecutor is not null) {
+                RunBefore(ctx);
+                _batchExecutor.Add(statement, ctx.Sql, ctx.Parameters);
+                RunAfter(ctx);
+                FlushNamespaceCache(statement);
+                return 0;
+            }
 
             var affected = ExecuteTimed(ctx,
                 () => _executor.Execute(statement, ctx.Sql, ctx.Parameters),
@@ -294,6 +410,14 @@ public sealed class SqlSession : ISqlSession {
             var statement         = ResolveStatement(statementId);
             var (sql, parameters) = BuildSql(statement, parameter);
             var ctx               = CreateInterceptorContext(statement, sql, parameters, parameter);
+
+            if (_batchExecutor is not null) {
+                await RunBeforeAsync(ctx, ct).ConfigureAwait(false);
+                _batchExecutor.Add(statement, ctx.Sql, ctx.Parameters);
+                await RunAfterAsync(ctx, ct).ConfigureAwait(false);
+                FlushNamespaceCache(statement);
+                return 0;
+            }
 
             var affected = await ExecuteTimedAsync(ctx,
                 () => _executor.ExecuteAsync(statement, ctx.Sql, ctx.Parameters, ct), ct,
@@ -353,11 +477,15 @@ public sealed class SqlSession : ISqlSession {
     /**
      * SQL 내의 #{paramName} 바인딩을 처리하여 실행 가능한 SQL과 파라미터를 반환한다.
      * #{} 패턴이 없으면 원본 SQL을 그대로 반환한다.
+     * 반환된 List는 풀에서 대여된 것이므로 사용 후 ReturnParameters로 반납한다.
      */
-    private static (string Sql, IReadOnlyList<DbParameter> Parameters) BuildSql(
+    private static (string Sql, List<DbParameter> Parameters) BuildSql(
         MappedStatement statement, object? parameter) {
-        var (sql, parameters) = ParameterBinder.Bind(statement.SqlSource, parameter);
-        return (sql, parameters);
+        return ParameterBinder.Bind(statement.SqlSource, parameter);
+    }
+
+    private static void ReturnParameters(List<DbParameter> parameters) {
+        DbParameterListPool.Return(parameters);
     }
 
     private void EnsureNotDisposed() {
@@ -382,13 +510,20 @@ public sealed class SqlSession : ISqlSession {
         IReadOnlyList<DbParameter> parameters,
         object? parameter) {
 
-        return new InterceptorContext {
-            StatementId   = statement.FullId,
-            Sql           = sql,
-            Parameters    = parameters,
-            Parameter     = parameter,
-            StatementType = statement.Type
-        };
+        var ctx               = InterceptorContextPool.Rent();
+        ctx.StatementId       = statement.FullId;
+        ctx.Sql               = sql;
+        ctx.Parameters        = parameters;
+        ctx.Parameter         = parameter;
+        ctx.StatementType     = statement.Type;
+        ctx.ElapsedMilliseconds = 0;
+        ctx.AffectedRows      = null;
+        ctx.Exception         = null;
+        return ctx;
+    }
+
+    private static void ReturnContext(InterceptorContext ctx) {
+        InterceptorContextPool.Return(ctx);
     }
 
     /**
@@ -415,6 +550,8 @@ public sealed class SqlSession : ISqlSession {
             ctx.Exception           = ex;
             RunAfter(ctx);
             throw;
+        } finally {
+            ReturnContext(ctx);
         }
     }
 
@@ -442,6 +579,8 @@ public sealed class SqlSession : ISqlSession {
             ctx.Exception           = ex;
             await RunAfterAsync(ctx, ct).ConfigureAwait(false);
             throw;
+        } finally {
+            ReturnContext(ctx);
         }
     }
 

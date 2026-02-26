@@ -14,7 +14,7 @@ namespace NuVatis.Session;
  *
  * @author 최진호
  * @date   2026-02-24
- * @modified 2026-02-25 FromExistingConnection 구현 (Phase 6.2 B-1)
+ * @modified 2026-02-26 OpenBatchSession 구현
  */
 public sealed class SqlSessionFactory : ISqlSessionFactory {
     private readonly IDbProvider _provider;
@@ -69,6 +69,22 @@ public sealed class SqlSessionFactory : ISqlSessionFactory {
         var logger   = _loggerFactory?.CreateLogger<SqlSession>();
 
         return new SqlSession(Configuration, executor, autoCommit: true, _mapperFactory, logger, _interceptorPipeline);
+    }
+
+    public ISqlSession OpenBatchSession() {
+        var transaction = new AdoTransaction(
+            _provider,
+            Configuration.DataSource.ConnectionString,
+            autoCommit: false);
+
+        var executor       = new SimpleExecutor(transaction, Configuration.DefaultCommandTimeout);
+        var batchExecutor  = new BatchExecutor(transaction);
+        var logger         = _loggerFactory?.CreateLogger<SqlSession>();
+
+        return new SqlSession(
+            Configuration, executor, autoCommit: false,
+            _mapperFactory, logger, _interceptorPipeline,
+            batchExecutor);
     }
 
     /**

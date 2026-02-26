@@ -57,3 +57,4 @@ docs/_site/
 ## Test results
 **/TestResults/
 *.trx
+coverage-results/

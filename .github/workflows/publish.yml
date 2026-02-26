@@ -9,7 +9,7 @@
 #   1. Release 빌드 + 테스트
 #   2. NuGet 패키지 생성
 #   3. OIDC 토큰으로 NuGet.org 임시 API 키 획득 (Trusted Publishing)
-#   4. 9개 패키지 NuGet.org에 push
+#   4. 11개 패키지 NuGet.org에 push (nupkg + snupkg)
 #
 # 사전 요구사항:
 #   - NuGet.org에서 Trusted Publishing 정책 등록
@@ -41,7 +41,7 @@ jobs:
     environment: release
 
     permissions:
-      contents: read
+      contents: write
       id-token: write
 
     steps:
@@ -101,9 +101,11 @@ jobs:
             "NuVatis.PostgreSql"
             "NuVatis.MySql"
             "NuVatis.SqlServer"
+            "NuVatis.Sqlite"
             "NuVatis.Extensions.DependencyInjection"
             "NuVatis.Extensions.OpenTelemetry"
             "NuVatis.Extensions.EntityFrameworkCore"
+            "NuVatis.Extensions.Aspire"
             "NuVatis.Testing"
           )
           MISSING=0
@@ -126,7 +128,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: nupkg-${{ steps.version.outputs.VERSION }}
-          path: ./nupkg/*.nupkg
+          path: |
+            ./nupkg/*.nupkg
+            ./nupkg/*.snupkg
           retention-days: 90
 
       - name: NuGet login (OIDC Trusted Publishing)
@@ -145,3 +149,15 @@ jobs:
               --skip-duplicate
           done
           echo "All packages pushed successfully."
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.VERSION }}
+          name: NuVatis v${{ steps.version.outputs.VERSION }}
+          body_path: CHANGELOG.md
+          files: |
+            ./nupkg/*.nupkg
+            ./nupkg/*.snupkg
+          draft: false
+          prerelease: ${{ contains(steps.version.outputs.VERSION, '-') }}

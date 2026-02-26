@@ -1,6 +1,7 @@
 #nullable enable
 using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis;
 using NuVatis.Generators.Analysis;
 using NuVatis.Generators.Models;
 
@@ -8,13 +9,16 @@ namespace NuVatis.Generators.Emitters;
 
 /**
  * Mapper 인터페이스의 정적 프록시 구현 클래스 C# 소스를 생성한다.
+ * ResultMap이 있는 select 쿼리에 대해 SG 생성 매핑 메서드를 통합한다.
  *
  * @author 최진호
  * @date   2026-02-24
+ * @modified 2026-02-26 SG ResultMap 매핑 통합
  */
 public static class ProxyEmitter {
 
-    public static string Emit(MapperInterfaceInfo interfaceInfo, ParsedMapper? mapper) {
+    public static string Emit(
+        MapperInterfaceInfo interfaceInfo, ParsedMapper? mapper, Compilation? compilation = null) {
         var sb           = new StringBuilder(2048);
         var sqlNamespace = mapper?.Namespace ?? interfaceInfo.FullyQualifiedName;
         var implName     = GetImplementationName(interfaceInfo.Name);
@@ -38,6 +42,10 @@ public static class ProxyEmitter {
         sb.AppendLine("            _session = session;");
         sb.AppendLine("        }");
 
+        if (mapper is not null && compilation is not null) {
+            EmitMappingMethods(sb, mapper, compilation);
+        }
+
         foreach (var method in interfaceInfo.Methods) {
             sb.AppendLine();
             EmitMethod(sb, method, sqlNamespace, mapper);
@@ -46,6 +54,20 @@ public static class ProxyEmitter {
         sb.AppendLine("    }");
         sb.AppendLine("}");
         return sb.ToString();
+    }
+
+    /**
+     * ResultMap 정의에 대한 정적 매핑 메서드를 클래스 본문에 삽입한다.
+     */
+    private static void EmitMappingMethods(
+        StringBuilder sb, ParsedMapper mapper, Compilation compilation) {
+
+        foreach (var resultMap in mapper.ResultMaps) {
+            var typeSymbol = compilation.GetTypeByMetadataName(resultMap.Type);
+            var code       = MappingEmitter.EmitMapMethod(resultMap, resultMap.Type, typeSymbol);
+            sb.AppendLine();
+            sb.Append(code);
+        }
     }
 
     private static void EmitMethod(
@@ -69,7 +91,12 @@ public static class ProxyEmitter {
         var stmtType = ResolveStatementType(method, mapper);
 
         if (stmtType == "Select") {
-            EmitSelectMethod(sb, method, sqlId, paramExpr, ctExpr);
+            string? resultMapMethodRef = null;
+            var parsedStmt = mapper?.Statements.FirstOrDefault(s => s.Id == method.Name);
+            if (parsedStmt?.ResultMapId is not null) {
+                resultMapMethodRef = $"Map_{MappingEmitter.SanitizeIdPublic(parsedStmt.ResultMapId)}";
+            }
+            EmitSelectMethod(sb, method, sqlId, paramExpr, ctExpr, resultMapMethodRef);
         } else {
             EmitWriteMethod(sb, method, stmtType, sqlId, paramExpr, ctExpr);
         }
@@ -82,25 +109,40 @@ public static class ProxyEmitter {
         MapperMethodInfo method,
         string sqlId,
         string paramExpr,
-        string ctExpr) {
-
-        var effectiveType = method.IsAsync ? method.UnwrappedReturnType : method.ReturnType;
+        string ctExpr,
+        string? resultMapMethodRef = null) {
 
         if (method.ReturnsList) {
             var elementType = method.ElementType ?? "object";
-            if (method.IsAsync) {
-                sb.AppendLine($"            return await _session.SelectListAsync<{elementType}>(\"{sqlId}\", {paramExpr}, {ctExpr}).ConfigureAwait(false);");
+            if (resultMapMethodRef is not null) {
+                if (method.IsAsync) {
+                    sb.AppendLine($"            return await _session.SelectListAsync<{elementType}>(\"{sqlId}\", {paramExpr}, {resultMapMethodRef}, {ctExpr}).ConfigureAwait(false);");
+                } else {
+                    sb.AppendLine($"            return _session.SelectList<{elementType}>(\"{sqlId}\", {paramExpr}, {resultMapMethodRef});");
+                }
             } else {
-                sb.AppendLine($"            return _session.SelectList<{elementType}>(\"{sqlId}\", {paramExpr});");
+                if (method.IsAsync) {
+                    sb.AppendLine($"            return await _session.SelectListAsync<{elementType}>(\"{sqlId}\", {paramExpr}, {ctExpr}).ConfigureAwait(false);");
+                } else {
+                    sb.AppendLine($"            return _session.SelectList<{elementType}>(\"{sqlId}\", {paramExpr});");
+                }
             }
         } else {
             var resultType = method.IsAsync
                 ? (method.UnwrappedReturnType ?? "object")
                 : method.ReturnType;
-            if (method.IsAsync) {
-                sb.AppendLine($"            return await _session.SelectOneAsync<{resultType}>(\"{sqlId}\", {paramExpr}, {ctExpr}).ConfigureAwait(false);");
+            if (resultMapMethodRef is not null) {
+                if (method.IsAsync) {
+                    sb.AppendLine($"            return await _session.SelectOneAsync<{resultType}>(\"{sqlId}\", {paramExpr}, {resultMapMethodRef}, {ctExpr}).ConfigureAwait(false);");
+                } else {
+                    sb.AppendLine($"            return _session.SelectOne<{resultType}>(\"{sqlId}\", {paramExpr}, {resultMapMethodRef});");
+                }
             } else {
-                sb.AppendLine($"            return _session.SelectOne<{resultType}>(\"{sqlId}\", {paramExpr});");
+                if (method.IsAsync) {
+                    sb.AppendLine($"            return await _session.SelectOneAsync<{resultType}>(\"{sqlId}\", {paramExpr}, {ctExpr}).ConfigureAwait(false);");
+                } else {
+                    sb.AppendLine($"            return _session.SelectOne<{resultType}>(\"{sqlId}\", {paramExpr});");
+                }
             }
         }
     }
