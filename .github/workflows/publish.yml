@@ -125,7 +125,7 @@ jobs:
           echo "All ${#EXPECTED[@]} packages verified."
 
       - name: Upload packages as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: nupkg-${{ steps.version.outputs.VERSION }}
           path: |
