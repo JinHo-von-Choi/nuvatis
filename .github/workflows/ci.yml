@@ -31,7 +31,7 @@ jobs:
             dotnet: '10.0.x'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup .NET (all SDKs)
         uses: actions/setup-dotnet@v4
@@ -132,7 +132,7 @@ jobs:
           --health-retries 10
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup .NET (all SDKs)
         uses: actions/setup-dotnet@v4
@@ -171,7 +171,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup .NET (all SDKs)
         uses: actions/setup-dotnet@v4
