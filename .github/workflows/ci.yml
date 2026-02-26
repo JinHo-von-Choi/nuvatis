@@ -25,14 +25,22 @@ jobs:
         include:
           - os: ubuntu-latest
             dotnet: '7.0.x'
+          - os: ubuntu-latest
+            dotnet: '9.0.x'
+          - os: ubuntu-latest
+            dotnet: '10.0.x'
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup .NET ${{ matrix.dotnet }}
+      - name: Setup .NET (all SDKs)
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: ${{ matrix.dotnet }}
+          dotnet-version: |
+            7.0.x
+            8.0.x
+            9.0.x
+            10.0.x
 
       - name: Restore
         run: dotnet restore NuVatis.sln
@@ -66,7 +74,7 @@ jobs:
           retention-days: 7
 
       - name: Upload Coverage to Codecov
-        if: matrix.os == 'ubuntu-latest' && matrix.dotnet == '8.0.x'
+        if: matrix.os == 'ubuntu-latest' && matrix.dotnet == '10.0.x'
         uses: codecov/codecov-action@v5
         with:
           directory: ./TestResults
@@ -126,10 +134,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup .NET
+      - name: Setup .NET (all SDKs)
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: |
+            7.0.x
+            8.0.x
+            9.0.x
+            10.0.x
 
       - name: Restore
         run: dotnet restore NuVatis.sln
@@ -161,10 +173,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup .NET
+      - name: Setup .NET (all SDKs)
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: |
+            7.0.x
+            8.0.x
+            9.0.x
+            10.0.x
 
       - name: Pack
         run: dotnet pack NuVatis.sln --configuration Release --output ./nupkg
