@@ -1,4 +1,4 @@
-using NuVatis.Sql;
+using NuVatis.Core.Sql;
 using Xunit;
 
 namespace NuVatis.Tests;
@@ -49,6 +49,23 @@ public class SqlIdentifierTests
         Assert.Throws<ArgumentException>(() => SqlIdentifier.From(malicious));
     }
 
+    [Theory]
+    [InlineData("users union")]            // trailing keyword, no space after
+    [InlineData("union select")]           // keyword at start
+    [InlineData("select * from users")]    // select keyword
+    [InlineData("users--comment")]         // comment sequence, no space
+    public void From_Injection_Pattern_Without_Surrounding_Spaces_Throws(string malicious)
+    {
+        Assert.Throws<ArgumentException>(() => SqlIdentifier.From(malicious));
+    }
+
+    [Fact]
+    public void FromEnum_FlagsEnum_Combination_Throws()
+    {
+        // Flags enum combinations like "Read, Write" should throw
+        Assert.Throws<ArgumentException>(() => SqlIdentifier.FromEnum(FlagsPermission.Read | FlagsPermission.Write));
+    }
+
     [Fact]
     public void From_Empty_String_Throws()
     {
@@ -79,4 +96,7 @@ public class SqlIdentifierTests
 
     // --- 테스트용 enum ---
     private enum TableName { Users, Orders, Products }
+
+    [System.Flags]
+    private enum FlagsPermission { Read = 1, Write = 2, Execute = 4 }
 }

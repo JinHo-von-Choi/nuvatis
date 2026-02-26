@@ -1,4 +1,4 @@
-namespace NuVatis.Sql;
+namespace NuVatis.Core.Sql;
 
 /**
  * SQL 식별자(테이블명, 컬럼명 등)를 타입 안전하게 래핑하는 sealed 클래스.
@@ -19,8 +19,12 @@ public sealed class SqlIdentifier
     private static readonly char[] _forbidden =
         new char[] { ';', '\'', '"', '\n', '\r', '\0' };
 
-    private static readonly string[] _forbiddenPatterns =
-        new string[] { "--", "/*", "*/", " union ", " or ", " and ", " select ", " drop ", " insert " };
+    private static readonly string[] _forbiddenSequences = new string[] { "--", "/*", "*/" };
+
+    private static readonly System.Text.RegularExpressions.Regex _forbiddenKeywords =
+        new(@"\b(union|select|drop|insert|or|and)\b",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase |
+            System.Text.RegularExpressions.RegexOptions.Compiled);
 
     private readonly string _value;
 
@@ -37,16 +41,22 @@ public sealed class SqlIdentifier
         if (value.Length == 0)
             throw new ArgumentException("SQL 식별자는 빈 문자열일 수 없습니다.", nameof(value));
 
+        // Check forbidden characters
         foreach (var ch in _forbidden)
             if (value.Contains(ch))
                 throw new ArgumentException(
                     $"SQL Injection 패턴이 감지되었습니다: '{value}'", nameof(value));
 
-        var lower = value.ToLowerInvariant();
-        foreach (var pattern in _forbiddenPatterns)
-            if (lower.Contains(pattern))
+        // Check forbidden sequences (comments)
+        foreach (var seq in _forbiddenSequences)
+            if (value.Contains(seq, StringComparison.OrdinalIgnoreCase))
                 throw new ArgumentException(
                     $"SQL Injection 패턴이 감지되었습니다: '{value}'", nameof(value));
+
+        // Check forbidden SQL keywords (word-boundary aware)
+        if (_forbiddenKeywords.IsMatch(value))
+            throw new ArgumentException(
+                $"SQL Injection 패턴이 감지되었습니다: '{value}'", nameof(value));
 
         return new SqlIdentifier(value);
     }
@@ -54,9 +64,18 @@ public sealed class SqlIdentifier
     /**
      * enum 값으로부터 SqlIdentifier를 생성한다.
      * enum 이름은 컴파일 타임에 확정되므로 SQL Injection이 불가능하다.
+     * 단, Flags enum 조합은 지원하지 않는다.
      */
     public static SqlIdentifier FromEnum<T>(T value) where T : struct, Enum
-        => new(value.ToString());
+    {
+        var name = value.ToString();
+        // Flags enum combinations produce "Read, Write" — reject these
+        if (name.Contains(','))
+            throw new ArgumentException(
+                "Flags enum 조합은 SQL 식별자로 사용할 수 없습니다. 단일 enum 값을 사용하세요.",
+                nameof(value));
+        return new SqlIdentifier(name);
+    }
 
     /**
      * 허용된 값 목록(allowedValues) 중 하나인지 검증 후 SqlIdentifier를 생성한다.
