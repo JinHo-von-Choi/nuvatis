@@ -12,9 +12,10 @@ NuVatis는 Entity Framework의 성능 오버헤드와 인라인 SQL의 유지보
 
 - SQL은 XML 또는 C# Attribute로 별도 관리
 - Roslyn Source Generator가 빌드타임에 매핑 코드를 자동 생성
-- 런타임 리플렉션 제로, Native AOT 호환 (.NET 8)
+- 런타임 리플렉션 제로, Native AOT 호환 (.NET 8+)
 - ADO.NET 기반 최소 추상화, 최대 성능
-- .NET 7 / .NET 8 동시 지원 (멀티 타겟)
+- .NET 7 / 8 / 9 / 10 동시 지원 (멀티 타겟)
+- `SqlIdentifier` 타입으로 `${}` 문자열 치환 런타임 검증 (SQL Injection 방어)
 
 ## Packages
 
@@ -280,6 +281,32 @@ Statement 단위로 SQL 실행 타임아웃을 설정할 수 있다. 우선순�
 | `<bind>` | 변수 바인딩 (OGNL 표현식) |
 | `<sql>/<include>` | SQL 프래그먼트 재사용 |
 
+## SQL Injection Defense (SqlIdentifier)
+
+`${}` 문자열 치환은 v2.0.0부터 파라미터 타입이 `string`이면 NV004 **빌드 오류**가 발생한다.
+동적 테이블명·컬럼명처럼 `${}` 가 불가피한 경우 `SqlIdentifier` 타입을 사용한다.
+
+```csharp
+using NuVatis.Core.Sql;
+
+// 1. enum 기반 (가장 안전)
+public enum SortColumn { CreatedAt, UserName, Id }
+mapper.GetSorted(new { Column = SqlIdentifier.FromEnum(SortColumn.CreatedAt) });
+
+// 2. 화이트리스트 기반 (사용자 입력 허용)
+mapper.GetSorted(new {
+    Column = SqlIdentifier.FromAllowed(userInput, "id", "created_at", "user_name")
+});
+```
+
+```xml
+<select id="GetSorted" resultMap="UserResult">
+  SELECT * FROM users ORDER BY ${Column}
+</select>
+```
+
+마이그레이션 가이드: [CHANGELOG.md v2.0.0](CHANGELOG.md) | [SQL Injection Prevention](docs/security/sql-injection-prevention.md)
+
 ## External Connection Sharing
 
 외부에서 관리하는 DbConnection/DbTransaction을 NuVatis에서 사용할 수 있다. 커넥션/트랜잭션 수명 관리는 외부 호출자에 위임된다.
@@ -367,8 +394,8 @@ NuGet 배포는 Trusted Publishing (OIDC) 방식을 사용한다. API 키를 저
 
 릴리스 방법:
 ```bash
-git tag v1.0.0
-git push origin v1.0.0
+git tag v2.0.0
+git push origin v2.0.0
 ```
 
 태그 push 시 publish.yml이 자동 실행되어 11개 패키지를 NuGet.org에 배포하고 GitHub Release를 자동 생성한다.
@@ -395,7 +422,7 @@ src/
   NuVatis.Extensions.Aspire/         # .NET Aspire 통합
   NuVatis.Testing/                   # 테스트 유틸리티
 tests/
-  NuVatis.Tests/                     # 단위/통합/E2E 테스트 (311개)
+  NuVatis.Tests/                     # 단위/통합/E2E 테스트 (335개)
   NuVatis.Generators.Tests/          # Source Generator 테스트 (68개)
 benchmarks/
   NuVatis.Benchmarks/                # 성능 벤치마크
@@ -405,7 +432,7 @@ samples/
 
 ## Requirements
 
-- .NET 7.0+ (.NET 7 / .NET 8 멀티 타겟)
+- .NET 7.0+ (.NET 7 / 8 / 9 / 10 멀티 타겟)
 - C# 11+
 
 ## License
