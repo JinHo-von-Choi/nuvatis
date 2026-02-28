@@ -55,7 +55,7 @@ public static class DiagnosticDescriptors {
     public static readonly DiagnosticDescriptor TestExpressionCompilationFailed = new(
         id:                 "NV005",
         title:              "Test Expression Compilation Failed",
-        messageFormat:      "test 표현식 컴파일 실패: '{0}'. 지원 형식: `prop != null`, `age > 0`, `name == 'admin'`",
+        messageFormat:      "test 표현식 컴파일 실패: '{0}'. 지원 형식: `prop != null`, `age > 0`, `name == 'admin'`.",
         category:           Category,
         defaultSeverity:    DiagnosticSeverity.Error,
         isEnabledByDefault: true,
