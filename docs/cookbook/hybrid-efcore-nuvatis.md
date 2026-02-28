@@ -16,6 +16,41 @@ EF Core와 NuVatis를 동일 프로젝트에서 함께 사용하는 CQRS 하이�
 
 ---
 
+## 어떤 쿼리를 어디서 쓸까?
+
+| 쿼리 유형 | 권장 | 이유 |
+|-----------|------|------|
+| 단순 CRUD (Create/Update/Delete) | EF Core | Change Tracking, Migrations |
+| 5개 이상 optional filter 조합 | EF Core | IQueryable 체이닝 |
+| 복잡한 JOIN (3개 이상 테이블) | NuVatis | SQL 직접 제어 |
+| GROUP BY, HAVING, 윈도우 함수 | NuVatis | SQL 가독성 |
+| Pagination + 동적 정렬 | NuVatis + SqlIdentifier | ORDER BY 타입 안전 |
+| 대량 INSERT (배치) | NuVatis BatchSession | DbBatch 단일 라운드트립 |
+| WHERE IN (대량 ID) | NuVatis + JoinTyped | 플랜 캐시 최적화 |
+
+---
+
+## 동일 트랜잭션 내에서 EF Core + NuVatis 함께 사용
+
+```csharp
+// DbContext의 커넥션을 NuVatis에 공유
+var connection   = dbContext.Database.GetDbConnection();
+var transaction  = dbContext.Database.CurrentTransaction?.GetDbTransaction();
+
+await using var session = factory.FromExistingConnection(connection, transaction);
+
+// EF Core: Change Tracking이 필요한 엔터티 저장
+dbContext.Orders.Add(newOrder);
+await dbContext.SaveChangesAsync();
+
+// NuVatis: 복잡한 집계 쿼리
+var summary = await session.SelectOneAsync<OrderSummary>(
+    "IOrderMapper.GetMonthlyStats",
+    new { UserId = userId, Month = DateTime.Now.Month });
+```
+
+---
+
 ## 설정
 
 ### 1. 패키지 설치
