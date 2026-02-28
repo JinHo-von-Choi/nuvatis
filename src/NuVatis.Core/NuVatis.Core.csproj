@@ -8,6 +8,8 @@
     <PackageId>NuVatis.Core</PackageId>
     <Description>NuVatis - MyBatis-style SQL Mapper for .NET. Core runtime library.</Description>
     <IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">true</IsAotCompatible>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
