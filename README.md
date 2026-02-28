@@ -331,6 +331,11 @@ mapper.GetSorted(new { Column = SqlIdentifier.FromEnum(SortColumn.CreatedAt) });
 mapper.GetSorted(new {
     Column = SqlIdentifier.FromAllowed(userInput, "id", "created_at", "user_name")
 });
+
+// 3. WHERE IN 절 — struct 타입 컬렉션을 안전하게 인라인 (v2.1.0+)
+var ids      = new List<int> { 1, 2, 3 };
+var inClause = SqlIdentifier.JoinTyped(ids); // → "1,2,3"
+var sql      = $"SELECT * FROM orders WHERE id IN ({inClause})";
 ```
 
 ```xml

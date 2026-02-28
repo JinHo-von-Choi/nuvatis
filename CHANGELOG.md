@@ -5,6 +5,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-03-01
+
+### Added
+
+- `SqlIdentifier.JoinTyped<T>(IEnumerable<T>) where T : struct`
+  — struct 제약으로 컴파일타임에 문자열 주입 차단, WHERE IN 절 안전 인라인 생성
+  — `Guid`/`DateTime`/`DateTimeOffset`/`DateOnly`/`TimeOnly`는 따옴표 자동 추가, 숫자형은 그대로 출력
+  — 빈 컬렉션 전달 시 `ArgumentException` 즉시 발생 (SQL 런타임 오류 사전 차단)
+- `helpLinkUri` 추가: NV001~NV008 모든 진단 코드에 문서 링크 삽입, IDE 클릭 한 번으로 가이드 접근 가능
+- README "When NOT to Use NuVatis" 섹션: EF Core/Dapper/NuVatis 선택 기준표
+- docs/RELEASE-CHECKLIST.md: 릴리스 절차 5-섹션 체크리스트 (코드 검증, 패키지 품질, 보안, 버전/태그, 배포)
+- docs/cookbook/hybrid-efcore-nuvatis.md: 쿼리 유형별 EF Core vs NuVatis 의사결정 테이블 + 트랜잭션 공유 예제
+- benchmarks/NuVatis.Benchmarks: Dapper / Raw ADO / NuVatis Runtime 3종 6개 벤치마크 (BenchmarkDotNet)
+- XML 문서 주석: `ISqlSession`, `ISqlSessionFactory`, `SqlIdentifier` `///` XML doc 변환 완료
+
+### Changed
+
+- ParameterEmitter: `${}` 코드 생성 시 `SqlIdentifier` FQN 정확 비교로 전환
+  — 기존 `EndsWith("SqlIdentifier")`는 `MySqlIdentifier` 등 유사명 타입이 우회 가능 → `== "NuVatis.Core.Sql.SqlIdentifier"` 정확 비교로 교체
+  — 타입 불일치 시 런타임에 `InvalidOperationException` 발생 (Fail-secure default)
+- PublicAPI.Shipped.txt: v2.1.0 기준 전체 847개 API 항목 Unshipped → Shipped 이관
+- `NuVatis.Core.csproj`: `GenerateDocumentationFile=true` 활성화 (XML doc 생성 시작)
+
+### Fixed
+
+- `SqlIdentifier.From()`: 정규식 `\b` 단어 경계가 점(`.`) 앞에서 오발동 → `(?<![.\w])...(?![.\w])` lookbehind/lookahead로 교체
+  — `schema.or_table`과 같은 스키마 한정 식별자가 잘못 거부되던 문제 수정
+- `PublicAPI.Unshipped.txt`: `JoinTyped` 시그니처 파라미터명 누락(`IEnumerable<T>!` → `IEnumerable<T>! values`)으로 RS0016 발생하던 문제 수정
+
+---
+
 ## [2.0.0] - 2026-02-27
 
 ### Breaking Changes
@@ -250,14 +281,14 @@ public static class TableRef {
 
 | Package | Version |
 |---------|---------|
-| NuVatis.Core | 1.0.0 |
-| NuVatis.Generators | 1.0.0 |
-| NuVatis.PostgreSql | 1.0.0 |
-| NuVatis.MySql | 1.0.0 |
-| NuVatis.SqlServer | 1.0.0 |
-| NuVatis.Sqlite | 1.0.0 |
-| NuVatis.Extensions.DependencyInjection | 1.0.0 |
-| NuVatis.Extensions.OpenTelemetry | 1.0.0 |
-| NuVatis.Extensions.EntityFrameworkCore | 1.0.0 |
-| NuVatis.Extensions.Aspire | 1.0.0 |
-| NuVatis.Testing | 1.0.0 |
+| NuVatis.Core | 2.1.0 |
+| NuVatis.Generators | 2.1.0 |
+| NuVatis.PostgreSql | 2.1.0 |
+| NuVatis.MySql | 2.1.0 |
+| NuVatis.SqlServer | 2.1.0 |
+| NuVatis.Sqlite | 2.1.0 |
+| NuVatis.Extensions.DependencyInjection | 2.1.0 |
+| NuVatis.Extensions.OpenTelemetry | 2.1.0 |
+| NuVatis.Extensions.EntityFrameworkCore | 2.1.0 |
+| NuVatis.Extensions.Aspire | 2.1.0 |
+| NuVatis.Testing | 2.1.0 |
