@@ -103,4 +103,51 @@ public sealed class SqlIdentifier
 
     /// <inheritdoc/>
     public override string ToString() => _value;
+
+    /// <summary>
+    /// struct 제약 타입 컬렉션을 SQL WHERE IN 절에 안전하게 인라인할 수 있는
+    /// 쉼표 구분 문자열로 변환한다.
+    /// </summary>
+    /// <remarks>
+    /// struct 제약으로 컴파일타임에 임의 문자열 입력이 차단되므로
+    /// SQL Injection 위험이 없다.
+    ///
+    /// Guid, DateTime, DateTimeOffset, DateOnly, TimeOnly는 따옴표로 감싸고,
+    /// 숫자형(int, long, decimal 등)은 그대로 출력한다.
+    ///
+    /// 빈 컬렉션은 SQL 오류를 유발하므로 <see cref="ArgumentException"/>을 발생시킨다.
+    /// </remarks>
+    /// <param name="values">WHERE IN 절에 인라인할 struct 타입 컬렉션.</param>
+    /// <typeparam name="T">struct 제약 타입. 문자열은 사용 불가.</typeparam>
+    /// <returns>쉼표로 구분된 SQL 리터럴 문자열.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="values"/>가 null인 경우.</exception>
+    /// <exception cref="ArgumentException"><paramref name="values"/>가 비어 있는 경우.</exception>
+    /// <example>
+    /// <code>
+    /// var clause = SqlIdentifier.JoinTyped(new List&lt;int&gt; { 1, 2, 3 });
+    /// // → "1,2,3"
+    /// // SQL: $"SELECT * FROM t WHERE id IN ({clause})"
+    /// </code>
+    /// </example>
+    public static string JoinTyped<T>(IEnumerable<T> values) where T : struct
+    {
+        ArgumentNullException.ThrowIfNull(values);
+
+        var list = values as IList<T> ?? values.ToList();
+        if (list.Count == 0)
+            throw new ArgumentException(
+                "WHERE IN 절에 비어 있는 컬렉션을 사용할 수 없습니다. " +
+                "호출 전 컬렉션이 비어 있는지 확인하세요.",
+                nameof(values));
+
+        var needsQuotes = typeof(T) == typeof(Guid)
+                       || typeof(T) == typeof(DateTime)
+                       || typeof(T) == typeof(DateTimeOffset)
+                       || typeof(T) == typeof(DateOnly)
+                       || typeof(T) == typeof(TimeOnly);
+
+        return needsQuotes
+            ? string.Join(",", list.Select(v => $"'{v}'"))
+            : string.Join(",", list);
+    }
 }

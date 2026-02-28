@@ -94,6 +94,54 @@ public class SqlIdentifierTests
             SqlIdentifier.FromAllowed("injected", "id", "created_at"));
     }
 
+    // --- T2-D: JoinTyped WHERE IN 절 리터럴 생성 ---
+
+    [Fact]
+    public void JoinTyped_WithInts_ReturnsCommaSeparated()
+    {
+        var result = SqlIdentifier.JoinTyped(new List<int> { 1, 2, 3 });
+        Assert.Equal("1,2,3", result);
+    }
+
+    [Fact]
+    public void JoinTyped_WithGuids_ReturnsQuotedCommaSeparated()
+    {
+        var ids = new List<Guid>
+        {
+            new("00000000-0000-0000-0000-000000000001"),
+            new("00000000-0000-0000-0000-000000000002"),
+        };
+        var result = SqlIdentifier.JoinTyped(ids);
+        Assert.Equal(
+            "'00000000-0000-0000-0000-000000000001'," +
+            "'00000000-0000-0000-0000-000000000002'",
+            result);
+    }
+
+    [Fact]
+    public void JoinTyped_WithEmptyCollection_ThrowsArgumentException()
+    {
+        var ex = Assert.Throws<ArgumentException>(
+            () => SqlIdentifier.JoinTyped(new List<int>()));
+        Assert.Contains("비어 있", ex.Message);
+    }
+
+    [Fact]
+    public void JoinTyped_IsUsableInQueryTemplate()
+    {
+        var ids = new List<int> { 10, 20, 30 };
+        var inClause = SqlIdentifier.JoinTyped(ids);
+        var sql = $"SELECT * FROM orders WHERE id IN ({inClause})";
+        Assert.Equal("SELECT * FROM orders WHERE id IN (10,20,30)", sql);
+    }
+
+    [Fact]
+    public void JoinTyped_WithSingleItem_ReturnsNoComma()
+    {
+        var result = SqlIdentifier.JoinTyped(new List<long> { 42L });
+        Assert.Equal("42", result);
+    }
+
     // --- 테스트용 enum ---
     private enum TableName { Users, Orders, Products }
 
