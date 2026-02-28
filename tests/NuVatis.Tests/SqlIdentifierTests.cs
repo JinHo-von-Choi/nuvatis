@@ -78,6 +78,18 @@ public class SqlIdentifierTests
         Assert.Throws<ArgumentNullException>(() => SqlIdentifier.From(null!));
     }
 
+    // --- T2-B2: dot-qualified 식별자 false positive 방지 ---
+
+    [Theory]
+    [InlineData("schema.or_table")]      // 'or' is table name suffix, not keyword
+    [InlineData("db.and_condition")]     // 'and' is column name prefix
+    [InlineData("schema.select_result")] // 'select' is part of identifier after dot
+    public void From_DotQualified_IdentifierWithKeywordSuffix_Allowed(string identifier)
+    {
+        var id = SqlIdentifier.From(identifier);
+        Assert.Equal(identifier, id.ToString());
+    }
+
     // --- T2-C: AllowedValues 화이트리스트 팩토리 ---
 
     [Fact]

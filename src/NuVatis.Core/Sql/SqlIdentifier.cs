@@ -20,8 +20,11 @@ public sealed class SqlIdentifier
 
     private static readonly string[] _forbiddenSequences = new string[] { "--", "/*", "*/" };
 
+    // \b triggers at '.' boundaries (schema.or would false-positive with \b).
+    // Use negative lookbehind/ahead that includes '.' so dot-qualified identifiers
+    // like schema.or_table are NOT flagged.
     private static readonly System.Text.RegularExpressions.Regex _forbiddenKeywords =
-        new(@"\b(union|select|drop|insert|or|and)\b",
+        new(@"(?<![.\w])(union|select|drop|insert|or|and)(?![.\w])",
             System.Text.RegularExpressions.RegexOptions.IgnoreCase |
             System.Text.RegularExpressions.RegexOptions.Compiled);
 

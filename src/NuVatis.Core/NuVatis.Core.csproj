@@ -9,7 +9,10 @@
     <Description>NuVatis - MyBatis-style SQL Mapper for .NET. Core runtime library.</Description>
     <IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">true</IsAotCompatible>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <!-- CS1591: missing XML doc (progressive adoption - not all types documented yet)  -->
+    <!-- CS1570: malformed XML in /** */ block comments (pre-existing Java-style comments) -->
+    <!-- CS1573: missing param in inheritdoc + ct pattern (inherited params not re-documented) -->
+    <NoWarn>$(NoWarn);CS1591;CS1570;CS1573</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
