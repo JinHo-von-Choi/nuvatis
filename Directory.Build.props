@@ -36,7 +36,7 @@
   <!--
     RS0017: Symbols in PublicAPI.txt not found in the current TF.
     #if NET8_0_OR_GREATER types (DateOnlyTypeHandler, TimeOnlyTypeHandler) are declared
-    in Unshipped.txt for net8+ coverage, but are absent in net7.0 builds.
+    in Shipped.txt for net8+ coverage, but are absent in net7.0 builds.
     Suppress RS0017 for net7.0 only to silence expected cross-TF false positives.
   -->
   <PropertyGroup Condition="'$(TargetFramework)' == 'net7.0'">
