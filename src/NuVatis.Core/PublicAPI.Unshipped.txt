@@ -1,2 +1,1 @@
 #nullable enable
-static NuVatis.Core.Sql.SqlIdentifier.JoinTyped<T>(System.Collections.Generic.IEnumerable<T>! values) -> string!

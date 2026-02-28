@@ -439,6 +439,7 @@ static NuVatis.Cache.CacheKey.Generate(string! statementId, object? parameter) -
 static NuVatis.Core.Sql.SqlIdentifier.From(string! value) -> NuVatis.Core.Sql.SqlIdentifier!
 static NuVatis.Core.Sql.SqlIdentifier.FromAllowed(string! value, params string![]! allowedValues) -> NuVatis.Core.Sql.SqlIdentifier!
 static NuVatis.Core.Sql.SqlIdentifier.FromEnum<T>(T value) -> NuVatis.Core.Sql.SqlIdentifier!
+static NuVatis.Core.Sql.SqlIdentifier.JoinTyped<T>(System.Collections.Generic.IEnumerable<T>! values) -> string!
 static NuVatis.DynamicSql.TestExpressionEvaluator.Evaluate(string? testExpression, object? parameter) -> bool
 static NuVatis.DynamicSql.TestExpressionEvaluator.GetPropertyValue(object? obj, string! propertyPath) -> object?
 static NuVatis.Mapping.ColumnMapper.IsScalar(System.Type! type) -> bool
