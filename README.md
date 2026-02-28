@@ -17,6 +17,40 @@ NuVatis는 Entity Framework의 성능 오버헤드와 인라인 SQL의 유지보
 - .NET 7 / 8 / 9 / 10 동시 지원 (멀티 타겟)
 - `SqlIdentifier` 타입으로 `${}` 문자열 치환 런타임 검증 (SQL Injection 방어)
 
+## When NOT to Use NuVatis
+
+NuVatis가 모든 상황에 적합하지는 않다. 아래 표를 보고 올바른 도구를 선택하라.
+
+**EF Core가 더 적합한 경우:**
+
+| 케이스 | 이유 |
+|--------|------|
+| 5개 이상의 optional filter를 동적으로 조합 | EF Core의 IQueryable 체이닝이 압도적으로 편리하다 |
+| 단순 CRUD 위주, 복잡한 쿼리 없음 | EF Core + Repository 패턴으로 충분하다 |
+| 팀에 SQL 전문가가 없음 | EF Core의 자동 쿼리 생성이 더 안전하다 |
+| Code-first 마이그레이션이 워크플로의 중심 | EF Core Migrations가 이를 직접 지원한다 |
+
+**Dapper가 더 적합한 경우:**
+
+| 케이스 | 이유 |
+|--------|------|
+| 쿼리 수가 적고 XML 관리가 부담 | Dapper는 인라인 SQL을 직접 작성한다 |
+| 라이브러리를 최소한으로 유지하고 싶음 | Dapper는 단일 파일 수준의 단순성을 제공한다 |
+
+**NuVatis가 강한 케이스:**
+
+| 케이스 | 이유 |
+|--------|------|
+| Java MyBatis 경험자의 .NET 이식 | XML 매퍼 문법이 동일하다 |
+| 수백 개의 레거시 SQL을 그대로 관리 | SQL을 코드에서 분리하여 버전 관리한다 |
+| 동적 SQL이 많지만 타입 안전성 필요 | `<if>`/`<where>`/`<foreach>` + NV004 컴파일 에러 |
+| 복잡한 JOIN + 집계 쿼리를 직접 제어 | SQL을 수정하면 즉시 반영된다 |
+| Native AOT 환경 | Source Generator가 리플렉션 없는 코드를 생성한다 |
+
+> **TL;DR**: EF Core는 동적 쿼리 조합에, NuVatis는 복잡한 정적 SQL 관리에 사용하라.
+> 동일 프로젝트에서 함께 쓰는 하이브리드 패턴도 지원한다.
+> → [EF Core + NuVatis 하이브리드 가이드](docs/cookbook/hybrid-efcore-nuvatis.md)
+
 ## Packages
 
 | Package | Description |

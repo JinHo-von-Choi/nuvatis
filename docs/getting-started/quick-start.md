@@ -117,3 +117,8 @@ dotnet run
 ```
 
 빌드 시 `obj/` 하위에 `IUserMapperImpl.g.cs`와 `NuVatisMapperRegistry.g.cs`가 생성되는 것을 확인할 수 있다.
+
+---
+
+> **NuVatis가 적합한지 확신이 없다면?**
+> [언제 NuVatis를 쓰지 말아야 하는가](../../README.md#when-not-to-use-nuvatis)를 먼저 읽어보세요.
