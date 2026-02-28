@@ -54,6 +54,12 @@ docs/api/*.yml
 docs/api/.manifest
 docs/_site/
 
+## Internal planning docs
+docs/plans/
+docs/UPGRADE-PLAN.md
+docs/RELEASE-CHECKLIST.md
+msbuild.binlog
+
 ## Test results
 **/TestResults/
 *.trx
