@@ -16,12 +16,29 @@
       href: cookbook/crud-operations.md
     - name: Dynamic SQL
       href: cookbook/dynamic-sql.md
+    - name: Streaming & Multi-ResultSet
+      href: cookbook/streaming.md
     - name: Performance Optimization
       href: cookbook/performance-optimization.md
     - name: EF Core Integration
       href: cookbook/ef-core-integration.md
+    - name: EF Core + NuVatis Hybrid
+      href: cookbook/hybrid-efcore-nuvatis.md
     - name: Testing
       href: cookbook/testing.md
+    - name: Migration from Dapper
+      href: cookbook/migration-from-dapper.md
+    - name: Migration from EF Core
+      href: cookbook/migration-from-efcore.md
+- name: Advanced
+  href: advanced/
+  items:
+    - name: Association & Collection Mapping
+      href: advanced/association-collection.md
+    - name: Custom TypeHandler
+      href: advanced/custom-type-handler.md
+    - name: Custom Interceptor
+      href: advanced/custom-interceptor.md
 - name: Security
   href: security/
   items:
@@ -34,5 +51,14 @@
       href: architecture/source-generator.md
     - name: Session Lifecycle
       href: architecture/session-lifecycle.md
+- name: Reference
+  href: reference/
+  items:
+    - name: XML Mapper Tag Reference
+      href: reference/xml-mapper-reference.md
+    - name: Diagnostic Codes (NV001-NV008)
+      href: reference/diagnostic-codes.md
 - name: API Reference
   href: api/
+- name: Troubleshooting
+  href: troubleshooting.md
