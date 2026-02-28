@@ -261,7 +261,7 @@ static NuVatis.Generators.Emitters.DynamicSqlEmitter.EmitSqlBuilder(NuVatis.Gene
 static NuVatis.Generators.Emitters.DynamicSqlEmitter.HasDynamicNodes(NuVatis.Generators.Models.ParsedSqlNode! node) -> bool
 static NuVatis.Generators.Emitters.MappingEmitter.EmitMapMethod(NuVatis.Generators.Models.ParsedResultMap! resultMap, string! targetTypeName, Microsoft.CodeAnalysis.INamedTypeSymbol? typeSymbol = null) -> string!
 static NuVatis.Generators.Emitters.MappingEmitter.SanitizeIdPublic(string! id) -> string!
-static NuVatis.Generators.Emitters.ParameterEmitter.EmitBuildSqlMethod(NuVatis.Generators.Models.ParsedStatement! statement, string! providerParameterPrefix) -> string!
+static NuVatis.Generators.Emitters.ParameterEmitter.EmitBuildSqlMethod(NuVatis.Generators.Models.ParsedStatement! statement, string! providerParameterPrefix, System.Collections.Generic.IReadOnlyDictionary<string!, string!>? paramTypeMap = null) -> string!
 static NuVatis.Generators.Emitters.ProxyEmitter.Emit(NuVatis.Generators.Analysis.MapperInterfaceInfo! interfaceInfo, NuVatis.Generators.Models.ParsedMapper? mapper, Microsoft.CodeAnalysis.Compilation? compilation = null) -> string!
 static NuVatis.Generators.Emitters.RegistryEmitter.Emit(System.Collections.Immutable.ImmutableArray<NuVatis.Generators.Analysis.MapperInterfaceInfo!> interfaces) -> string!
 static NuVatis.Generators.Parsing.IncludeResolver.ResolveIncludes(NuVatis.Generators.Models.ParsedMapper! mapper) -> NuVatis.Generators.Models.ParsedMapper!
