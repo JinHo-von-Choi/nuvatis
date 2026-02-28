@@ -11,9 +11,22 @@ namespace NuVatis.Generators.Emitters;
  * Mapper 인터페이스의 정적 프록시 구현 클래스 C# 소스를 생성한다.
  * ResultMap이 있는 select 쿼리에 대해 SG 생성 매핑 메서드를 통합한다.
  *
+ * NOTE (Issue 2 — paramTypeMap SG 파이프라인 연결):
+ * 현재 ProxyEmitter는 SQL 세션에 SQL ID만 전달하는 방식으로 작동한다.
+ * ParameterEmitter.EmitBuildSqlMethod는 이 파이프라인에서 호출되지 않는다.
+ * 동적 SQL BuildSql_XXX 로컬 함수는 런타임에 ISqlSession이 직접 생성한다.
+ *
+ * SG 파이프라인에서 paramTypeMap을 구성하여 ParameterEmitter에 전달하려면
+ * ProxyEmitter가 ISqlSession 대신 BuildSql_XXX 메서드를 인라인으로 방출해야 한다.
+ * MapperMethodInfo.Parameters에는 FQN 타입 정보(Type 필드)가 이미 존재하므로
+ * 기술적 제약은 없으나, 세션 위임 방식에서 인라인 방출 방식으로의 아키텍처 전환이 필요하다.
+ *
+ * TODO: paramTypeMap을 SG 파이프라인에서 전달 필요 — v3.0 AOT 작업과 함께
+ *
  * @author 최진호
  * @date   2026-02-24
  * @modified 2026-02-26 SG ResultMap 매핑 통합
+ * @modified 2026-02-28 Issue 2 제약사항 문서화
  */
 public static class ProxyEmitter {
 

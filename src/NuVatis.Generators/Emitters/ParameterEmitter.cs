@@ -23,11 +23,17 @@ namespace NuVatis.Generators.Emitters;
 public static class ParameterEmitter {
 
     /**
+     * ${} 문자열 치환 경로에서 SqlIdentifier로 인정하는 유일한 FQN.
+     * EndsWith 방식은 MySqlIdentifier 같은 유사 타입명을 오인할 수 있어 정확 일치만 허용한다.
+     */
+    private const string SqlIdentifierFqn = "NuVatis.Core.Sql.SqlIdentifier";
+
+    /**
      * BuildSql_{id} 로컬 함수 소스를 생성한다.
      *
      * @param statement              파싱된 SQL 구문 정보
      * @param providerParameterPrefix DB 파라미터 접두사 (@, :, ? 등)
-     * @param paramTypeMap           파라미터명 → CLR 타입명 매핑 (null이면 보수적 가드 삽입)
+     * @param paramTypeMap           파라미터명 → CLR FQN 타입명 매핑 (null이면 보수적 가드 삽입)
      */
     public static string EmitBuildSqlMethod(
         ParsedStatement statement,
@@ -151,8 +157,8 @@ public static class ParameterEmitter {
             && paramTypeMap.TryGetValue(paramName, out var typeName)
             && typeName is not null) {
 
-            // 정규화: "NuVatis.Core.Sql.SqlIdentifier" 또는 "SqlIdentifier" 모두 인식
-            isSqlIdentifier = typeName.EndsWith("SqlIdentifier", System.StringComparison.OrdinalIgnoreCase);
+            // FQN 정확 일치만 허용: EndsWith 방식은 MySqlIdentifier 등 유사 타입명을 오인할 수 있다
+            isSqlIdentifier = typeName == SqlIdentifierFqn;
         }
 
         if (isSqlIdentifier) {

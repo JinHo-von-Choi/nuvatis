@@ -56,8 +56,8 @@ public class SqlIdentifierEmitterTests {
     }
 
     [Fact]
-    public void SqlIdentifier_ShortName_EmitsToString_WithoutRuntimeGuard() {
-        // 짧은 타입명(SqlIdentifier)도 인식해야 한다
+    public void SqlIdentifier_ShortName_EmitsRuntimeGuard() {
+        // FQN 없이 짧은 타입명("SqlIdentifier")만 전달하면 신뢰할 수 없어 런타임 가드를 삽입해야 한다
         var node = new ParameterNode("TableName", IsStringSubstitution: true);
         var stmt = BuildStatement("selectFromTable", node);
 
@@ -68,8 +68,29 @@ public class SqlIdentifierEmitterTests {
 
         var code = Emit(stmt, typeMap);
 
-        Assert.Contains("GetPropertyValue(param, \"TableName\")?.ToString()", code);
-        Assert.DoesNotContain("InvalidOperationException", code);
+        // 짧은 타입명은 FQN 정확 일치 실패 → 런타임 가드 삽입
+        Assert.Contains("InvalidOperationException", code);
+        Assert.Contains("is not NuVatis.Core.Sql.SqlIdentifier", code);
+    }
+
+    [Fact]
+    public void SimilarSuffixTypeName_ShouldEmitRuntimeGuard() {
+        // MySqlIdentifier, FakeSqlIdentifier 같은 유사 타입명은 FQN 불일치로 가드가 삽입되어야 한다
+        var node = new ParameterNode("col", IsStringSubstitution: true);
+        var stmt = BuildStatement("bypassAttempt", node);
+
+        var typeMap = new Dictionary<string, string>
+        {
+            ["col"] = "MySqlIdentifier"
+        };
+
+        var code = Emit(stmt, typeMap);
+
+        // 유사 타입명은 가드 삽입 필수
+        Assert.Contains("InvalidOperationException", code);
+        Assert.Contains("is not NuVatis.Core.Sql.SqlIdentifier", code);
+        // ToString() 직접 호출 경로가 없어야 한다
+        Assert.DoesNotContain("?.ToString()", code);
     }
 
     // -----------------------------------------------------------------------
