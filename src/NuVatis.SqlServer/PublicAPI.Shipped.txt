@@ -1,1 +1,8 @@
 #nullable enable
+NuVatis.SqlServer.SqlServerProvider
+NuVatis.SqlServer.SqlServerProvider.CreateConnection(string! connectionString) -> System.Data.Common.DbConnection!
+NuVatis.SqlServer.SqlServerProvider.GetParameterName(int index) -> string!
+NuVatis.SqlServer.SqlServerProvider.Name.get -> string!
+NuVatis.SqlServer.SqlServerProvider.ParameterPrefix.get -> string!
+NuVatis.SqlServer.SqlServerProvider.SqlServerProvider() -> void
+NuVatis.SqlServer.SqlServerProvider.WrapIdentifier(string! name) -> string!

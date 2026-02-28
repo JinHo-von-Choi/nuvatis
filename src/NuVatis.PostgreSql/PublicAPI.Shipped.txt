@@ -1,1 +1,8 @@
 #nullable enable
+NuVatis.PostgreSql.PostgreSqlProvider
+NuVatis.PostgreSql.PostgreSqlProvider.CreateConnection(string! connectionString) -> System.Data.Common.DbConnection!
+NuVatis.PostgreSql.PostgreSqlProvider.GetParameterName(int index) -> string!
+NuVatis.PostgreSql.PostgreSqlProvider.Name.get -> string!
+NuVatis.PostgreSql.PostgreSqlProvider.ParameterPrefix.get -> string!
+NuVatis.PostgreSql.PostgreSqlProvider.PostgreSqlProvider() -> void
+NuVatis.PostgreSql.PostgreSqlProvider.WrapIdentifier(string! name) -> string!

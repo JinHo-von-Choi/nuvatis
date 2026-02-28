@@ -1,1 +1,277 @@
 #nullable enable
+NuVatis.Generators.Analysis.InterfaceAnalyzer
+NuVatis.Generators.Analysis.MapperInterfaceInfo
+NuVatis.Generators.Analysis.MapperInterfaceInfo.FullyQualifiedName.get -> string!
+NuVatis.Generators.Analysis.MapperInterfaceInfo.FullyQualifiedName.init -> void
+NuVatis.Generators.Analysis.MapperInterfaceInfo.MapperInterfaceInfo(string! FullyQualifiedName, string! Name, string! Namespace, System.Collections.Immutable.ImmutableArray<NuVatis.Generators.Analysis.MapperMethodInfo!> Methods) -> void
+NuVatis.Generators.Analysis.MapperInterfaceInfo.Methods.get -> System.Collections.Immutable.ImmutableArray<NuVatis.Generators.Analysis.MapperMethodInfo!>
+NuVatis.Generators.Analysis.MapperInterfaceInfo.Methods.init -> void
+NuVatis.Generators.Analysis.MapperInterfaceInfo.Name.get -> string!
+NuVatis.Generators.Analysis.MapperInterfaceInfo.Name.init -> void
+NuVatis.Generators.Analysis.MapperInterfaceInfo.Namespace.get -> string!
+NuVatis.Generators.Analysis.MapperInterfaceInfo.Namespace.init -> void
+NuVatis.Generators.Analysis.MapperMethodInfo
+NuVatis.Generators.Analysis.MapperMethodInfo.ElementType.get -> string?
+NuVatis.Generators.Analysis.MapperMethodInfo.ElementType.init -> void
+NuVatis.Generators.Analysis.MapperMethodInfo.IsAsync.get -> bool
+NuVatis.Generators.Analysis.MapperMethodInfo.IsAsync.init -> void
+NuVatis.Generators.Analysis.MapperMethodInfo.MapperMethodInfo(string! Name, string! ReturnType, bool IsAsync, string? UnwrappedReturnType, bool ReturnsList, string? ElementType, System.Collections.Immutable.ImmutableArray<NuVatis.Generators.Analysis.MapperParameterInfo!> Parameters, string? SqlAttributeType, string? SqlAttributeValue, string? ResultMapAttributeValue) -> void
+NuVatis.Generators.Analysis.MapperMethodInfo.Name.get -> string!
+NuVatis.Generators.Analysis.MapperMethodInfo.Name.init -> void
+NuVatis.Generators.Analysis.MapperMethodInfo.Parameters.get -> System.Collections.Immutable.ImmutableArray<NuVatis.Generators.Analysis.MapperParameterInfo!>
+NuVatis.Generators.Analysis.MapperMethodInfo.Parameters.init -> void
+NuVatis.Generators.Analysis.MapperMethodInfo.ResultMapAttributeValue.get -> string?
+NuVatis.Generators.Analysis.MapperMethodInfo.ResultMapAttributeValue.init -> void
+NuVatis.Generators.Analysis.MapperMethodInfo.ReturnType.get -> string!
+NuVatis.Generators.Analysis.MapperMethodInfo.ReturnType.init -> void
+NuVatis.Generators.Analysis.MapperMethodInfo.ReturnsList.get -> bool
+NuVatis.Generators.Analysis.MapperMethodInfo.ReturnsList.init -> void
+NuVatis.Generators.Analysis.MapperMethodInfo.SqlAttributeType.get -> string?
+NuVatis.Generators.Analysis.MapperMethodInfo.SqlAttributeType.init -> void
+NuVatis.Generators.Analysis.MapperMethodInfo.SqlAttributeValue.get -> string?
+NuVatis.Generators.Analysis.MapperMethodInfo.SqlAttributeValue.init -> void
+NuVatis.Generators.Analysis.MapperMethodInfo.UnwrappedReturnType.get -> string?
+NuVatis.Generators.Analysis.MapperMethodInfo.UnwrappedReturnType.init -> void
+NuVatis.Generators.Analysis.MapperParameterInfo
+NuVatis.Generators.Analysis.MapperParameterInfo.IsCancellationToken.get -> bool
+NuVatis.Generators.Analysis.MapperParameterInfo.IsCancellationToken.init -> void
+NuVatis.Generators.Analysis.MapperParameterInfo.MapperParameterInfo(string! Name, string! Type, bool IsCancellationToken) -> void
+NuVatis.Generators.Analysis.MapperParameterInfo.Name.get -> string!
+NuVatis.Generators.Analysis.MapperParameterInfo.Name.init -> void
+NuVatis.Generators.Analysis.MapperParameterInfo.Type.get -> string!
+NuVatis.Generators.Analysis.MapperParameterInfo.Type.init -> void
+NuVatis.Generators.Analysis.TypeResolver
+NuVatis.Generators.Diagnostics.DiagnosticDescriptors
+NuVatis.Generators.Diagnostics.ResultMapPropertyAnalyzer
+NuVatis.Generators.Diagnostics.ResultMapPropertyMismatch
+NuVatis.Generators.Diagnostics.ResultMapPropertyMismatch.Namespace.get -> string!
+NuVatis.Generators.Diagnostics.ResultMapPropertyMismatch.Namespace.init -> void
+NuVatis.Generators.Diagnostics.ResultMapPropertyMismatch.PropertyName.get -> string!
+NuVatis.Generators.Diagnostics.ResultMapPropertyMismatch.PropertyName.init -> void
+NuVatis.Generators.Diagnostics.ResultMapPropertyMismatch.ResultMapId.get -> string!
+NuVatis.Generators.Diagnostics.ResultMapPropertyMismatch.ResultMapId.init -> void
+NuVatis.Generators.Diagnostics.ResultMapPropertyMismatch.ResultMapPropertyMismatch() -> void
+NuVatis.Generators.Diagnostics.ResultMapPropertyMismatch.ResultMapPropertyMismatch(string! Namespace, string! ResultMapId, string! PropertyName, string! TypeName) -> void
+NuVatis.Generators.Diagnostics.ResultMapPropertyMismatch.TypeName.get -> string!
+NuVatis.Generators.Diagnostics.ResultMapPropertyMismatch.TypeName.init -> void
+NuVatis.Generators.Diagnostics.StringSubstitutionAnalyzer
+NuVatis.Generators.Diagnostics.StringSubstitutionUsage
+NuVatis.Generators.Diagnostics.StringSubstitutionUsage.Namespace.get -> string!
+NuVatis.Generators.Diagnostics.StringSubstitutionUsage.Namespace.init -> void
+NuVatis.Generators.Diagnostics.StringSubstitutionUsage.ParameterName.get -> string!
+NuVatis.Generators.Diagnostics.StringSubstitutionUsage.ParameterName.init -> void
+NuVatis.Generators.Diagnostics.StringSubstitutionUsage.StatementId.get -> string!
+NuVatis.Generators.Diagnostics.StringSubstitutionUsage.StatementId.init -> void
+NuVatis.Generators.Diagnostics.StringSubstitutionUsage.StringSubstitutionUsage() -> void
+NuVatis.Generators.Diagnostics.StringSubstitutionUsage.StringSubstitutionUsage(string! Namespace, string! StatementId, string! ParameterName) -> void
+NuVatis.Generators.Diagnostics.UnusedResultMap
+NuVatis.Generators.Diagnostics.UnusedResultMap.Namespace.get -> string!
+NuVatis.Generators.Diagnostics.UnusedResultMap.Namespace.init -> void
+NuVatis.Generators.Diagnostics.UnusedResultMap.ResultMapId.get -> string!
+NuVatis.Generators.Diagnostics.UnusedResultMap.ResultMapId.init -> void
+NuVatis.Generators.Diagnostics.UnusedResultMap.UnusedResultMap() -> void
+NuVatis.Generators.Diagnostics.UnusedResultMap.UnusedResultMap(string! Namespace, string! ResultMapId) -> void
+NuVatis.Generators.Diagnostics.UnusedResultMapAnalyzer
+NuVatis.Generators.Diagnostics.XmlLocationMapper
+NuVatis.Generators.Emitters.DynamicSqlEmitter
+NuVatis.Generators.Emitters.MappingEmitter
+NuVatis.Generators.Emitters.ParameterEmitter
+NuVatis.Generators.Emitters.ProxyEmitter
+NuVatis.Generators.Emitters.RegistryEmitter
+NuVatis.Generators.Models.BindNode
+NuVatis.Generators.Models.BindNode.BindNode(string! Name, string! Value) -> void
+NuVatis.Generators.Models.BindNode.Name.get -> string!
+NuVatis.Generators.Models.BindNode.Name.init -> void
+NuVatis.Generators.Models.BindNode.Value.get -> string!
+NuVatis.Generators.Models.BindNode.Value.init -> void
+NuVatis.Generators.Models.ChooseNode
+NuVatis.Generators.Models.ChooseNode.ChooseNode(System.Collections.Immutable.ImmutableArray<NuVatis.Generators.Models.WhenClause!> Whens, System.Collections.Immutable.ImmutableArray<NuVatis.Generators.Models.ParsedSqlNode!>? Otherwise) -> void
+NuVatis.Generators.Models.ChooseNode.Otherwise.get -> System.Collections.Immutable.ImmutableArray<NuVatis.Generators.Models.ParsedSqlNode!>?
+NuVatis.Generators.Models.ChooseNode.Otherwise.init -> void
+NuVatis.Generators.Models.ChooseNode.Whens.get -> System.Collections.Immutable.ImmutableArray<NuVatis.Generators.Models.WhenClause!>
+NuVatis.Generators.Models.ChooseNode.Whens.init -> void
+NuVatis.Generators.Models.ForEachNode
+NuVatis.Generators.Models.ForEachNode.Children.get -> System.Collections.Immutable.ImmutableArray<NuVatis.Generators.Models.ParsedSqlNode!>
+NuVatis.Generators.Models.ForEachNode.Children.init -> void
+NuVatis.Generators.Models.ForEachNode.Close.get -> string?
+NuVatis.Generators.Models.ForEachNode.Close.init -> void
+NuVatis.Generators.Models.ForEachNode.Collection.get -> string!
+NuVatis.Generators.Models.ForEachNode.Collection.init -> void
+NuVatis.Generators.Models.ForEachNode.ForEachNode(string! Collection, string! Item, string? Open, string? Close, string? Separator, System.Collections.Immutable.ImmutableArray<NuVatis.Generators.Models.ParsedSqlNode!> Children) -> void
+NuVatis.Generators.Models.ForEachNode.Item.get -> string!
+NuVatis.Generators.Models.ForEachNode.Item.init -> void
+NuVatis.Generators.Models.ForEachNode.Open.get -> string?
+NuVatis.Generators.Models.ForEachNode.Open.init -> void
+NuVatis.Generators.Models.ForEachNode.Separator.get -> string?
+NuVatis.Generators.Models.ForEachNode.Separator.init -> void
+NuVatis.Generators.Models.IfNode
+NuVatis.Generators.Models.IfNode.Children.get -> System.Collections.Immutable.ImmutableArray<NuVatis.Generators.Models.ParsedSqlNode!>
+NuVatis.Generators.Models.IfNode.Children.init -> void
+NuVatis.Generators.Models.IfNode.IfNode(string! Test, System.Collections.Immutable.ImmutableArray<NuVatis.Generators.Models.ParsedSqlNode!> Children) -> void
+NuVatis.Generators.Models.IfNode.Test.get -> string!
+NuVatis.Generators.Models.IfNode.Test.init -> void
+NuVatis.Generators.Models.IncludeNode
+NuVatis.Generators.Models.IncludeNode.IncludeNode(string! RefId) -> void
+NuVatis.Generators.Models.IncludeNode.RefId.get -> string!
+NuVatis.Generators.Models.IncludeNode.RefId.init -> void
+NuVatis.Generators.Models.MixedNode
+NuVatis.Generators.Models.MixedNode.Children.get -> System.Collections.Immutable.ImmutableArray<NuVatis.Generators.Models.ParsedSqlNode!>
+NuVatis.Generators.Models.MixedNode.Children.init -> void
+NuVatis.Generators.Models.MixedNode.MixedNode(System.Collections.Immutable.ImmutableArray<NuVatis.Generators.Models.ParsedSqlNode!> Children) -> void
+NuVatis.Generators.Models.ParameterNode
+NuVatis.Generators.Models.ParameterNode.IsStringSubstitution.get -> bool
+NuVatis.Generators.Models.ParameterNode.IsStringSubstitution.init -> void
+NuVatis.Generators.Models.ParameterNode.Name.get -> string!
+NuVatis.Generators.Models.ParameterNode.Name.init -> void
+NuVatis.Generators.Models.ParameterNode.ParameterNode(string! Name, bool IsStringSubstitution) -> void
+NuVatis.Generators.Models.ParsedAssociation
+NuVatis.Generators.Models.ParsedAssociation.Column.get -> string?
+NuVatis.Generators.Models.ParsedAssociation.Column.init -> void
+NuVatis.Generators.Models.ParsedAssociation.ColumnPrefix.get -> string?
+NuVatis.Generators.Models.ParsedAssociation.ColumnPrefix.init -> void
+NuVatis.Generators.Models.ParsedAssociation.ParsedAssociation(string! Property, string? ResultMapId, string? ColumnPrefix, string? Select, string? Column) -> void
+NuVatis.Generators.Models.ParsedAssociation.Property.get -> string!
+NuVatis.Generators.Models.ParsedAssociation.Property.init -> void
+NuVatis.Generators.Models.ParsedAssociation.ResultMapId.get -> string?
+NuVatis.Generators.Models.ParsedAssociation.ResultMapId.init -> void
+NuVatis.Generators.Models.ParsedAssociation.Select.get -> string?
+NuVatis.Generators.Models.ParsedAssociation.Select.init -> void
+NuVatis.Generators.Models.ParsedCollection
+NuVatis.Generators.Models.ParsedCollection.Column.get -> string?
+NuVatis.Generators.Models.ParsedCollection.Column.init -> void
+NuVatis.Generators.Models.ParsedCollection.ColumnPrefix.get -> string?
+NuVatis.Generators.Models.ParsedCollection.ColumnPrefix.init -> void
+NuVatis.Generators.Models.ParsedCollection.OfType.get -> string?
+NuVatis.Generators.Models.ParsedCollection.OfType.init -> void
+NuVatis.Generators.Models.ParsedCollection.ParsedCollection(string! Property, string? ResultMapId, string? OfType, string? ColumnPrefix, string? Select, string? Column) -> void
+NuVatis.Generators.Models.ParsedCollection.Property.get -> string!
+NuVatis.Generators.Models.ParsedCollection.Property.init -> void
+NuVatis.Generators.Models.ParsedCollection.ResultMapId.get -> string?
+NuVatis.Generators.Models.ParsedCollection.ResultMapId.init -> void
+NuVatis.Generators.Models.ParsedCollection.Select.get -> string?
+NuVatis.Generators.Models.ParsedCollection.Select.init -> void
+NuVatis.Generators.Models.ParsedMapper
+NuVatis.Generators.Models.ParsedMapper.Namespace.get -> string!
+NuVatis.Generators.Models.ParsedMapper.Namespace.init -> void
+NuVatis.Generators.Models.ParsedMapper.ParsedMapper(string! Namespace, System.Collections.Immutable.ImmutableArray<NuVatis.Generators.Models.ParsedResultMap!> ResultMaps, System.Collections.Immutable.ImmutableArray<NuVatis.Generators.Models.ParsedStatement!> Statements, System.Collections.Immutable.ImmutableArray<NuVatis.Generators.Models.ParsedSqlFragment!> SqlFragments) -> void
+NuVatis.Generators.Models.ParsedMapper.ResultMaps.get -> System.Collections.Immutable.ImmutableArray<NuVatis.Generators.Models.ParsedResultMap!>
+NuVatis.Generators.Models.ParsedMapper.ResultMaps.init -> void
+NuVatis.Generators.Models.ParsedMapper.SqlFragments.get -> System.Collections.Immutable.ImmutableArray<NuVatis.Generators.Models.ParsedSqlFragment!>
+NuVatis.Generators.Models.ParsedMapper.SqlFragments.init -> void
+NuVatis.Generators.Models.ParsedMapper.Statements.get -> System.Collections.Immutable.ImmutableArray<NuVatis.Generators.Models.ParsedStatement!>
+NuVatis.Generators.Models.ParsedMapper.Statements.init -> void
+NuVatis.Generators.Models.ParsedResultMap
+NuVatis.Generators.Models.ParsedResultMap.Associations.get -> System.Collections.Immutable.ImmutableArray<NuVatis.Generators.Models.ParsedAssociation!>
+NuVatis.Generators.Models.ParsedResultMap.Associations.init -> void
+NuVatis.Generators.Models.ParsedResultMap.Collections.get -> System.Collections.Immutable.ImmutableArray<NuVatis.Generators.Models.ParsedCollection!>
+NuVatis.Generators.Models.ParsedResultMap.Collections.init -> void
+NuVatis.Generators.Models.ParsedResultMap.Extends.get -> string?
+NuVatis.Generators.Models.ParsedResultMap.Extends.init -> void
+NuVatis.Generators.Models.ParsedResultMap.Id.get -> string!
+NuVatis.Generators.Models.ParsedResultMap.Id.init -> void
+NuVatis.Generators.Models.ParsedResultMap.Mappings.get -> System.Collections.Immutable.ImmutableArray<NuVatis.Generators.Models.ParsedResultMapping!>
+NuVatis.Generators.Models.ParsedResultMap.Mappings.init -> void
+NuVatis.Generators.Models.ParsedResultMap.ParsedResultMap(string! Id, string! Type, string? Extends, System.Collections.Immutable.ImmutableArray<NuVatis.Generators.Models.ParsedResultMapping!> Mappings, System.Collections.Immutable.ImmutableArray<NuVatis.Generators.Models.ParsedAssociation!> Associations, System.Collections.Immutable.ImmutableArray<NuVatis.Generators.Models.ParsedCollection!> Collections) -> void
+NuVatis.Generators.Models.ParsedResultMap.Type.get -> string!
+NuVatis.Generators.Models.ParsedResultMap.Type.init -> void
+NuVatis.Generators.Models.ParsedResultMapping
+NuVatis.Generators.Models.ParsedResultMapping.Column.get -> string!
+NuVatis.Generators.Models.ParsedResultMapping.Column.init -> void
+NuVatis.Generators.Models.ParsedResultMapping.IsId.get -> bool
+NuVatis.Generators.Models.ParsedResultMapping.IsId.init -> void
+NuVatis.Generators.Models.ParsedResultMapping.ParsedResultMapping(string! Column, string! Property, string? TypeHandler, bool IsId) -> void
+NuVatis.Generators.Models.ParsedResultMapping.Property.get -> string!
+NuVatis.Generators.Models.ParsedResultMapping.Property.init -> void
+NuVatis.Generators.Models.ParsedResultMapping.TypeHandler.get -> string?
+NuVatis.Generators.Models.ParsedResultMapping.TypeHandler.init -> void
+NuVatis.Generators.Models.ParsedSqlFragment
+NuVatis.Generators.Models.ParsedSqlFragment.Id.get -> string!
+NuVatis.Generators.Models.ParsedSqlFragment.Id.init -> void
+NuVatis.Generators.Models.ParsedSqlFragment.ParsedSqlFragment(string! Id, NuVatis.Generators.Models.ParsedSqlNode! RootNode) -> void
+NuVatis.Generators.Models.ParsedSqlFragment.RootNode.get -> NuVatis.Generators.Models.ParsedSqlNode!
+NuVatis.Generators.Models.ParsedSqlFragment.RootNode.init -> void
+NuVatis.Generators.Models.ParsedSqlNode
+NuVatis.Generators.Models.ParsedStatement
+NuVatis.Generators.Models.ParsedStatement.Id.get -> string!
+NuVatis.Generators.Models.ParsedStatement.Id.init -> void
+NuVatis.Generators.Models.ParsedStatement.ParameterType.get -> string?
+NuVatis.Generators.Models.ParsedStatement.ParameterType.init -> void
+NuVatis.Generators.Models.ParsedStatement.ParsedStatement(string! Id, string! StatementType, string? ResultMapId, string? ResultType, string? ParameterType, NuVatis.Generators.Models.ParsedSqlNode! RootNode, int? Timeout = null) -> void
+NuVatis.Generators.Models.ParsedStatement.ResultMapId.get -> string?
+NuVatis.Generators.Models.ParsedStatement.ResultMapId.init -> void
+NuVatis.Generators.Models.ParsedStatement.ResultType.get -> string?
+NuVatis.Generators.Models.ParsedStatement.ResultType.init -> void
+NuVatis.Generators.Models.ParsedStatement.RootNode.get -> NuVatis.Generators.Models.ParsedSqlNode!
+NuVatis.Generators.Models.ParsedStatement.RootNode.init -> void
+NuVatis.Generators.Models.ParsedStatement.StatementType.get -> string!
+NuVatis.Generators.Models.ParsedStatement.StatementType.init -> void
+NuVatis.Generators.Models.ParsedStatement.Timeout.get -> int?
+NuVatis.Generators.Models.ParsedStatement.Timeout.init -> void
+NuVatis.Generators.Models.SetNode
+NuVatis.Generators.Models.SetNode.Children.get -> System.Collections.Immutable.ImmutableArray<NuVatis.Generators.Models.ParsedSqlNode!>
+NuVatis.Generators.Models.SetNode.Children.init -> void
+NuVatis.Generators.Models.SetNode.SetNode(System.Collections.Immutable.ImmutableArray<NuVatis.Generators.Models.ParsedSqlNode!> Children) -> void
+NuVatis.Generators.Models.TextNode
+NuVatis.Generators.Models.TextNode.Text.get -> string!
+NuVatis.Generators.Models.TextNode.Text.init -> void
+NuVatis.Generators.Models.TextNode.TextNode(string! Text) -> void
+NuVatis.Generators.Models.WhenClause
+NuVatis.Generators.Models.WhenClause.Children.get -> System.Collections.Immutable.ImmutableArray<NuVatis.Generators.Models.ParsedSqlNode!>
+NuVatis.Generators.Models.WhenClause.Children.init -> void
+NuVatis.Generators.Models.WhenClause.Test.get -> string!
+NuVatis.Generators.Models.WhenClause.Test.init -> void
+NuVatis.Generators.Models.WhenClause.WhenClause(string! Test, System.Collections.Immutable.ImmutableArray<NuVatis.Generators.Models.ParsedSqlNode!> Children) -> void
+NuVatis.Generators.Models.WhereNode
+NuVatis.Generators.Models.WhereNode.Children.get -> System.Collections.Immutable.ImmutableArray<NuVatis.Generators.Models.ParsedSqlNode!>
+NuVatis.Generators.Models.WhereNode.Children.init -> void
+NuVatis.Generators.Models.WhereNode.WhereNode(System.Collections.Immutable.ImmutableArray<NuVatis.Generators.Models.ParsedSqlNode!> Children) -> void
+NuVatis.Generators.NuVatisIncrementalGenerator
+NuVatis.Generators.NuVatisIncrementalGenerator.Initialize(Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext context) -> void
+NuVatis.Generators.NuVatisIncrementalGenerator.NuVatisIncrementalGenerator() -> void
+NuVatis.Generators.Parsing.IncludeResolver
+NuVatis.Generators.Parsing.ParsedConfig
+NuVatis.Generators.Parsing.ParsedConfig.ConnectionString.get -> string?
+NuVatis.Generators.Parsing.ParsedConfig.ConnectionString.init -> void
+NuVatis.Generators.Parsing.ParsedConfig.MapperResources.get -> System.Collections.Immutable.ImmutableArray<string!>
+NuVatis.Generators.Parsing.ParsedConfig.MapperResources.init -> void
+NuVatis.Generators.Parsing.ParsedConfig.ParsedConfig(string? Provider, string? ConnectionString, System.Collections.Immutable.ImmutableArray<(string! Alias, string! Type)> TypeAliases, System.Collections.Immutable.ImmutableArray<string!> MapperResources) -> void
+NuVatis.Generators.Parsing.ParsedConfig.Provider.get -> string?
+NuVatis.Generators.Parsing.ParsedConfig.Provider.init -> void
+NuVatis.Generators.Parsing.ParsedConfig.TypeAliases.get -> System.Collections.Immutable.ImmutableArray<(string! Alias, string! Type)>
+NuVatis.Generators.Parsing.ParsedConfig.TypeAliases.init -> void
+NuVatis.Generators.Parsing.XmlConfigParser
+NuVatis.Generators.Parsing.XmlMapperParser
+static NuVatis.Generators.Analysis.InterfaceAnalyzer.FindMapperInterfaces(Microsoft.CodeAnalysis.Compilation! compilation, System.Threading.CancellationToken ct) -> System.Collections.Immutable.ImmutableArray<NuVatis.Generators.Analysis.MapperInterfaceInfo!>
+static NuVatis.Generators.Analysis.TypeResolver.GetCollectionElementType(Microsoft.CodeAnalysis.ITypeSymbol! symbol) -> Microsoft.CodeAnalysis.ITypeSymbol?
+static NuVatis.Generators.Analysis.TypeResolver.GetFullyQualifiedName(Microsoft.CodeAnalysis.ITypeSymbol! symbol) -> string!
+static NuVatis.Generators.Analysis.TypeResolver.IsCollectionType(Microsoft.CodeAnalysis.ITypeSymbol! symbol) -> bool
+static NuVatis.Generators.Analysis.TypeResolver.IsNullableType(Microsoft.CodeAnalysis.ITypeSymbol! symbol) -> bool
+static NuVatis.Generators.Analysis.TypeResolver.IsTaskType(Microsoft.CodeAnalysis.ITypeSymbol! symbol) -> bool
+static NuVatis.Generators.Analysis.TypeResolver.UnwrapNullable(Microsoft.CodeAnalysis.ITypeSymbol! symbol) -> Microsoft.CodeAnalysis.ITypeSymbol?
+static NuVatis.Generators.Analysis.TypeResolver.UnwrapTask(Microsoft.CodeAnalysis.ITypeSymbol! symbol) -> Microsoft.CodeAnalysis.ITypeSymbol?
+static NuVatis.Generators.Diagnostics.ResultMapPropertyAnalyzer.Analyze(NuVatis.Generators.Models.ParsedMapper! mapper, Microsoft.CodeAnalysis.Compilation! compilation) -> System.Collections.Immutable.ImmutableArray<NuVatis.Generators.Diagnostics.ResultMapPropertyMismatch>
+static NuVatis.Generators.Diagnostics.StringSubstitutionAnalyzer.Analyze(NuVatis.Generators.Models.ParsedMapper! mapper) -> System.Collections.Immutable.ImmutableArray<NuVatis.Generators.Diagnostics.StringSubstitutionUsage>
+static NuVatis.Generators.Diagnostics.StringSubstitutionAnalyzer.Analyze(NuVatis.Generators.Models.ParsedMapper! mapper, System.Collections.Generic.ISet<string!>? sqlConstantNames) -> System.Collections.Immutable.ImmutableArray<NuVatis.Generators.Diagnostics.StringSubstitutionUsage>
+static NuVatis.Generators.Diagnostics.StringSubstitutionAnalyzer.CollectSqlConstantNames(Microsoft.CodeAnalysis.Compilation! compilation) -> System.Collections.Generic.ISet<string!>!
+static NuVatis.Generators.Diagnostics.UnusedResultMapAnalyzer.Analyze(NuVatis.Generators.Models.ParsedMapper! mapper) -> System.Collections.Immutable.ImmutableArray<NuVatis.Generators.Diagnostics.UnusedResultMap>
+static NuVatis.Generators.Diagnostics.XmlLocationMapper.CreateLocation(string! filePath, System.Xml.Linq.XElement! element) -> Microsoft.CodeAnalysis.Location!
+static NuVatis.Generators.Diagnostics.XmlLocationMapper.CreateLocation(string! filePath, int lineNumber, int columnNumber) -> Microsoft.CodeAnalysis.Location!
+static NuVatis.Generators.Emitters.DynamicSqlEmitter.ConvertTestExpression(string! testExpr, string! paramVar) -> string!
+static NuVatis.Generators.Emitters.DynamicSqlEmitter.EmitSqlBuilder(NuVatis.Generators.Models.ParsedSqlNode! node, string! paramVarName, string? paramTypeName, int indent = 3) -> string!
+static NuVatis.Generators.Emitters.DynamicSqlEmitter.HasDynamicNodes(NuVatis.Generators.Models.ParsedSqlNode! node) -> bool
+static NuVatis.Generators.Emitters.MappingEmitter.EmitMapMethod(NuVatis.Generators.Models.ParsedResultMap! resultMap, string! targetTypeName, Microsoft.CodeAnalysis.INamedTypeSymbol? typeSymbol = null) -> string!
+static NuVatis.Generators.Emitters.MappingEmitter.SanitizeIdPublic(string! id) -> string!
+static NuVatis.Generators.Emitters.ParameterEmitter.EmitBuildSqlMethod(NuVatis.Generators.Models.ParsedStatement! statement, string! providerParameterPrefix) -> string!
+static NuVatis.Generators.Emitters.ProxyEmitter.Emit(NuVatis.Generators.Analysis.MapperInterfaceInfo! interfaceInfo, NuVatis.Generators.Models.ParsedMapper? mapper, Microsoft.CodeAnalysis.Compilation? compilation = null) -> string!
+static NuVatis.Generators.Emitters.RegistryEmitter.Emit(System.Collections.Immutable.ImmutableArray<NuVatis.Generators.Analysis.MapperInterfaceInfo!> interfaces) -> string!
+static NuVatis.Generators.Parsing.IncludeResolver.ResolveIncludes(NuVatis.Generators.Models.ParsedMapper! mapper) -> NuVatis.Generators.Models.ParsedMapper!
+static NuVatis.Generators.Parsing.XmlConfigParser.Parse(string! xmlContent) -> NuVatis.Generators.Parsing.ParsedConfig!
+static NuVatis.Generators.Parsing.XmlMapperParser.Parse(string! xmlContent, System.Threading.CancellationToken ct) -> NuVatis.Generators.Models.ParsedMapper!
+static readonly NuVatis.Generators.Diagnostics.DiagnosticDescriptors.ParameterNotFound -> Microsoft.CodeAnalysis.DiagnosticDescriptor!
+static readonly NuVatis.Generators.Diagnostics.DiagnosticDescriptors.ResultMapColumnMismatch -> Microsoft.CodeAnalysis.DiagnosticDescriptor!
+static readonly NuVatis.Generators.Diagnostics.DiagnosticDescriptors.ResultMapNotFound -> Microsoft.CodeAnalysis.DiagnosticDescriptor!
+static readonly NuVatis.Generators.Diagnostics.DiagnosticDescriptors.ResultMapPropertyNotFound -> Microsoft.CodeAnalysis.DiagnosticDescriptor!
+static readonly NuVatis.Generators.Diagnostics.DiagnosticDescriptors.SqlInjectionWarning -> Microsoft.CodeAnalysis.DiagnosticDescriptor!
+static readonly NuVatis.Generators.Diagnostics.DiagnosticDescriptors.StatementNotFound -> Microsoft.CodeAnalysis.DiagnosticDescriptor!
+static readonly NuVatis.Generators.Diagnostics.DiagnosticDescriptors.TestExpressionCompilationFailed -> Microsoft.CodeAnalysis.DiagnosticDescriptor!
+static readonly NuVatis.Generators.Diagnostics.DiagnosticDescriptors.UnusedResultMap -> Microsoft.CodeAnalysis.DiagnosticDescriptor!

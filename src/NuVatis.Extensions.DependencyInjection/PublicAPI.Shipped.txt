@@ -1,1 +1,23 @@
 #nullable enable
+NuVatis.Extensions.DependencyInjection.NuVatisHealthCheck
+NuVatis.Extensions.DependencyInjection.NuVatisHealthCheck.CheckHealthAsync(Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckContext! context, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult>!
+NuVatis.Extensions.DependencyInjection.NuVatisHealthCheck.NuVatisHealthCheck(NuVatis.Session.ISqlSessionFactory! factory) -> void
+NuVatis.Extensions.DependencyInjection.NuVatisHealthCheckExtensions
+NuVatis.Extensions.DependencyInjection.NuVatisOptions
+NuVatis.Extensions.DependencyInjection.NuVatisOptions.AddInterceptor(NuVatis.Interceptor.ISqlInterceptor! interceptor) -> NuVatis.Extensions.DependencyInjection.NuVatisOptions!
+NuVatis.Extensions.DependencyInjection.NuVatisOptions.ConnectionString.get -> string?
+NuVatis.Extensions.DependencyInjection.NuVatisOptions.ConnectionString.set -> void
+NuVatis.Extensions.DependencyInjection.NuVatisOptions.DefaultAutoCommit.get -> bool
+NuVatis.Extensions.DependencyInjection.NuVatisOptions.DefaultAutoCommit.set -> void
+NuVatis.Extensions.DependencyInjection.NuVatisOptions.LoggerFactory.get -> Microsoft.Extensions.Logging.ILoggerFactory?
+NuVatis.Extensions.DependencyInjection.NuVatisOptions.LoggerFactory.set -> void
+NuVatis.Extensions.DependencyInjection.NuVatisOptions.NuVatisOptions() -> void
+NuVatis.Extensions.DependencyInjection.NuVatisOptions.Provider.get -> NuVatis.Provider.IDbProvider?
+NuVatis.Extensions.DependencyInjection.NuVatisOptions.Provider.set -> void
+NuVatis.Extensions.DependencyInjection.NuVatisOptions.RegisterAttributeStatements(System.Action<System.Collections.Generic.Dictionary<string!, NuVatis.Statement.MappedStatement!>!>! statementAction) -> NuVatis.Extensions.DependencyInjection.NuVatisOptions!
+NuVatis.Extensions.DependencyInjection.NuVatisOptions.RegisterMappers(System.Action<NuVatis.Session.ISqlSessionFactory!, System.Action<System.Type!, System.Func<NuVatis.Session.ISqlSession!, object!>!>!>! registryAction) -> NuVatis.Extensions.DependencyInjection.NuVatisOptions!
+NuVatis.Extensions.DependencyInjection.NuVatisOptions.RegistryAction.get -> System.Action<NuVatis.Session.ISqlSessionFactory!, System.Action<System.Type!, System.Func<NuVatis.Session.ISqlSession!, object!>!>!>?
+NuVatis.Extensions.DependencyInjection.NuVatisOptions.StatementRegistryAction.get -> System.Action<System.Collections.Generic.Dictionary<string!, NuVatis.Statement.MappedStatement!>!>?
+NuVatis.Extensions.DependencyInjection.NuVatisServiceCollectionExtensions
+static NuVatis.Extensions.DependencyInjection.NuVatisHealthCheckExtensions.AddNuVatis(this Microsoft.Extensions.DependencyInjection.IHealthChecksBuilder! builder, string! name = "nuvatis", Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus? failureStatus = null, System.Collections.Generic.IEnumerable<string!>? tags = null, System.TimeSpan? timeout = null) -> Microsoft.Extensions.DependencyInjection.IHealthChecksBuilder!
+static NuVatis.Extensions.DependencyInjection.NuVatisServiceCollectionExtensions.AddNuVatis(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, System.Action<NuVatis.Extensions.DependencyInjection.NuVatisOptions!>! configure) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!

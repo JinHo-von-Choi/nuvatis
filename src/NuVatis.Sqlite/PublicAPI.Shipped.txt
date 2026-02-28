@@ -1,1 +1,8 @@
 #nullable enable
+NuVatis.Sqlite.SqliteProvider
+NuVatis.Sqlite.SqliteProvider.CreateConnection(string! connectionString) -> System.Data.Common.DbConnection!
+NuVatis.Sqlite.SqliteProvider.GetParameterName(int index) -> string!
+NuVatis.Sqlite.SqliteProvider.Name.get -> string!
+NuVatis.Sqlite.SqliteProvider.ParameterPrefix.get -> string!
+NuVatis.Sqlite.SqliteProvider.SqliteProvider() -> void
+NuVatis.Sqlite.SqliteProvider.WrapIdentifier(string! name) -> string!

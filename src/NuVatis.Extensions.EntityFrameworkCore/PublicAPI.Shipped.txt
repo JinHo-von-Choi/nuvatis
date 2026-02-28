@@ -1,1 +1,8 @@
 #nullable enable
+NuVatis.Extensions.EntityFrameworkCore.NuVatisEfCoreExtensions
+NuVatis.Extensions.EntityFrameworkCore.NuVatisEfCoreOptions
+NuVatis.Extensions.EntityFrameworkCore.NuVatisEfCoreOptions.DbContextType.get -> System.Type?
+NuVatis.Extensions.EntityFrameworkCore.NuVatisEfCoreOptions.NuVatisEfCoreOptions() -> void
+static NuVatis.Extensions.EntityFrameworkCore.NuVatisEfCoreExtensions.AddNuVatisEntityFrameworkCore<TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+static NuVatis.Extensions.EntityFrameworkCore.NuVatisEfCoreExtensions.OpenNuVatisSession(this Microsoft.EntityFrameworkCore.DbContext! dbContext, NuVatis.Session.ISqlSessionFactory! factory) -> NuVatis.Session.ISqlSession!
+static NuVatis.Extensions.EntityFrameworkCore.NuVatisEfCoreExtensions.OpenNuVatisSessionAsync(this Microsoft.EntityFrameworkCore.DbContext! dbContext, NuVatis.Session.ISqlSessionFactory! factory, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<NuVatis.Session.ISqlSession!>!

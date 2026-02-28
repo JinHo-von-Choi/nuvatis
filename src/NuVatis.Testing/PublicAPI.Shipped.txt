@@ -1,1 +1,49 @@
 #nullable enable
+NuVatis.Testing.CapturedQuery
+NuVatis.Testing.CapturedQuery.CapturedQuery(string! StatementId, object? Parameter, string! OperationType) -> void
+NuVatis.Testing.CapturedQuery.OperationType.get -> string!
+NuVatis.Testing.CapturedQuery.OperationType.init -> void
+NuVatis.Testing.CapturedQuery.Parameter.get -> object?
+NuVatis.Testing.CapturedQuery.Parameter.init -> void
+NuVatis.Testing.CapturedQuery.StatementId.get -> string!
+NuVatis.Testing.CapturedQuery.StatementId.init -> void
+NuVatis.Testing.InMemorySqlSession
+NuVatis.Testing.InMemorySqlSession.CapturedQueries.get -> System.Collections.Generic.IReadOnlyList<NuVatis.Testing.CapturedQuery!>!
+NuVatis.Testing.InMemorySqlSession.ClearCaptures() -> void
+NuVatis.Testing.InMemorySqlSession.Commit() -> void
+NuVatis.Testing.InMemorySqlSession.CommitAsync(System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+NuVatis.Testing.InMemorySqlSession.Delete(string! statementId, object? parameter = null) -> int
+NuVatis.Testing.InMemorySqlSession.DeleteAsync(string! statementId, object? parameter = null, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+NuVatis.Testing.InMemorySqlSession.Dispose() -> void
+NuVatis.Testing.InMemorySqlSession.DisposeAsync() -> System.Threading.Tasks.ValueTask
+NuVatis.Testing.InMemorySqlSession.ExecuteInTransactionAsync(System.Func<System.Threading.Tasks.Task!>! action, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+NuVatis.Testing.InMemorySqlSession.FlushStatements() -> int
+NuVatis.Testing.InMemorySqlSession.FlushStatementsAsync(System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+NuVatis.Testing.InMemorySqlSession.GetMapper<T>() -> T!
+NuVatis.Testing.InMemorySqlSession.InMemorySqlSession() -> void
+NuVatis.Testing.InMemorySqlSession.Insert(string! statementId, object? parameter = null) -> int
+NuVatis.Testing.InMemorySqlSession.InsertAsync(string! statementId, object? parameter = null, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+NuVatis.Testing.InMemorySqlSession.IsBatchMode.get -> bool
+NuVatis.Testing.InMemorySqlSession.RegisterMapper<T>(T! mapper) -> void
+NuVatis.Testing.InMemorySqlSession.Rollback() -> void
+NuVatis.Testing.InMemorySqlSession.RollbackAsync(System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+NuVatis.Testing.InMemorySqlSession.SelectList<T>(string! statementId, object? parameter = null) -> System.Collections.Generic.IList<T>!
+NuVatis.Testing.InMemorySqlSession.SelectList<T>(string! statementId, object? parameter, System.Func<System.Data.Common.DbDataReader!, T>! mapper) -> System.Collections.Generic.IList<T>!
+NuVatis.Testing.InMemorySqlSession.SelectListAsync<T>(string! statementId, object? parameter = null, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IList<T>!>!
+NuVatis.Testing.InMemorySqlSession.SelectListAsync<T>(string! statementId, object? parameter, System.Func<System.Data.Common.DbDataReader!, T>! mapper, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IList<T>!>!
+NuVatis.Testing.InMemorySqlSession.SelectMultiple(string! statementId, object? parameter = null) -> NuVatis.Mapping.ResultSetGroup!
+NuVatis.Testing.InMemorySqlSession.SelectMultipleAsync(string! statementId, object? parameter = null, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<NuVatis.Mapping.ResultSetGroup!>!
+NuVatis.Testing.InMemorySqlSession.SelectOne<T>(string! statementId, object? parameter = null) -> T?
+NuVatis.Testing.InMemorySqlSession.SelectOne<T>(string! statementId, object? parameter, System.Func<System.Data.Common.DbDataReader!, T>! mapper) -> T?
+NuVatis.Testing.InMemorySqlSession.SelectOneAsync<T>(string! statementId, object? parameter = null, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<T?>!
+NuVatis.Testing.InMemorySqlSession.SelectOneAsync<T>(string! statementId, object? parameter, System.Func<System.Data.Common.DbDataReader!, T>! mapper, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<T?>!
+NuVatis.Testing.InMemorySqlSession.SelectStream<T>(string! statementId, object? parameter = null, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<T>!
+NuVatis.Testing.InMemorySqlSession.Setup<T>(string! statementId, T result) -> void
+NuVatis.Testing.InMemorySqlSession.SetupList<T>(string! statementId, System.Collections.Generic.IList<T>! results) -> void
+NuVatis.Testing.InMemorySqlSession.Update(string! statementId, object? parameter = null) -> int
+NuVatis.Testing.InMemorySqlSession.UpdateAsync(string! statementId, object? parameter = null, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+NuVatis.Testing.QueryCapture
+static NuVatis.Testing.QueryCapture.HasQuery(NuVatis.Testing.InMemorySqlSession! session, string! statementId) -> bool
+static NuVatis.Testing.QueryCapture.LastQuery(NuVatis.Testing.InMemorySqlSession! session) -> NuVatis.Testing.CapturedQuery?
+static NuVatis.Testing.QueryCapture.Of(NuVatis.Testing.InMemorySqlSession! session) -> System.Collections.Generic.IReadOnlyList<NuVatis.Testing.CapturedQuery!>!
+static NuVatis.Testing.QueryCapture.QueryCount(NuVatis.Testing.InMemorySqlSession! session, string! statementId) -> int

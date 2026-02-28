@@ -1,1 +1,13 @@
 #nullable enable
+NuVatis.Extensions.Aspire.NuVatisAspireExtensions
+NuVatis.Extensions.Aspire.NuVatisAspireSettings
+NuVatis.Extensions.Aspire.NuVatisAspireSettings.ConnectionString.get -> string?
+NuVatis.Extensions.Aspire.NuVatisAspireSettings.ConnectionString.set -> void
+NuVatis.Extensions.Aspire.NuVatisAspireSettings.DisableHealthChecks.get -> bool
+NuVatis.Extensions.Aspire.NuVatisAspireSettings.DisableHealthChecks.set -> void
+NuVatis.Extensions.Aspire.NuVatisAspireSettings.DisableTracing.get -> bool
+NuVatis.Extensions.Aspire.NuVatisAspireSettings.DisableTracing.set -> void
+NuVatis.Extensions.Aspire.NuVatisAspireSettings.NuVatisAspireSettings() -> void
+NuVatis.Extensions.Aspire.NuVatisAspireSettings.ProviderName.get -> string!
+NuVatis.Extensions.Aspire.NuVatisAspireSettings.ProviderName.set -> void
+static NuVatis.Extensions.Aspire.NuVatisAspireExtensions.AddNuVatis(this Microsoft.Extensions.Hosting.IHostApplicationBuilder! builder, string! connectionName, NuVatis.Provider.IDbProvider! provider, System.Action<NuVatis.Extensions.Aspire.NuVatisAspireSettings!>? configureSettings = null, System.Action<NuVatis.Extensions.DependencyInjection.NuVatisOptions!>? configureOptions = null) -> Microsoft.Extensions.Hosting.IHostApplicationBuilder!

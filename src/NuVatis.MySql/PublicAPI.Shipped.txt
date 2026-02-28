@@ -1,1 +1,8 @@
 #nullable enable
+NuVatis.MySql.MySqlProvider
+NuVatis.MySql.MySqlProvider.CreateConnection(string! connectionString) -> System.Data.Common.DbConnection!
+NuVatis.MySql.MySqlProvider.GetParameterName(int index) -> string!
+NuVatis.MySql.MySqlProvider.MySqlProvider() -> void
+NuVatis.MySql.MySqlProvider.Name.get -> string!
+NuVatis.MySql.MySqlProvider.ParameterPrefix.get -> string!
+NuVatis.MySql.MySqlProvider.WrapIdentifier(string! name) -> string!

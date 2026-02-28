@@ -1,1 +1,9 @@
 #nullable enable
+NuVatis.Extensions.OpenTelemetry.OpenTelemetryInterceptor
+NuVatis.Extensions.OpenTelemetry.OpenTelemetryInterceptor.AfterExecute(NuVatis.Interceptor.InterceptorContext! context) -> void
+NuVatis.Extensions.OpenTelemetry.OpenTelemetryInterceptor.AfterExecuteAsync(NuVatis.Interceptor.InterceptorContext! context, System.Threading.CancellationToken ct) -> System.Threading.Tasks.Task!
+NuVatis.Extensions.OpenTelemetry.OpenTelemetryInterceptor.BeforeExecute(NuVatis.Interceptor.InterceptorContext! context) -> void
+NuVatis.Extensions.OpenTelemetry.OpenTelemetryInterceptor.BeforeExecuteAsync(NuVatis.Interceptor.InterceptorContext! context, System.Threading.CancellationToken ct) -> System.Threading.Tasks.Task!
+NuVatis.Extensions.OpenTelemetry.OpenTelemetryInterceptor.Dispose() -> void
+NuVatis.Extensions.OpenTelemetry.OpenTelemetryInterceptor.OpenTelemetryInterceptor(string! sourceName = "NuVatis.SqlSession") -> void
+NuVatis.Extensions.OpenTelemetry.OpenTelemetryInterceptor.SourceName.get -> string!

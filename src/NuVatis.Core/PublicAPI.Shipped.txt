@@ -1,1 +1,447 @@
 #nullable enable
+NuVatis.Attributes.DeleteAttribute
+NuVatis.Attributes.DeleteAttribute.DeleteAttribute(string! sql) -> void
+NuVatis.Attributes.DeleteAttribute.Sql.get -> string!
+NuVatis.Attributes.InsertAttribute
+NuVatis.Attributes.InsertAttribute.InsertAttribute(string! sql) -> void
+NuVatis.Attributes.InsertAttribute.Sql.get -> string!
+NuVatis.Attributes.NuVatisMapperAttribute
+NuVatis.Attributes.NuVatisMapperAttribute.NuVatisMapperAttribute() -> void
+NuVatis.Attributes.ResultMapAttribute
+NuVatis.Attributes.ResultMapAttribute.ResultMapAttribute(string! resultMapId) -> void
+NuVatis.Attributes.ResultMapAttribute.ResultMapId.get -> string!
+NuVatis.Attributes.SelectAttribute
+NuVatis.Attributes.SelectAttribute.SelectAttribute(string! sql) -> void
+NuVatis.Attributes.SelectAttribute.Sql.get -> string!
+NuVatis.Attributes.SqlConstantAttribute
+NuVatis.Attributes.SqlConstantAttribute.SqlConstantAttribute() -> void
+NuVatis.Attributes.UpdateAttribute
+NuVatis.Attributes.UpdateAttribute.Sql.get -> string!
+NuVatis.Attributes.UpdateAttribute.UpdateAttribute(string! sql) -> void
+NuVatis.Binding.ParameterBinder
+NuVatis.Cache.CacheConfig
+NuVatis.Cache.CacheConfig.CacheConfig() -> void
+NuVatis.Cache.CacheConfig.Eviction.get -> NuVatis.Cache.CacheEviction
+NuVatis.Cache.CacheConfig.Eviction.init -> void
+NuVatis.Cache.CacheConfig.FlushIntervalMs.get -> long?
+NuVatis.Cache.CacheConfig.FlushIntervalMs.init -> void
+NuVatis.Cache.CacheConfig.ReadOnly.get -> bool
+NuVatis.Cache.CacheConfig.ReadOnly.init -> void
+NuVatis.Cache.CacheConfig.Size.get -> int
+NuVatis.Cache.CacheConfig.Size.init -> void
+NuVatis.Cache.CacheEviction
+NuVatis.Cache.CacheEviction.Fifo = 1 -> NuVatis.Cache.CacheEviction
+NuVatis.Cache.CacheEviction.Lru = 0 -> NuVatis.Cache.CacheEviction
+NuVatis.Cache.CacheKey
+NuVatis.Cache.ICacheProvider
+NuVatis.Cache.ICacheProvider.Flush(string! namespace_) -> void
+NuVatis.Cache.ICacheProvider.Get(string! namespace_, string! cacheKey) -> object?
+NuVatis.Cache.ICacheProvider.Put(string! namespace_, string! cacheKey, object! value) -> void
+NuVatis.Cache.ICacheProvider.RegisterNamespace(string! namespace_, NuVatis.Cache.CacheConfig! config) -> void
+NuVatis.Cache.MemoryCacheProvider
+NuVatis.Cache.MemoryCacheProvider.Dispose() -> void
+NuVatis.Cache.MemoryCacheProvider.Flush(string! namespace_) -> void
+NuVatis.Cache.MemoryCacheProvider.Get(string! namespace_, string! cacheKey) -> object?
+NuVatis.Cache.MemoryCacheProvider.MemoryCacheProvider() -> void
+NuVatis.Cache.MemoryCacheProvider.Put(string! namespace_, string! cacheKey, object! value) -> void
+NuVatis.Cache.MemoryCacheProvider.RegisterNamespace(string! namespace_, NuVatis.Cache.CacheConfig! config) -> void
+NuVatis.Configuration.DataSourceConfig
+NuVatis.Configuration.DataSourceConfig.ConnectionString.get -> string!
+NuVatis.Configuration.DataSourceConfig.ConnectionString.init -> void
+NuVatis.Configuration.DataSourceConfig.DataSourceConfig() -> void
+NuVatis.Configuration.DataSourceConfig.ProviderName.get -> string!
+NuVatis.Configuration.DataSourceConfig.ProviderName.init -> void
+NuVatis.Configuration.NuVatisConfiguration
+NuVatis.Configuration.NuVatisConfiguration.CacheConfigs.get -> System.Collections.Generic.Dictionary<string!, NuVatis.Cache.CacheConfig!>!
+NuVatis.Configuration.NuVatisConfiguration.CacheConfigs.init -> void
+NuVatis.Configuration.NuVatisConfiguration.CacheProvider.get -> NuVatis.Cache.ICacheProvider?
+NuVatis.Configuration.NuVatisConfiguration.CacheProvider.set -> void
+NuVatis.Configuration.NuVatisConfiguration.DataSource.get -> NuVatis.Configuration.DataSourceConfig!
+NuVatis.Configuration.NuVatisConfiguration.DataSource.init -> void
+NuVatis.Configuration.NuVatisConfiguration.DefaultCommandTimeout.get -> int?
+NuVatis.Configuration.NuVatisConfiguration.DefaultCommandTimeout.init -> void
+NuVatis.Configuration.NuVatisConfiguration.MapperResources.get -> System.Collections.Generic.List<string!>!
+NuVatis.Configuration.NuVatisConfiguration.MapperResources.init -> void
+NuVatis.Configuration.NuVatisConfiguration.NuVatisConfiguration() -> void
+NuVatis.Configuration.NuVatisConfiguration.ResultMaps.get -> System.Collections.Generic.Dictionary<string!, NuVatis.Mapping.ResultMapDefinition!>!
+NuVatis.Configuration.NuVatisConfiguration.ResultMaps.init -> void
+NuVatis.Configuration.NuVatisConfiguration.Statements.get -> System.Collections.Generic.Dictionary<string!, NuVatis.Statement.MappedStatement!>!
+NuVatis.Configuration.NuVatisConfiguration.Statements.init -> void
+NuVatis.Configuration.NuVatisConfiguration.TypeAliases.get -> NuVatis.Configuration.TypeAliasRegistry!
+NuVatis.Configuration.NuVatisConfiguration.TypeAliases.init -> void
+NuVatis.Configuration.TypeAliasRegistry
+NuVatis.Configuration.TypeAliasRegistry.Register(string! alias, System.Type! type) -> void
+NuVatis.Configuration.TypeAliasRegistry.Resolve(string! aliasOrTypeName) -> System.Type!
+NuVatis.Configuration.TypeAliasRegistry.TryResolve(string! aliasOrTypeName, out System.Type? type) -> bool
+NuVatis.Configuration.TypeAliasRegistry.TypeAliasRegistry() -> void
+NuVatis.Core.Sql.SqlIdentifier
+NuVatis.DynamicSql.TestExpressionEvaluator
+NuVatis.Executor.BatchExecutor
+NuVatis.Executor.BatchExecutor.Add(NuVatis.Statement.MappedStatement! statement, string! sql, System.Collections.Generic.IReadOnlyList<System.Data.Common.DbParameter!>! parameters) -> void
+NuVatis.Executor.BatchExecutor.BatchExecutor(NuVatis.Transaction.AdoTransaction! transaction) -> void
+NuVatis.Executor.BatchExecutor.Commit() -> void
+NuVatis.Executor.BatchExecutor.CommitAsync(System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+NuVatis.Executor.BatchExecutor.Count.get -> int
+NuVatis.Executor.BatchExecutor.Dispose() -> void
+NuVatis.Executor.BatchExecutor.DisposeAsync() -> System.Threading.Tasks.ValueTask
+NuVatis.Executor.BatchExecutor.Flush() -> int
+NuVatis.Executor.BatchExecutor.FlushAsync(System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+NuVatis.Executor.BatchExecutor.Rollback() -> void
+NuVatis.Executor.BatchExecutor.RollbackAsync(System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+NuVatis.Executor.IExecutor
+NuVatis.Executor.IExecutor.Commit() -> void
+NuVatis.Executor.IExecutor.CommitAsync(System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+NuVatis.Executor.IExecutor.Execute(NuVatis.Statement.MappedStatement! statement, string! sql, System.Collections.Generic.IReadOnlyList<System.Data.Common.DbParameter!>! parameters) -> int
+NuVatis.Executor.IExecutor.ExecuteAsync(NuVatis.Statement.MappedStatement! statement, string! sql, System.Collections.Generic.IReadOnlyList<System.Data.Common.DbParameter!>! parameters, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+NuVatis.Executor.IExecutor.Rollback() -> void
+NuVatis.Executor.IExecutor.RollbackAsync(System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+NuVatis.Executor.IExecutor.SelectList<T>(NuVatis.Statement.MappedStatement! statement, string! sql, System.Collections.Generic.IReadOnlyList<System.Data.Common.DbParameter!>! parameters, System.Func<System.Data.Common.DbDataReader!, T>! mapper) -> System.Collections.Generic.IList<T>!
+NuVatis.Executor.IExecutor.SelectListAsync<T>(NuVatis.Statement.MappedStatement! statement, string! sql, System.Collections.Generic.IReadOnlyList<System.Data.Common.DbParameter!>! parameters, System.Func<System.Data.Common.DbDataReader!, T>! mapper, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IList<T>!>!
+NuVatis.Executor.IExecutor.SelectMultiple(NuVatis.Statement.MappedStatement! statement, string! sql, System.Collections.Generic.IReadOnlyList<System.Data.Common.DbParameter!>! parameters) -> NuVatis.Mapping.ResultSetGroup!
+NuVatis.Executor.IExecutor.SelectMultipleAsync(NuVatis.Statement.MappedStatement! statement, string! sql, System.Collections.Generic.IReadOnlyList<System.Data.Common.DbParameter!>! parameters, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<NuVatis.Mapping.ResultSetGroup!>!
+NuVatis.Executor.IExecutor.SelectOne<T>(NuVatis.Statement.MappedStatement! statement, string! sql, System.Collections.Generic.IReadOnlyList<System.Data.Common.DbParameter!>! parameters, System.Func<System.Data.Common.DbDataReader!, T>! mapper) -> T?
+NuVatis.Executor.IExecutor.SelectOneAsync<T>(NuVatis.Statement.MappedStatement! statement, string! sql, System.Collections.Generic.IReadOnlyList<System.Data.Common.DbParameter!>! parameters, System.Func<System.Data.Common.DbDataReader!, T>! mapper, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<T?>!
+NuVatis.Executor.IExecutor.SelectStream<T>(NuVatis.Statement.MappedStatement! statement, string! sql, System.Collections.Generic.IReadOnlyList<System.Data.Common.DbParameter!>! parameters, System.Func<System.Data.Common.DbDataReader!, T>! mapper, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<T>!
+NuVatis.Executor.SimpleExecutor
+NuVatis.Executor.SimpleExecutor.Commit() -> void
+NuVatis.Executor.SimpleExecutor.CommitAsync(System.Threading.CancellationToken ct) -> System.Threading.Tasks.Task!
+NuVatis.Executor.SimpleExecutor.Dispose() -> void
+NuVatis.Executor.SimpleExecutor.DisposeAsync() -> System.Threading.Tasks.ValueTask
+NuVatis.Executor.SimpleExecutor.Execute(NuVatis.Statement.MappedStatement! statement, string! sql, System.Collections.Generic.IReadOnlyList<System.Data.Common.DbParameter!>! parameters) -> int
+NuVatis.Executor.SimpleExecutor.ExecuteAsync(NuVatis.Statement.MappedStatement! statement, string! sql, System.Collections.Generic.IReadOnlyList<System.Data.Common.DbParameter!>! parameters, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+NuVatis.Executor.SimpleExecutor.Rollback() -> void
+NuVatis.Executor.SimpleExecutor.RollbackAsync(System.Threading.CancellationToken ct) -> System.Threading.Tasks.Task!
+NuVatis.Executor.SimpleExecutor.SelectList<T>(NuVatis.Statement.MappedStatement! statement, string! sql, System.Collections.Generic.IReadOnlyList<System.Data.Common.DbParameter!>! parameters, System.Func<System.Data.Common.DbDataReader!, T>! mapper) -> System.Collections.Generic.IList<T>!
+NuVatis.Executor.SimpleExecutor.SelectListAsync<T>(NuVatis.Statement.MappedStatement! statement, string! sql, System.Collections.Generic.IReadOnlyList<System.Data.Common.DbParameter!>! parameters, System.Func<System.Data.Common.DbDataReader!, T>! mapper, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IList<T>!>!
+NuVatis.Executor.SimpleExecutor.SelectMultiple(NuVatis.Statement.MappedStatement! statement, string! sql, System.Collections.Generic.IReadOnlyList<System.Data.Common.DbParameter!>! parameters) -> NuVatis.Mapping.ResultSetGroup!
+NuVatis.Executor.SimpleExecutor.SelectMultipleAsync(NuVatis.Statement.MappedStatement! statement, string! sql, System.Collections.Generic.IReadOnlyList<System.Data.Common.DbParameter!>! parameters, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<NuVatis.Mapping.ResultSetGroup!>!
+NuVatis.Executor.SimpleExecutor.SelectOne<T>(NuVatis.Statement.MappedStatement! statement, string! sql, System.Collections.Generic.IReadOnlyList<System.Data.Common.DbParameter!>! parameters, System.Func<System.Data.Common.DbDataReader!, T>! mapper) -> T?
+NuVatis.Executor.SimpleExecutor.SelectOneAsync<T>(NuVatis.Statement.MappedStatement! statement, string! sql, System.Collections.Generic.IReadOnlyList<System.Data.Common.DbParameter!>! parameters, System.Func<System.Data.Common.DbDataReader!, T>! mapper, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<T?>!
+NuVatis.Executor.SimpleExecutor.SelectStream<T>(NuVatis.Statement.MappedStatement! statement, string! sql, System.Collections.Generic.IReadOnlyList<System.Data.Common.DbParameter!>! parameters, System.Func<System.Data.Common.DbDataReader!, T>! mapper, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<T>!
+NuVatis.Executor.SimpleExecutor.SimpleExecutor(NuVatis.Transaction.AdoTransaction! transaction, int? defaultCommandTimeout = null) -> void
+NuVatis.Interceptor.ISqlInterceptor
+NuVatis.Interceptor.ISqlInterceptor.AfterExecute(NuVatis.Interceptor.InterceptorContext! context) -> void
+NuVatis.Interceptor.ISqlInterceptor.AfterExecuteAsync(NuVatis.Interceptor.InterceptorContext! context, System.Threading.CancellationToken ct) -> System.Threading.Tasks.Task!
+NuVatis.Interceptor.ISqlInterceptor.BeforeExecute(NuVatis.Interceptor.InterceptorContext! context) -> void
+NuVatis.Interceptor.ISqlInterceptor.BeforeExecuteAsync(NuVatis.Interceptor.InterceptorContext! context, System.Threading.CancellationToken ct) -> System.Threading.Tasks.Task!
+NuVatis.Interceptor.InterceptorContext
+NuVatis.Interceptor.InterceptorContext.AffectedRows.get -> int?
+NuVatis.Interceptor.InterceptorContext.AffectedRows.set -> void
+NuVatis.Interceptor.InterceptorContext.ElapsedMilliseconds.get -> long
+NuVatis.Interceptor.InterceptorContext.ElapsedMilliseconds.set -> void
+NuVatis.Interceptor.InterceptorContext.Exception.get -> System.Exception?
+NuVatis.Interceptor.InterceptorContext.Exception.set -> void
+NuVatis.Interceptor.InterceptorContext.InterceptorContext() -> void
+NuVatis.Interceptor.InterceptorContext.Items.get -> System.Collections.Generic.Dictionary<string!, object?>!
+NuVatis.Interceptor.InterceptorContext.Parameter.get -> object?
+NuVatis.Interceptor.InterceptorContext.Parameter.set -> void
+NuVatis.Interceptor.InterceptorContext.Parameters.get -> System.Collections.Generic.IReadOnlyList<System.Data.Common.DbParameter!>!
+NuVatis.Interceptor.InterceptorContext.Parameters.set -> void
+NuVatis.Interceptor.InterceptorContext.Sql.get -> string!
+NuVatis.Interceptor.InterceptorContext.Sql.set -> void
+NuVatis.Interceptor.InterceptorContext.StatementId.get -> string!
+NuVatis.Interceptor.InterceptorContext.StatementId.set -> void
+NuVatis.Interceptor.InterceptorContext.StatementType.get -> NuVatis.Statement.StatementType
+NuVatis.Interceptor.InterceptorContext.StatementType.set -> void
+NuVatis.Interceptor.InterceptorPipeline
+NuVatis.Interceptor.InterceptorPipeline.Add(NuVatis.Interceptor.ISqlInterceptor! interceptor) -> void
+NuVatis.Interceptor.InterceptorPipeline.ExecuteAfter(NuVatis.Interceptor.InterceptorContext! ctx) -> void
+NuVatis.Interceptor.InterceptorPipeline.ExecuteAfterAsync(NuVatis.Interceptor.InterceptorContext! ctx, System.Threading.CancellationToken ct) -> System.Threading.Tasks.Task!
+NuVatis.Interceptor.InterceptorPipeline.ExecuteBefore(NuVatis.Interceptor.InterceptorContext! ctx) -> void
+NuVatis.Interceptor.InterceptorPipeline.ExecuteBeforeAsync(NuVatis.Interceptor.InterceptorContext! ctx, System.Threading.CancellationToken ct) -> System.Threading.Tasks.Task!
+NuVatis.Interceptor.InterceptorPipeline.HasInterceptors.get -> bool
+NuVatis.Interceptor.InterceptorPipeline.InterceptorPipeline() -> void
+NuVatis.Interceptor.LoggingInterceptor
+NuVatis.Interceptor.LoggingInterceptor.AfterExecute(NuVatis.Interceptor.InterceptorContext! context) -> void
+NuVatis.Interceptor.LoggingInterceptor.AfterExecuteAsync(NuVatis.Interceptor.InterceptorContext! context, System.Threading.CancellationToken ct) -> System.Threading.Tasks.Task!
+NuVatis.Interceptor.LoggingInterceptor.BeforeExecute(NuVatis.Interceptor.InterceptorContext! context) -> void
+NuVatis.Interceptor.LoggingInterceptor.BeforeExecuteAsync(NuVatis.Interceptor.InterceptorContext! context, System.Threading.CancellationToken ct) -> System.Threading.Tasks.Task!
+NuVatis.Interceptor.LoggingInterceptor.LoggingInterceptor(Microsoft.Extensions.Logging.ILogger! logger) -> void
+NuVatis.Interceptor.MetricsInterceptor
+NuVatis.Interceptor.MetricsInterceptor.AfterExecute(NuVatis.Interceptor.InterceptorContext! context) -> void
+NuVatis.Interceptor.MetricsInterceptor.AfterExecuteAsync(NuVatis.Interceptor.InterceptorContext! context, System.Threading.CancellationToken ct) -> System.Threading.Tasks.Task!
+NuVatis.Interceptor.MetricsInterceptor.BeforeExecute(NuVatis.Interceptor.InterceptorContext! context) -> void
+NuVatis.Interceptor.MetricsInterceptor.BeforeExecuteAsync(NuVatis.Interceptor.InterceptorContext! context, System.Threading.CancellationToken ct) -> System.Threading.Tasks.Task!
+NuVatis.Interceptor.MetricsInterceptor.Dispose() -> void
+NuVatis.Interceptor.MetricsInterceptor.MetricsInterceptor(string! meterName = "NuVatis") -> void
+NuVatis.Mapping.AssociationMapping
+NuVatis.Mapping.AssociationMapping.AssociationMapping() -> void
+NuVatis.Mapping.AssociationMapping.Column.get -> string?
+NuVatis.Mapping.AssociationMapping.Column.init -> void
+NuVatis.Mapping.AssociationMapping.ColumnPrefix.get -> string?
+NuVatis.Mapping.AssociationMapping.ColumnPrefix.init -> void
+NuVatis.Mapping.AssociationMapping.FetchType.get -> NuVatis.Mapping.FetchType
+NuVatis.Mapping.AssociationMapping.FetchType.init -> void
+NuVatis.Mapping.AssociationMapping.Property.get -> string!
+NuVatis.Mapping.AssociationMapping.Property.init -> void
+NuVatis.Mapping.AssociationMapping.ResultMapId.get -> string?
+NuVatis.Mapping.AssociationMapping.ResultMapId.init -> void
+NuVatis.Mapping.AssociationMapping.Select.get -> string?
+NuVatis.Mapping.AssociationMapping.Select.init -> void
+NuVatis.Mapping.CollectionMapping
+NuVatis.Mapping.CollectionMapping.CollectionMapping() -> void
+NuVatis.Mapping.CollectionMapping.Column.get -> string?
+NuVatis.Mapping.CollectionMapping.Column.init -> void
+NuVatis.Mapping.CollectionMapping.ColumnPrefix.get -> string?
+NuVatis.Mapping.CollectionMapping.ColumnPrefix.init -> void
+NuVatis.Mapping.CollectionMapping.FetchType.get -> NuVatis.Mapping.FetchType
+NuVatis.Mapping.CollectionMapping.FetchType.init -> void
+NuVatis.Mapping.CollectionMapping.OfType.get -> string?
+NuVatis.Mapping.CollectionMapping.OfType.init -> void
+NuVatis.Mapping.CollectionMapping.Property.get -> string!
+NuVatis.Mapping.CollectionMapping.Property.init -> void
+NuVatis.Mapping.CollectionMapping.ResultMapId.get -> string?
+NuVatis.Mapping.CollectionMapping.ResultMapId.init -> void
+NuVatis.Mapping.CollectionMapping.Select.get -> string?
+NuVatis.Mapping.CollectionMapping.Select.init -> void
+NuVatis.Mapping.ColumnMapper
+NuVatis.Mapping.DiscriminatorMapping
+NuVatis.Mapping.DiscriminatorMapping.Cases.get -> System.Collections.Generic.Dictionary<string!, string!>!
+NuVatis.Mapping.DiscriminatorMapping.Cases.init -> void
+NuVatis.Mapping.DiscriminatorMapping.Column.get -> string!
+NuVatis.Mapping.DiscriminatorMapping.Column.init -> void
+NuVatis.Mapping.DiscriminatorMapping.DiscriminatorMapping() -> void
+NuVatis.Mapping.DiscriminatorMapping.JdbcType.get -> string!
+NuVatis.Mapping.DiscriminatorMapping.JdbcType.init -> void
+NuVatis.Mapping.FetchType
+NuVatis.Mapping.FetchType.Eager = 0 -> NuVatis.Mapping.FetchType
+NuVatis.Mapping.FetchType.Lazy = 1 -> NuVatis.Mapping.FetchType
+NuVatis.Mapping.ITypeHandler
+NuVatis.Mapping.ITypeHandler.GetValue(System.Data.Common.DbDataReader! reader, int ordinal) -> object?
+NuVatis.Mapping.ITypeHandler.SetParameter(System.Data.Common.DbParameter! parameter, object? value) -> void
+NuVatis.Mapping.ITypeHandler.TargetType.get -> System.Type!
+NuVatis.Mapping.LazyValue<T>
+NuVatis.Mapping.LazyValue<T>.IsLoaded.get -> bool
+NuVatis.Mapping.LazyValue<T>.LazyValue(System.Func<T>! valueFactory) -> void
+NuVatis.Mapping.LazyValue<T>.Value.get -> T
+NuVatis.Mapping.ResultMapDefinition
+NuVatis.Mapping.ResultMapDefinition.Associations.get -> System.Collections.Generic.List<NuVatis.Mapping.AssociationMapping!>!
+NuVatis.Mapping.ResultMapDefinition.Associations.init -> void
+NuVatis.Mapping.ResultMapDefinition.Collections.get -> System.Collections.Generic.List<NuVatis.Mapping.CollectionMapping!>!
+NuVatis.Mapping.ResultMapDefinition.Collections.init -> void
+NuVatis.Mapping.ResultMapDefinition.Discriminator.get -> NuVatis.Mapping.DiscriminatorMapping?
+NuVatis.Mapping.ResultMapDefinition.Discriminator.init -> void
+NuVatis.Mapping.ResultMapDefinition.Extends.get -> string?
+NuVatis.Mapping.ResultMapDefinition.Extends.init -> void
+NuVatis.Mapping.ResultMapDefinition.Id.get -> string!
+NuVatis.Mapping.ResultMapDefinition.Id.init -> void
+NuVatis.Mapping.ResultMapDefinition.Mappings.get -> System.Collections.Generic.List<NuVatis.Mapping.ResultMapping!>!
+NuVatis.Mapping.ResultMapDefinition.Mappings.init -> void
+NuVatis.Mapping.ResultMapDefinition.ResultMapDefinition() -> void
+NuVatis.Mapping.ResultMapDefinition.Type.get -> string!
+NuVatis.Mapping.ResultMapDefinition.Type.init -> void
+NuVatis.Mapping.ResultMapper
+NuVatis.Mapping.ResultMapper.MapRow<T>(System.Data.Common.DbDataReader! reader, string! resultMapId) -> T
+NuVatis.Mapping.ResultMapper.MapRows<T>(System.Data.Common.DbDataReader! reader, string! resultMapId) -> System.Collections.Generic.IList<T>!
+NuVatis.Mapping.ResultMapper.ResultMapper(System.Collections.Generic.Dictionary<string!, NuVatis.Mapping.ResultMapDefinition!>! resultMaps) -> void
+NuVatis.Mapping.ResultMapping
+NuVatis.Mapping.ResultMapping.Column.get -> string!
+NuVatis.Mapping.ResultMapping.Column.init -> void
+NuVatis.Mapping.ResultMapping.IsId.get -> bool
+NuVatis.Mapping.ResultMapping.IsId.init -> void
+NuVatis.Mapping.ResultMapping.Property.get -> string!
+NuVatis.Mapping.ResultMapping.Property.init -> void
+NuVatis.Mapping.ResultMapping.ResultMapping() -> void
+NuVatis.Mapping.ResultMapping.TypeHandler.get -> string?
+NuVatis.Mapping.ResultMapping.TypeHandler.init -> void
+NuVatis.Mapping.ResultSetGroup
+NuVatis.Mapping.ResultSetGroup.CurrentResultSetIndex.get -> int
+NuVatis.Mapping.ResultSetGroup.Dispose() -> void
+NuVatis.Mapping.ResultSetGroup.DisposeAsync() -> System.Threading.Tasks.ValueTask
+NuVatis.Mapping.ResultSetGroup.Read<T>() -> T?
+NuVatis.Mapping.ResultSetGroup.ReadAsync<T>(System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<T?>!
+NuVatis.Mapping.ResultSetGroup.ReadList<T>() -> System.Collections.Generic.IList<T>!
+NuVatis.Mapping.ResultSetGroup.ReadListAsync<T>(System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IList<T>!>!
+NuVatis.Mapping.TypeHandlerRegistry
+NuVatis.Mapping.TypeHandlerRegistry.Get(System.Type! type) -> NuVatis.Mapping.ITypeHandler?
+NuVatis.Mapping.TypeHandlerRegistry.Get(string! name) -> NuVatis.Mapping.ITypeHandler?
+NuVatis.Mapping.TypeHandlerRegistry.Register(NuVatis.Mapping.ITypeHandler! handler) -> void
+NuVatis.Mapping.TypeHandlerRegistry.Register(string! name, NuVatis.Mapping.ITypeHandler! handler) -> void
+NuVatis.Mapping.TypeHandlerRegistry.TypeHandlerRegistry() -> void
+NuVatis.Mapping.TypeHandlers.DateOnlyTypeHandler
+NuVatis.Mapping.TypeHandlers.DateOnlyTypeHandler.DateOnlyTypeHandler() -> void
+NuVatis.Mapping.TypeHandlers.DateOnlyTypeHandler.GetValue(System.Data.Common.DbDataReader! reader, int ordinal) -> object?
+NuVatis.Mapping.TypeHandlers.DateOnlyTypeHandler.SetParameter(System.Data.Common.DbParameter! parameter, object? value) -> void
+NuVatis.Mapping.TypeHandlers.DateOnlyTypeHandler.TargetType.get -> System.Type!
+NuVatis.Mapping.TypeHandlers.EnumStringTypeHandler<TEnum>
+NuVatis.Mapping.TypeHandlers.EnumStringTypeHandler<TEnum>.EnumStringTypeHandler() -> void
+NuVatis.Mapping.TypeHandlers.EnumStringTypeHandler<TEnum>.GetValue(System.Data.Common.DbDataReader! reader, int ordinal) -> object?
+NuVatis.Mapping.TypeHandlers.EnumStringTypeHandler<TEnum>.SetParameter(System.Data.Common.DbParameter! parameter, object? value) -> void
+NuVatis.Mapping.TypeHandlers.EnumStringTypeHandler<TEnum>.TargetType.get -> System.Type!
+NuVatis.Mapping.TypeHandlers.JsonTypeHandler<T>
+NuVatis.Mapping.TypeHandlers.JsonTypeHandler<T>.GetValue(System.Data.Common.DbDataReader! reader, int ordinal) -> object?
+NuVatis.Mapping.TypeHandlers.JsonTypeHandler<T>.JsonTypeHandler(System.Text.Json.JsonSerializerOptions? options = null) -> void
+NuVatis.Mapping.TypeHandlers.JsonTypeHandler<T>.SetParameter(System.Data.Common.DbParameter! parameter, object? value) -> void
+NuVatis.Mapping.TypeHandlers.JsonTypeHandler<T>.TargetType.get -> System.Type!
+NuVatis.Mapping.TypeHandlers.TimeOnlyTypeHandler
+NuVatis.Mapping.TypeHandlers.TimeOnlyTypeHandler.GetValue(System.Data.Common.DbDataReader! reader, int ordinal) -> object?
+NuVatis.Mapping.TypeHandlers.TimeOnlyTypeHandler.SetParameter(System.Data.Common.DbParameter! parameter, object? value) -> void
+NuVatis.Mapping.TypeHandlers.TimeOnlyTypeHandler.TargetType.get -> System.Type!
+NuVatis.Mapping.TypeHandlers.TimeOnlyTypeHandler.TimeOnlyTypeHandler() -> void
+NuVatis.Provider.DbProviderRegistry
+NuVatis.Provider.DbProviderRegistry.DbProviderRegistry() -> void
+NuVatis.Provider.DbProviderRegistry.Get(string! name) -> NuVatis.Provider.IDbProvider!
+NuVatis.Provider.DbProviderRegistry.IsRegistered(string! name) -> bool
+NuVatis.Provider.DbProviderRegistry.Register(NuVatis.Provider.IDbProvider! provider) -> void
+NuVatis.Provider.IDbProvider
+NuVatis.Provider.IDbProvider.CreateConnection(string! connectionString) -> System.Data.Common.DbConnection!
+NuVatis.Provider.IDbProvider.GetParameterName(int index) -> string!
+NuVatis.Provider.IDbProvider.Name.get -> string!
+NuVatis.Provider.IDbProvider.ParameterPrefix.get -> string!
+NuVatis.Provider.IDbProvider.WrapIdentifier(string! name) -> string!
+NuVatis.Provider.NuVatisProviderAttribute
+NuVatis.Provider.NuVatisProviderAttribute.NuVatisProviderAttribute(string! providerName) -> void
+NuVatis.Provider.NuVatisProviderAttribute.ProviderName.get -> string!
+NuVatis.Session.ISqlSession
+NuVatis.Session.ISqlSession.Commit() -> void
+NuVatis.Session.ISqlSession.CommitAsync(System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+NuVatis.Session.ISqlSession.Delete(string! statementId, object? parameter = null) -> int
+NuVatis.Session.ISqlSession.DeleteAsync(string! statementId, object? parameter = null, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+NuVatis.Session.ISqlSession.ExecuteInTransactionAsync(System.Func<System.Threading.Tasks.Task!>! action, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+NuVatis.Session.ISqlSession.FlushStatements() -> int
+NuVatis.Session.ISqlSession.FlushStatementsAsync(System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+NuVatis.Session.ISqlSession.GetMapper<T>() -> T!
+NuVatis.Session.ISqlSession.Insert(string! statementId, object? parameter = null) -> int
+NuVatis.Session.ISqlSession.InsertAsync(string! statementId, object? parameter = null, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+NuVatis.Session.ISqlSession.IsBatchMode.get -> bool
+NuVatis.Session.ISqlSession.Rollback() -> void
+NuVatis.Session.ISqlSession.RollbackAsync(System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+NuVatis.Session.ISqlSession.SelectList<T>(string! statementId, object? parameter = null) -> System.Collections.Generic.IList<T>!
+NuVatis.Session.ISqlSession.SelectList<T>(string! statementId, object? parameter, System.Func<System.Data.Common.DbDataReader!, T>! mapper) -> System.Collections.Generic.IList<T>!
+NuVatis.Session.ISqlSession.SelectListAsync<T>(string! statementId, object? parameter = null, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IList<T>!>!
+NuVatis.Session.ISqlSession.SelectListAsync<T>(string! statementId, object? parameter, System.Func<System.Data.Common.DbDataReader!, T>! mapper, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IList<T>!>!
+NuVatis.Session.ISqlSession.SelectMultiple(string! statementId, object? parameter = null) -> NuVatis.Mapping.ResultSetGroup!
+NuVatis.Session.ISqlSession.SelectMultipleAsync(string! statementId, object? parameter = null, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<NuVatis.Mapping.ResultSetGroup!>!
+NuVatis.Session.ISqlSession.SelectOne<T>(string! statementId, object? parameter = null) -> T?
+NuVatis.Session.ISqlSession.SelectOne<T>(string! statementId, object? parameter, System.Func<System.Data.Common.DbDataReader!, T>! mapper) -> T?
+NuVatis.Session.ISqlSession.SelectOneAsync<T>(string! statementId, object? parameter = null, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<T?>!
+NuVatis.Session.ISqlSession.SelectOneAsync<T>(string! statementId, object? parameter, System.Func<System.Data.Common.DbDataReader!, T>! mapper, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<T?>!
+NuVatis.Session.ISqlSession.SelectStream<T>(string! statementId, object? parameter = null, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<T>!
+NuVatis.Session.ISqlSession.Update(string! statementId, object? parameter = null) -> int
+NuVatis.Session.ISqlSession.UpdateAsync(string! statementId, object? parameter = null, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+NuVatis.Session.ISqlSessionFactory
+NuVatis.Session.ISqlSessionFactory.Configuration.get -> NuVatis.Configuration.NuVatisConfiguration!
+NuVatis.Session.ISqlSessionFactory.FromExistingConnection(System.Data.Common.DbConnection! connection, System.Data.Common.DbTransaction? transaction = null) -> NuVatis.Session.ISqlSession!
+NuVatis.Session.ISqlSessionFactory.OpenBatchSession() -> NuVatis.Session.ISqlSession!
+NuVatis.Session.ISqlSessionFactory.OpenReadOnlySession() -> NuVatis.Session.ISqlSession!
+NuVatis.Session.ISqlSessionFactory.OpenSession(bool autoCommit = false) -> NuVatis.Session.ISqlSession!
+NuVatis.Session.SqlSession
+NuVatis.Session.SqlSession.Commit() -> void
+NuVatis.Session.SqlSession.CommitAsync(System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+NuVatis.Session.SqlSession.Delete(string! statementId, object? parameter = null) -> int
+NuVatis.Session.SqlSession.DeleteAsync(string! statementId, object? parameter = null, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+NuVatis.Session.SqlSession.Dispose() -> void
+NuVatis.Session.SqlSession.DisposeAsync() -> System.Threading.Tasks.ValueTask
+NuVatis.Session.SqlSession.ExecuteInTransactionAsync(System.Func<System.Threading.Tasks.Task!>! action, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+NuVatis.Session.SqlSession.FlushStatements() -> int
+NuVatis.Session.SqlSession.FlushStatementsAsync(System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+NuVatis.Session.SqlSession.GetMapper<T>() -> T!
+NuVatis.Session.SqlSession.Insert(string! statementId, object? parameter = null) -> int
+NuVatis.Session.SqlSession.InsertAsync(string! statementId, object? parameter = null, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+NuVatis.Session.SqlSession.IsBatchMode.get -> bool
+NuVatis.Session.SqlSession.Rollback() -> void
+NuVatis.Session.SqlSession.RollbackAsync(System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+NuVatis.Session.SqlSession.SelectList<T>(string! statementId, object? parameter = null) -> System.Collections.Generic.IList<T>!
+NuVatis.Session.SqlSession.SelectList<T>(string! statementId, object? parameter, System.Func<System.Data.Common.DbDataReader!, T>! mapper) -> System.Collections.Generic.IList<T>!
+NuVatis.Session.SqlSession.SelectListAsync<T>(string! statementId, object? parameter = null, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IList<T>!>!
+NuVatis.Session.SqlSession.SelectListAsync<T>(string! statementId, object? parameter, System.Func<System.Data.Common.DbDataReader!, T>! mapper, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IList<T>!>!
+NuVatis.Session.SqlSession.SelectMultiple(string! statementId, object? parameter = null) -> NuVatis.Mapping.ResultSetGroup!
+NuVatis.Session.SqlSession.SelectMultipleAsync(string! statementId, object? parameter = null, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<NuVatis.Mapping.ResultSetGroup!>!
+NuVatis.Session.SqlSession.SelectOne<T>(string! statementId, object? parameter = null) -> T?
+NuVatis.Session.SqlSession.SelectOne<T>(string! statementId, object? parameter, System.Func<System.Data.Common.DbDataReader!, T>! mapper) -> T?
+NuVatis.Session.SqlSession.SelectOneAsync<T>(string! statementId, object? parameter = null, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<T?>!
+NuVatis.Session.SqlSession.SelectOneAsync<T>(string! statementId, object? parameter, System.Func<System.Data.Common.DbDataReader!, T>! mapper, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<T?>!
+NuVatis.Session.SqlSession.SelectStream<T>(string! statementId, object? parameter = null, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<T>!
+NuVatis.Session.SqlSession.Update(string! statementId, object? parameter = null) -> int
+NuVatis.Session.SqlSession.UpdateAsync(string! statementId, object? parameter = null, System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+NuVatis.Session.SqlSessionFactory
+NuVatis.Session.SqlSessionFactory.AddInterceptor(NuVatis.Interceptor.ISqlInterceptor! interceptor) -> void
+NuVatis.Session.SqlSessionFactory.Configuration.get -> NuVatis.Configuration.NuVatisConfiguration!
+NuVatis.Session.SqlSessionFactory.FromExistingConnection(System.Data.Common.DbConnection! connection, System.Data.Common.DbTransaction? transaction = null) -> NuVatis.Session.ISqlSession!
+NuVatis.Session.SqlSessionFactory.OpenBatchSession() -> NuVatis.Session.ISqlSession!
+NuVatis.Session.SqlSessionFactory.OpenReadOnlySession() -> NuVatis.Session.ISqlSession!
+NuVatis.Session.SqlSessionFactory.OpenSession(bool autoCommit = false) -> NuVatis.Session.ISqlSession!
+NuVatis.Session.SqlSessionFactory.SetMapperFactory(System.Func<System.Type!, NuVatis.Session.ISqlSession!, object!>! mapperFactory) -> void
+NuVatis.Session.SqlSessionFactory.SqlSessionFactory(NuVatis.Configuration.NuVatisConfiguration! configuration, NuVatis.Provider.IDbProvider! provider, Microsoft.Extensions.Logging.ILoggerFactory? loggerFactory = null) -> void
+NuVatis.Session.SqlSessionFactoryBuilder
+NuVatis.Session.SqlSessionFactoryBuilder.AddXmlConfiguration(string! path) -> NuVatis.Session.SqlSessionFactoryBuilder!
+NuVatis.Session.SqlSessionFactoryBuilder.Build() -> NuVatis.Session.SqlSessionFactory!
+NuVatis.Session.SqlSessionFactoryBuilder.Build(string! xmlConfigPath) -> NuVatis.Session.SqlSessionFactory!
+NuVatis.Session.SqlSessionFactoryBuilder.ConnectionString(string! connectionString) -> NuVatis.Session.SqlSessionFactoryBuilder!
+NuVatis.Session.SqlSessionFactoryBuilder.SqlSessionFactoryBuilder() -> void
+NuVatis.Session.SqlSessionFactoryBuilder.UseLoggerFactory(Microsoft.Extensions.Logging.ILoggerFactory! loggerFactory) -> NuVatis.Session.SqlSessionFactoryBuilder!
+NuVatis.Session.SqlSessionFactoryBuilder.UseProvider(NuVatis.Provider.IDbProvider! provider) -> NuVatis.Session.SqlSessionFactoryBuilder!
+NuVatis.Statement.MappedStatement
+NuVatis.Statement.MappedStatement.CommandTimeout.get -> int?
+NuVatis.Statement.MappedStatement.CommandTimeout.init -> void
+NuVatis.Statement.MappedStatement.FullId.get -> string!
+NuVatis.Statement.MappedStatement.Id.get -> string!
+NuVatis.Statement.MappedStatement.Id.init -> void
+NuVatis.Statement.MappedStatement.MappedStatement() -> void
+NuVatis.Statement.MappedStatement.Namespace.get -> string!
+NuVatis.Statement.MappedStatement.Namespace.init -> void
+NuVatis.Statement.MappedStatement.ParameterType.get -> System.Type?
+NuVatis.Statement.MappedStatement.ParameterType.init -> void
+NuVatis.Statement.MappedStatement.ResultMapId.get -> string?
+NuVatis.Statement.MappedStatement.ResultMapId.init -> void
+NuVatis.Statement.MappedStatement.ResultType.get -> System.Type?
+NuVatis.Statement.MappedStatement.ResultType.init -> void
+NuVatis.Statement.MappedStatement.SelectKey.get -> NuVatis.Statement.SelectKeyConfig?
+NuVatis.Statement.MappedStatement.SelectKey.init -> void
+NuVatis.Statement.MappedStatement.SqlSource.get -> string!
+NuVatis.Statement.MappedStatement.SqlSource.init -> void
+NuVatis.Statement.MappedStatement.Type.get -> NuVatis.Statement.StatementType
+NuVatis.Statement.MappedStatement.Type.init -> void
+NuVatis.Statement.MappedStatement.UseCache.get -> bool
+NuVatis.Statement.MappedStatement.UseCache.init -> void
+NuVatis.Statement.SelectKeyConfig
+NuVatis.Statement.SelectKeyConfig.KeyProperty.get -> string!
+NuVatis.Statement.SelectKeyConfig.KeyProperty.init -> void
+NuVatis.Statement.SelectKeyConfig.Order.get -> NuVatis.Statement.SelectKeyOrder
+NuVatis.Statement.SelectKeyConfig.Order.init -> void
+NuVatis.Statement.SelectKeyConfig.ResultType.get -> string?
+NuVatis.Statement.SelectKeyConfig.ResultType.init -> void
+NuVatis.Statement.SelectKeyConfig.SelectKeyConfig() -> void
+NuVatis.Statement.SelectKeyConfig.Sql.get -> string!
+NuVatis.Statement.SelectKeyConfig.Sql.init -> void
+NuVatis.Statement.SelectKeyOrder
+NuVatis.Statement.SelectKeyOrder.After = 1 -> NuVatis.Statement.SelectKeyOrder
+NuVatis.Statement.SelectKeyOrder.Before = 0 -> NuVatis.Statement.SelectKeyOrder
+NuVatis.Statement.StatementType
+NuVatis.Statement.StatementType.Delete = 3 -> NuVatis.Statement.StatementType
+NuVatis.Statement.StatementType.Insert = 1 -> NuVatis.Statement.StatementType
+NuVatis.Statement.StatementType.Select = 0 -> NuVatis.Statement.StatementType
+NuVatis.Statement.StatementType.Update = 2 -> NuVatis.Statement.StatementType
+NuVatis.Transaction.AdoTransaction
+NuVatis.Transaction.AdoTransaction.AdoTransaction(NuVatis.Provider.IDbProvider! provider, string! connectionString, bool autoCommit = false) -> void
+NuVatis.Transaction.AdoTransaction.Commit() -> void
+NuVatis.Transaction.AdoTransaction.CommitAsync(System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+NuVatis.Transaction.AdoTransaction.Connection.get -> System.Data.Common.DbConnection?
+NuVatis.Transaction.AdoTransaction.Dispose() -> void
+NuVatis.Transaction.AdoTransaction.DisposeAsync() -> System.Threading.Tasks.ValueTask
+NuVatis.Transaction.AdoTransaction.GetConnection() -> System.Data.Common.DbConnection!
+NuVatis.Transaction.AdoTransaction.GetConnectionAsync(System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Data.Common.DbConnection!>!
+NuVatis.Transaction.AdoTransaction.GetDbTransaction() -> System.Data.Common.DbTransaction?
+NuVatis.Transaction.AdoTransaction.Rollback() -> void
+NuVatis.Transaction.AdoTransaction.RollbackAsync(System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+NuVatis.Transaction.ITransaction
+NuVatis.Transaction.ITransaction.Commit() -> void
+NuVatis.Transaction.ITransaction.CommitAsync(System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+NuVatis.Transaction.ITransaction.Connection.get -> System.Data.Common.DbConnection?
+NuVatis.Transaction.ITransaction.GetConnection() -> System.Data.Common.DbConnection!
+NuVatis.Transaction.ITransaction.GetConnectionAsync(System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Data.Common.DbConnection!>!
+NuVatis.Transaction.ITransaction.Rollback() -> void
+NuVatis.Transaction.ITransaction.RollbackAsync(System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+override NuVatis.Core.Sql.SqlIdentifier.ToString() -> string!
+override NuVatis.Mapping.LazyValue<T>.ToString() -> string?
+static NuVatis.Binding.ParameterBinder.Bind(string! sqlSource, object? parameter, string! paramPrefix = "@", System.Data.Common.DbProviderFactory? dbFactory = null) -> (string! Sql, System.Collections.Generic.List<System.Data.Common.DbParameter!>! Parameters)
+static NuVatis.Cache.CacheKey.Generate(string! statementId, object? parameter) -> string!
+static NuVatis.Core.Sql.SqlIdentifier.From(string! value) -> NuVatis.Core.Sql.SqlIdentifier!
+static NuVatis.Core.Sql.SqlIdentifier.FromAllowed(string! value, params string![]! allowedValues) -> NuVatis.Core.Sql.SqlIdentifier!
+static NuVatis.Core.Sql.SqlIdentifier.FromEnum<T>(T value) -> NuVatis.Core.Sql.SqlIdentifier!
+static NuVatis.DynamicSql.TestExpressionEvaluator.Evaluate(string? testExpression, object? parameter) -> bool
+static NuVatis.DynamicSql.TestExpressionEvaluator.GetPropertyValue(object? obj, string! propertyPath) -> object?
+static NuVatis.Mapping.ColumnMapper.IsScalar(System.Type! type) -> bool
+static NuVatis.Mapping.ColumnMapper.MapRow<T>(System.Data.Common.DbDataReader! reader) -> T
+static NuVatis.Mapping.LazyValue<T>.implicit operator T(NuVatis.Mapping.LazyValue<T>! lazyValue) -> T
+static NuVatis.Transaction.AdoTransaction.FromExisting(System.Data.Common.DbConnection! connection, System.Data.Common.DbTransaction? transaction = null) -> NuVatis.Transaction.AdoTransaction!
