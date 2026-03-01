@@ -182,6 +182,40 @@ mapper.Insert(newUser);
 session.Commit();
 ```
 
+## Sample Repository
+
+실제 동작하는 전체 예제와 성능 벤치마크는 별도 저장소에서 제공한다.
+
+**[github.com/JinHo-von-Choi/nuvatis-sample](https://github.com/JinHo-von-Choi/nuvatis-sample)**
+
+### 포함 내용
+
+| 디렉토리 | 설명 |
+|----------|------|
+| `src/NuVatis.Sample.Core/` | 엔티티, 매퍼 인터페이스, XML 매퍼 (상세 주석 포함) |
+| `src/NuVatis.Sample.WebApi/` | ASP.NET Core Web API + Swagger UI |
+| `src/NuVatis.Sample.Console/` | 콘솔 앱 예제 |
+| `benchmarks/` | NuVatis vs Dapper vs EF Core 비교 벤치마크 |
+| `database/` | PostgreSQL 스키마 |
+
+### 다루는 기능
+
+- XML 매퍼 동적 SQL (`<if>`, `<foreach>`, `<where>`, `<choose>`)
+- Association (1:1) / Collection (1:N) / 중첩 매핑
+- 원자적 재고 업데이트 (동시성 제어 패턴)
+- RESTful API 통합 (Users / Products / Orders)
+- 대규모 벤치마크 (18개 시나리오)
+
+### 빠른 시작 (Docker 필요)
+
+```bash
+git clone https://github.com/JinHo-von-Choi/nuvatis-sample
+cd nuvatis-sample
+docker-compose up -d   # PostgreSQL 시작
+dotnet build
+dotnet run --project src/NuVatis.Sample.WebApi
+```
+
 ## Session Lifecycle
 
 | Environment | Registration | Lifecycle |
