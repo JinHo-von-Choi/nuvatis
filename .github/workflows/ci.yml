@@ -66,7 +66,7 @@ jobs:
           --results-directory ./TestResults
 
       - name: Upload Test Results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: test-results-${{ matrix.os }}-${{ matrix.dotnet }}
@@ -195,7 +195,7 @@ jobs:
           fi
 
       - name: Upload NuGet Packages
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: nupkg
           path: ./nupkg/*.nupkg
