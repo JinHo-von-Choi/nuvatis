@@ -301,6 +301,109 @@ namespace TestApp.Mappers
         Assert.Single(nv004);
         Assert.Contains("tableName", nv004[0].GetMessage());
     }
+
+    /**
+     * 버그 재현: 프로젝트 이름에 "NuVatis"가 포함될 때 resultMap 타입이 중복 네임스페이스를 갖는 문제.
+     *
+     * 시나리오:
+     *  - User 클래스 실제 FQN: NuVatis.Benchmark.NuVatis.Benchmark.Core.Models.User
+     *  - XML resultMap type: NuVatis.Benchmark.Core.Models.User (접두사 누락)
+     *  - 수정 전: Map 메서드가 XML 타입(잘못된 FQN)을 사용 → SelectOneAsync<T> 타입 불일치 컴파일 에러
+     *  - 수정 후: Map 메서드가 인터페이스 메서드 Roslyn FQN으로 폴백 → 타입 일치
+     */
+    [Fact]
+    public void SG_ResultMap_UsesRoslynFqn_WhenXmlTypeDoesNotResolve() {
+        var source = @"
+using NuVatis.Attributes;
+namespace NuVatis.Benchmark.NuVatis.Benchmark.Core.Models
+{
+    public class User
+    {
+        public int    Id   { get; set; }
+        public string Name { get; set; }
+    }
+}
+namespace NuVatis.Benchmark.NuVatis.Benchmark.Mappers
+{
+    [NuVatisMapper]
+    public interface IUserMapper
+    {
+        NuVatis.Benchmark.NuVatis.Benchmark.Core.Models.User GetUser(int id);
+    }
+}";
+
+        var xmlContent = @"<?xml version=""1.0"" encoding=""utf-8"" ?>
+<mapper namespace=""NuVatis.Benchmark.NuVatis.Benchmark.Mappers.IUserMapper"">
+  <resultMap id=""userMap"" type=""NuVatis.Benchmark.Core.Models.User"">
+    <id column=""id"" property=""Id""/>
+    <result column=""name"" property=""Name""/>
+  </resultMap>
+  <select id=""GetUser"" resultMap=""userMap"">
+    SELECT id, name FROM users WHERE id = #{id}
+  </select>
+</mapper>";
+
+        var (sources, _) = RunGenerator(source, xmlContent);
+
+        var proxySource = sources.FirstOrDefault(s => s.HintName.Contains("IUserMapper"));
+        Assert.False(proxySource.Equals(default),
+            $"Proxy not generated. Hints: [{string.Join(", ", sources.Select(s => s.HintName))}]");
+
+        var code = proxySource.SourceText.ToString();
+
+        // Map 메서드는 인터페이스 메서드의 Roslyn FQN을 사용해야 한다.
+        Assert.Contains("NuVatis.Benchmark.NuVatis.Benchmark.Core.Models.User Map_userMap", code);
+
+        // XML의 잘못된 타입명(NuVatis.Benchmark.Core.Models.User)으로
+        // new 객체를 생성하는 코드가 없어야 한다.
+        Assert.DoesNotContain("new NuVatis.Benchmark.Core.Models.User()", code);
+    }
+
+    /**
+     * 정상 경로 확인: XML resultMap type이 실제 FQN과 일치하면 그대로 사용.
+     */
+    [Fact]
+    public void SG_ResultMap_UsesXmlType_WhenItResolvesCorrectly() {
+        var source = @"
+using NuVatis.Attributes;
+namespace TestApp.Models
+{
+    public class Product
+    {
+        public int    Id   { get; set; }
+        public string Name { get; set; }
+    }
+}
+namespace TestApp.Mappers
+{
+    [NuVatisMapper]
+    public interface IProductMapper
+    {
+        TestApp.Models.Product GetProduct(int id);
+    }
+}";
+
+        var xmlContent = @"<?xml version=""1.0"" encoding=""utf-8"" ?>
+<mapper namespace=""TestApp.Mappers.IProductMapper"">
+  <resultMap id=""productMap"" type=""TestApp.Models.Product"">
+    <id column=""id"" property=""Id""/>
+    <result column=""name"" property=""Name""/>
+  </resultMap>
+  <select id=""GetProduct"" resultMap=""productMap"">
+    SELECT id, name FROM products WHERE id = #{id}
+  </select>
+</mapper>";
+
+        var (sources, _) = RunGenerator(source, xmlContent);
+
+        var proxySource = sources.FirstOrDefault(s => s.HintName.Contains("IProductMapper"));
+        Assert.False(proxySource.Equals(default));
+
+        var code = proxySource.SourceText.ToString();
+
+        Assert.Contains("TestApp.Models.Product Map_productMap", code);
+        Assert.Contains("new TestApp.Models.Product()", code);
+    }
 }
 
 /**

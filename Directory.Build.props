@@ -10,7 +10,7 @@
     <RepositoryType>git</RepositoryType>
     <PackageTags>nuvatis;mybatis;orm;sql-mapper;source-generator;aot;dotnet</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <Version>2.1.0</Version>
+    <Version>2.1.1</Version>
 
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>

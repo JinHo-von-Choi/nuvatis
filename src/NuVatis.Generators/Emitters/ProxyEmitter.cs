@@ -56,7 +56,7 @@ public static class ProxyEmitter {
         sb.AppendLine("        }");
 
         if (mapper is not null && compilation is not null) {
-            EmitMappingMethods(sb, mapper, compilation);
+            EmitMappingMethods(sb, interfaceInfo, mapper, compilation);
         }
 
         foreach (var method in interfaceInfo.Methods) {
@@ -71,16 +71,62 @@ public static class ProxyEmitter {
 
     /**
      * ResultMap 정의에 대한 정적 매핑 메서드를 클래스 본문에 삽입한다.
+     *
+     * XML resultMap type 속성이 올바른 FQN을 포함하지 않는 경우(예: 프로젝트 이름에
+     * "NuVatis"가 포함되어 루트 네임스페이스가 중복 생성되는 시나리오)를 위해,
+     * GetTypeByMetadataName 실패 시 인터페이스 메서드의 Roslyn FQN으로 폴백한다.
      */
     private static void EmitMappingMethods(
-        StringBuilder sb, ParsedMapper mapper, Compilation compilation) {
+        StringBuilder sb, MapperInterfaceInfo interfaceInfo, ParsedMapper mapper, Compilation compilation) {
+
+        var resultMapTypeOverrides = BuildResultMapTypeOverrides(interfaceInfo, mapper);
 
         foreach (var resultMap in mapper.ResultMaps) {
-            var typeSymbol = compilation.GetTypeByMetadataName(resultMap.Type);
-            var code       = MappingEmitter.EmitMapMethod(resultMap, resultMap.Type, typeSymbol);
+            var typeSymbol     = compilation.GetTypeByMetadataName(resultMap.Type);
+            string targetTypeName;
+
+            if (typeSymbol is not null) {
+                targetTypeName = TypeResolver.GetFullyQualifiedName(typeSymbol);
+            } else if (resultMapTypeOverrides.TryGetValue(resultMap.Id, out var overrideType)) {
+                typeSymbol     = compilation.GetTypeByMetadataName(overrideType);
+                targetTypeName = overrideType;
+            } else {
+                targetTypeName = resultMap.Type;
+            }
+
+            var code = MappingEmitter.EmitMapMethod(resultMap, targetTypeName, typeSymbol);
             sb.AppendLine();
             sb.Append(code);
         }
+    }
+
+    /**
+     * ResultMap ID → 인터페이스 메서드 Roslyn FQN 타입명 매핑을 구성한다.
+     *
+     * XML resultMap.Type이 GetTypeByMetadataName으로 해석되지 않을 때의 폴백으로 사용.
+     * statement.ResultMapId와 인터페이스 메서드의 반환 타입(element type)을 연결한다.
+     */
+    private static System.Collections.Generic.Dictionary<string, string> BuildResultMapTypeOverrides(
+        MapperInterfaceInfo interfaceInfo, ParsedMapper mapper) {
+
+        var overrides = new System.Collections.Generic.Dictionary<string, string>(System.StringComparer.Ordinal);
+
+        foreach (var stmt in mapper.Statements) {
+            if (stmt.ResultMapId is null) continue;
+
+            var method = interfaceInfo.Methods.FirstOrDefault(m => m.Name == stmt.Id);
+            if (method is null) continue;
+
+            string? actualTypeName = method.ReturnsList
+                ? method.ElementType
+                : (method.IsAsync ? method.UnwrappedReturnType : method.ReturnType);
+
+            if (actualTypeName is not null && !overrides.ContainsKey(stmt.ResultMapId)) {
+                overrides[stmt.ResultMapId] = actualTypeName;
+            }
+        }
+
+        return overrides;
     }
 
     private static void EmitMethod(

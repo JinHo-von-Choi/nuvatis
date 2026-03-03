@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.1] - 2026-03-04
+
+### Fixed
+
+- `ProxyEmitter`: 프로젝트 루트 네임스페이스에 "NuVatis"가 포함될 때 `resultMap` 타입이
+  중복 네임스페이스를 갖는 버그 수정 (예: `NuVatis.Benchmark.NuVatis.Benchmark.Core.Models.User`)
+  — `GetTypeByMetadataName(resultMap.Type)` 실패 시 XML 원본 문자열 대신
+  인터페이스 메서드 Roslyn FQN으로 폴백하도록 `BuildResultMapTypeOverrides` 추가
+
+---
+
 ## [2.1.0] - 2026-03-01
 
 ### Added
@@ -281,14 +292,14 @@ public static class TableRef {
 
 | Package | Version |
 |---------|---------|
-| NuVatis.Core | 2.1.0 |
-| NuVatis.Generators | 2.1.0 |
-| NuVatis.PostgreSql | 2.1.0 |
-| NuVatis.MySql | 2.1.0 |
-| NuVatis.SqlServer | 2.1.0 |
-| NuVatis.Sqlite | 2.1.0 |
-| NuVatis.Extensions.DependencyInjection | 2.1.0 |
-| NuVatis.Extensions.OpenTelemetry | 2.1.0 |
-| NuVatis.Extensions.EntityFrameworkCore | 2.1.0 |
-| NuVatis.Extensions.Aspire | 2.1.0 |
-| NuVatis.Testing | 2.1.0 |
+| NuVatis.Core | 2.1.1 |
+| NuVatis.Generators | 2.1.1 |
+| NuVatis.PostgreSql | 2.1.1 |
+| NuVatis.MySql | 2.1.1 |
+| NuVatis.SqlServer | 2.1.1 |
+| NuVatis.Sqlite | 2.1.1 |
+| NuVatis.Extensions.DependencyInjection | 2.1.1 |
+| NuVatis.Extensions.OpenTelemetry | 2.1.1 |
+| NuVatis.Extensions.EntityFrameworkCore | 2.1.1 |
+| NuVatis.Extensions.Aspire | 2.1.1 |
+| NuVatis.Testing | 2.1.1 |
