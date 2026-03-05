@@ -1,7 +1,7 @@
-using System.Collections.Concurrent;
 using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using NuVatis.Internal;
 
 namespace NuVatis.Mapping;
 
@@ -33,8 +33,6 @@ public static class ColumnMapper {
         typeof(byte[]),
         typeof(TimeSpan)
     };
-
-    private static readonly ConcurrentDictionary<Type, Dictionary<string, PropertyInfo>> PropertyCache = new();
 
     /**
      * 지정된 타입이 스칼라(단일 값) 타입인지 판별한다.
@@ -78,7 +76,7 @@ public static class ColumnMapper {
         Justification = "런타임 자동 매핑. AOT 환경에서는 SG가 빌드타임에 매핑 코드를 생성한다.")]
     private static T MapComplex<T>(DbDataReader reader) {
         var type      = typeof(T);
-        var columnMap = PropertyCache.GetOrAdd(type, BuildColumnMap);
+        var columnMap = PropertyReflectionCache.GetOrBuild(type, normalizeUnderscore: true);
         var obj       = Activator.CreateInstance<T>()!;
 
         for (var i = 0; i < reader.FieldCount; i++) {
@@ -106,27 +104,4 @@ public static class ColumnMapper {
         return obj;
     }
 
-    /**
-     * 타입의 프로퍼티를 OrdinalIgnoreCase Dictionary로 빌드한다.
-     * 원본 이름과 언더스코어 제거 정규화 이름 모두 등록 (First-win).
-     * 빌드 시점은 타입당 1회이며, 이후 O(1) 조회가 가능하다.
-     */
-    [UnconditionalSuppressMessage("AOT", "IL2070",
-        Justification = "런타임 자동 매핑.")]
-    private static Dictionary<string, PropertyInfo> BuildColumnMap(Type type) {
-        var map = new Dictionary<string, PropertyInfo>(StringComparer.OrdinalIgnoreCase);
-
-        foreach (var prop in type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                                 .Where(p => p.CanWrite)) {
-            // 원본 이름 등록 (First-win)
-            map.TryAdd(prop.Name, prop);
-
-            // 언더스코어 제거 정규화 이름 등록 (이미 존재하면 First-win 유지)
-            var normalized = prop.Name.Replace("_", "");
-            if (normalized != prop.Name)
-                map.TryAdd(normalized, prop);
-        }
-
-        return map;
-    }
 }

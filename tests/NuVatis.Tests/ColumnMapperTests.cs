@@ -167,9 +167,11 @@ public class ColumnMapperTests {
         reader1.Read();
         ColumnMapper.MapRow<UserDto>(reader1);
 
-        // PropertyCache 필드 접근
-        var cacheField = typeof(ColumnMapper)
-            .GetField("PropertyCache", BindingFlags.NonPublic | BindingFlags.Static)!;
+        // PropertyReflectionCache._normalizedCache 필드 접근 (ColumnMapper는 normalizeUnderscore=true 사용)
+        var cacheType  = typeof(NuVatis.Binding.ParameterBinder).Assembly
+            .GetType("NuVatis.Internal.PropertyReflectionCache")!;
+        var cacheField = cacheType
+            .GetField("_normalizedCache", BindingFlags.NonPublic | BindingFlags.Static)!;
 
         Assert.NotNull(cacheField);
 
@@ -192,10 +194,10 @@ public class ColumnMapperTests {
         Assert.Same(dictBefore, dictAfter);
 
         // ConcurrentDictionary<Type, Dictionary<string, PropertyInfo>>이어야 한다
-        var cacheType = cache!.GetType();
+        var concreteType = cache!.GetType();
 
         // TValue는 Dictionary<string, PropertyInfo>여야 한다
-        Assert.Contains("Dictionary", cacheType.GenericTypeArguments[1].Name);
+        Assert.Contains("Dictionary", concreteType.GenericTypeArguments[1].Name);
     }
 
     /**

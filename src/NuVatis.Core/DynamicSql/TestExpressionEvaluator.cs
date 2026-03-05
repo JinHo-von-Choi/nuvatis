@@ -1,8 +1,8 @@
 using System.Collections;
-using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Reflection;
+using NuVatis.Internal;
 
 namespace NuVatis.DynamicSql;
 
@@ -15,7 +15,6 @@ namespace NuVatis.DynamicSql;
  */
 public static class TestExpressionEvaluator {
 
-    private static readonly ConcurrentDictionary<Type, Dictionary<string, PropertyInfo>> PropertyCache = new();
     private static readonly string[] Operators = { "!=", "==", ">=", "<=", ">", "<" };
 
     public static bool Evaluate(string? testExpression, object? parameter) {
@@ -53,9 +52,7 @@ public static class TestExpressionEvaluator {
             };
 
             var type  = current.GetType();
-            var props = PropertyCache.GetOrAdd(type, t =>
-                t.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                 .ToDictionary(p => p.Name, p => p, StringComparer.OrdinalIgnoreCase));
+            var props = PropertyReflectionCache.GetOrBuild(type, normalizeUnderscore: false);
 
             if (props.TryGetValue(memberName, out var prop)) {
                 current = prop.GetValue(current);
