@@ -321,7 +321,11 @@ public static class ParameterEmitter {
     }
 
     /**
-     * ForEach 내부 노드에서 ParameterNode는 컬렉션 아이템 자체를 바인딩해야 한다.
+     * ForEach 내부 노드에서 ParameterNode는 컬렉션 아이템을 바인딩해야 한다.
+     *
+     * #{item}              → item 자체를 바인딩
+     * #{item.Property}     → GetPropertyValue(item, "Property")
+     * #{item.A.B}          → GetPropertyValue(GetPropertyValue(item, "A"), "B")
      *
      * ${} 치환인 경우 아이템 자체가 SqlIdentifier인지 런타임 체크한다.
      * ForEach 컨텍스트에서는 컬렉션 원소 타입 정보를 paramTypeMap으로 전달받을 수 없으므로
@@ -341,12 +345,13 @@ public static class ParameterEmitter {
             var escaped = textNode.Text.Replace("\"", "\"\"");
             sb.AppendLine($"{sp}sb.Append(@\"{escaped}\");");
         } else if (node is ParameterNode paramNode && !paramNode.IsStringSubstitution) {
+            var valueExpr = BuildItemPropertyAccess(itemVar, paramNode.Name);
             sb.AppendLine($"{sp}{{");
             sb.AppendLine($"{sp}    var pName = \"{prefix}p\" + paramIndex++;");
             sb.AppendLine($"{sp}    sb.Append(pName);");
             sb.AppendLine($"{sp}    var p = dbFactory.CreateParameter();");
             sb.AppendLine($"{sp}    p.ParameterName = pName;");
-            sb.AppendLine($"{sp}    p.Value = {itemVar} ?? (object)System.DBNull.Value;");
+            sb.AppendLine($"{sp}    p.Value = {valueExpr} ?? (object)System.DBNull.Value;");
             sb.AppendLine($"{sp}    parameters.Add(p);");
             sb.AppendLine($"{sp}}}");
         } else if (node is ParameterNode strSubNode && strSubNode.IsStringSubstitution) {
@@ -358,6 +363,301 @@ public static class ParameterEmitter {
         } else {
             EmitNode(sb, node, prefix, indent, paramTypeMap);
         }
+    }
+
+    /**
+     * foreach 아이템의 프로퍼티 접근 표현식을 생성한다.
+     *
+     * #{user}          → "user"
+     * #{user.UserName} → "GetPropertyValue(user, \"UserName\")"
+     * #{user.A.B}      → "GetPropertyValue(GetPropertyValue(user, \"A\"), \"B\")"
+     */
+    private static string BuildItemPropertyAccess(string itemVar, string paramName) {
+        if (!paramName.Contains(".")) return itemVar;
+
+        var firstDot   = paramName.IndexOf('.');
+        var nestedPath = paramName.Substring(firstDot + 1);
+        return BuildChainedPropertyAccess(itemVar, nestedPath);
+    }
+
+    private static string BuildChainedPropertyAccess(string obj, string path) {
+        var parts   = path.Split('.');
+        var current = obj;
+        foreach (var part in parts) {
+            current = $"GetPropertyValue({current}, \"{part}\")";
+        }
+        return current;
+    }
+
+    /**
+     * ParsedSqlNode 트리로부터 MappedStatement.DynamicSqlBuilder에 사용할
+     * Func<object?, (string, List<DbParameter>)> 람다 소스 코드를 생성한다.
+     *
+     * 생성 결과 예시:
+     *   static (__param_) =>
+     *   {
+     *       var __sb_ = ...
+     *       ...
+     *       return (__sb_.ToString(), __params_);
+     *   }
+     *
+     * @param rootNode     ParsedStatement.RootNode
+     * @param paramPrefix  파라미터 접두사 (예: "@")
+     */
+    public static string EmitDynamicBuilderLambda(ParsedSqlNode rootNode, string paramPrefix = "@") {
+        var sb = new StringBuilder(2048);
+        sb.AppendLine("static (__param_) =>");
+        sb.AppendLine("        {");
+        sb.AppendLine("            var __sb_     = new System.Text.StringBuilder(256);");
+        sb.AppendLine("            var __params_ = new System.Collections.Generic.List<System.Data.Common.DbParameter>();");
+        sb.AppendLine("            var __idx_    = 0;");
+        sb.AppendLine("            static object? __getprop_(object? o_, string n_)");
+        sb.AppendLine("            {");
+        sb.AppendLine("                if (o_ == null) return null;");
+        sb.AppendLine("                var p_ = o_.GetType().GetProperty(n_,");
+        sb.AppendLine("                    System.Reflection.BindingFlags.Public |");
+        sb.AppendLine("                    System.Reflection.BindingFlags.Instance |");
+        sb.AppendLine("                    System.Reflection.BindingFlags.IgnoreCase);");
+        sb.AppendLine("                return p_?.GetValue(o_);");
+        sb.AppendLine("            }");
+        EmitLambdaNode(sb, rootNode, "__param_", paramPrefix, 3);
+        sb.AppendLine("            return (__sb_.ToString(), __params_);");
+        sb.Append("        }");
+        return sb.ToString();
+    }
+
+    private static void EmitLambdaNode(
+        StringBuilder sb,
+        ParsedSqlNode node,
+        string paramVar,
+        string prefix,
+        int indent) {
+
+        var sp = new string(' ', indent * 4);
+
+        switch (node) {
+            case TextNode text:
+                if (!string.IsNullOrWhiteSpace(text.Text)) {
+                    var escaped = text.Text.Replace("\"", "\"\"");
+                    sb.AppendLine($"{sp}__sb_.Append(@\"{escaped}\");");
+                }
+                break;
+
+            case ParameterNode param when !param.IsStringSubstitution: {
+                var propAccess = BuildLambdaNestedAccess(paramVar, param.Name);
+                sb.AppendLine($"{sp}{{");
+                sb.AppendLine($"{sp}    var __pn_ = \"{prefix}p\" + __idx_++;");
+                sb.AppendLine($"{sp}    __sb_.Append(__pn_);");
+                sb.AppendLine($"{sp}    __params_.Add(NuVatis.Binding.ParameterBinder.CreateParameter(");
+                sb.AppendLine($"{sp}        __pn_, {propAccess} ?? System.DBNull.Value));");
+                sb.AppendLine($"{sp}}}");
+                break;
+            }
+
+            case ForEachNode forEach: {
+                var collAccess = BuildLambdaNestedAccess(paramVar, forEach.Collection);
+                var collVar    = $"__coll_{SanitizeId(forEach.Collection)}_";
+                var itemVar    = $"{SanitizeId(forEach.Item)}_";
+                var firstVar   = $"__first_{SanitizeId(forEach.Collection)}_";
+                sb.AppendLine($"{sp}{{");
+                sb.AppendLine($"{sp}    var {collVar} = {collAccess} as System.Collections.IEnumerable;");
+                sb.AppendLine($"{sp}    if ({collVar} != null)");
+                sb.AppendLine($"{sp}    {{");
+                if (forEach.Open is not null) {
+                    sb.AppendLine($"{sp}        __sb_.Append(@\"{Escape(forEach.Open)}\");");
+                }
+                sb.AppendLine($"{sp}        var {firstVar} = true;");
+                sb.AppendLine($"{sp}        foreach (var {itemVar} in {collVar})");
+                sb.AppendLine($"{sp}        {{");
+                if (forEach.Separator is not null) {
+                    sb.AppendLine($"{sp}            if (!{firstVar}) __sb_.Append(@\"{Escape(forEach.Separator)}\");");
+                }
+                sb.AppendLine($"{sp}            {firstVar} = false;");
+                foreach (var child in forEach.Children) {
+                    EmitLambdaForEachChild(sb, child, itemVar, prefix, indent + 3);
+                }
+                sb.AppendLine($"{sp}        }}");
+                if (forEach.Close is not null) {
+                    sb.AppendLine($"{sp}        __sb_.Append(@\"{Escape(forEach.Close)}\");");
+                }
+                sb.AppendLine($"{sp}    }}");
+                sb.AppendLine($"{sp}}}");
+                break;
+            }
+
+            case ParameterNode strSub when strSub.IsStringSubstitution:
+                // ${}는 SqlIdentifier 타입만 허용한다.
+                sb.AppendLine($"{sp}{{");
+                sb.AppendLine($"{sp}    var __sv_ = {BuildLambdaNestedAccess(paramVar, strSub.Name)};");
+                sb.AppendLine($"{sp}    if (__sv_ is not NuVatis.Core.Sql.SqlIdentifier)");
+                sb.AppendLine($"{sp}        throw new System.InvalidOperationException(");
+                sb.AppendLine($"{sp}            \"${{{strSub.Name}}} 치환에는 SqlIdentifier 타입이 필요합니다.\");");
+                sb.AppendLine($"{sp}    __sb_.Append(__sv_.ToString());");
+                sb.AppendLine($"{sp}}}");
+                break;
+
+            case IfNode ifNode: {
+                var propName   = ExtractPropertyName(ifNode.Test);
+                var propAccess = BuildLambdaNestedAccess(paramVar, propName);
+                sb.AppendLine($"{sp}if ({propAccess} != null)");
+                sb.AppendLine($"{sp}{{");
+                foreach (var child in ifNode.Children) {
+                    EmitLambdaNode(sb, child, paramVar, prefix, indent + 1);
+                }
+                sb.AppendLine($"{sp}}}");
+                break;
+            }
+
+            case ChooseNode choose: {
+                var first = true;
+                foreach (var when in choose.Whens) {
+                    var keyword    = first ? "if" : "else if";
+                    var propName   = ExtractPropertyName(when.Test);
+                    var propAccess = BuildLambdaNestedAccess(paramVar, propName);
+                    sb.AppendLine($"{sp}{keyword} ({propAccess} != null)");
+                    sb.AppendLine($"{sp}{{");
+                    foreach (var child in when.Children) {
+                        EmitLambdaNode(sb, child, paramVar, prefix, indent + 1);
+                    }
+                    sb.AppendLine($"{sp}}}");
+                    first = false;
+                }
+                if (choose.Otherwise is { Length: > 0 } otherwise) {
+                    sb.AppendLine($"{sp}else");
+                    sb.AppendLine($"{sp}{{");
+                    foreach (var child in otherwise) {
+                        EmitLambdaNode(sb, child, paramVar, prefix, indent + 1);
+                    }
+                    sb.AppendLine($"{sp}}}");
+                }
+                break;
+            }
+
+            case WhereNode where: {
+                sb.AppendLine($"{sp}{{");
+                sb.AppendLine($"{sp}    var __wSb_ = new System.Text.StringBuilder();");
+                sb.AppendLine($"{sp}    var __outerSb_ = __sb_; __sb_ = __wSb_;");
+                foreach (var child in where.Children) {
+                    EmitLambdaNode(sb, child, paramVar, prefix, indent + 1);
+                }
+                sb.AppendLine($"{sp}    __sb_ = __outerSb_;");
+                sb.AppendLine($"{sp}    var __wc_ = __wSb_.ToString().Trim();");
+                sb.AppendLine($"{sp}    if (!string.IsNullOrEmpty(__wc_))");
+                sb.AppendLine($"{sp}    {{");
+                sb.AppendLine($"{sp}        if (__wc_.StartsWith(\"AND \", System.StringComparison.OrdinalIgnoreCase))");
+                sb.AppendLine($"{sp}            __wc_ = __wc_.Substring(4);");
+                sb.AppendLine($"{sp}        else if (__wc_.StartsWith(\"OR \", System.StringComparison.OrdinalIgnoreCase))");
+                sb.AppendLine($"{sp}            __wc_ = __wc_.Substring(3);");
+                sb.AppendLine($"{sp}        __sb_.Append(\" WHERE \").Append(__wc_);");
+                sb.AppendLine($"{sp}    }}");
+                sb.AppendLine($"{sp}}}");
+                break;
+            }
+
+            case SetNode set: {
+                sb.AppendLine($"{sp}{{");
+                sb.AppendLine($"{sp}    var __sSb_ = new System.Text.StringBuilder();");
+                sb.AppendLine($"{sp}    var __outerSb_ = __sb_; __sb_ = __sSb_;");
+                foreach (var child in set.Children) {
+                    EmitLambdaNode(sb, child, paramVar, prefix, indent + 1);
+                }
+                sb.AppendLine($"{sp}    __sb_ = __outerSb_;");
+                sb.AppendLine($"{sp}    var __sc_ = __sSb_.ToString().Trim();");
+                sb.AppendLine($"{sp}    if (!string.IsNullOrEmpty(__sc_))");
+                sb.AppendLine($"{sp}    {{");
+                sb.AppendLine($"{sp}        if (__sc_.EndsWith(\",\")) __sc_ = __sc_.Substring(0, __sc_.Length - 1);");
+                sb.AppendLine($"{sp}        __sb_.Append(\" SET \").Append(__sc_);");
+                sb.AppendLine($"{sp}    }}");
+                sb.AppendLine($"{sp}}}");
+                break;
+            }
+
+            case MixedNode mixed:
+                foreach (var child in mixed.Children) {
+                    EmitLambdaNode(sb, child, paramVar, prefix, indent);
+                }
+                break;
+        }
+    }
+
+    /**
+     * foreach 내부 자식 노드를 아이템 변수 기준으로 emit한다.
+     * #{item.Property} 형태의 중첩 프로퍼티 접근을 처리한다.
+     */
+    private static void EmitLambdaForEachChild(
+        StringBuilder sb,
+        ParsedSqlNode node,
+        string itemVar,
+        string prefix,
+        int indent) {
+
+        var sp = new string(' ', indent * 4);
+
+        switch (node) {
+            case TextNode text:
+                if (!string.IsNullOrWhiteSpace(text.Text)) {
+                    var escaped = text.Text.Replace("\"", "\"\"");
+                    sb.AppendLine($"{sp}__sb_.Append(@\"{escaped}\");");
+                }
+                break;
+
+            case ParameterNode param when !param.IsStringSubstitution: {
+                // #{item}          → itemVar
+                // #{item.Property} → __getprop_(itemVar, "Property")
+                // #{item.A.B}      → __getprop_(__getprop_(itemVar, "A"), "B")
+                string valueExpr;
+                if (param.Name.Contains(".")) {
+                    var firstDot   = param.Name.IndexOf('.');
+                    var nestedPath = param.Name.Substring(firstDot + 1);
+                    valueExpr = BuildLambdaChainedAccess(itemVar, nestedPath);
+                } else {
+                    valueExpr = itemVar;
+                }
+                sb.AppendLine($"{sp}{{");
+                sb.AppendLine($"{sp}    var __pn_ = \"{prefix}p\" + __idx_++;");
+                sb.AppendLine($"{sp}    __sb_.Append(__pn_);");
+                sb.AppendLine($"{sp}    __params_.Add(NuVatis.Binding.ParameterBinder.CreateParameter(");
+                sb.AppendLine($"{sp}        __pn_, {valueExpr} ?? System.DBNull.Value));");
+                sb.AppendLine($"{sp}}}");
+                break;
+            }
+
+            case ParameterNode strSub when strSub.IsStringSubstitution:
+                sb.AppendLine($"{sp}if ({itemVar} is not NuVatis.Core.Sql.SqlIdentifier)");
+                sb.AppendLine($"{sp}    throw new System.InvalidOperationException(");
+                sb.AppendLine($"{sp}        \"foreach 내 ${{{strSub.Name}}} 치환에는 SqlIdentifier 타입이 필요합니다.\");");
+                sb.AppendLine($"{sp}__sb_.Append({itemVar}.ToString());");
+                break;
+
+            case MixedNode mixed:
+                foreach (var child in mixed.Children) {
+                    EmitLambdaForEachChild(sb, child, itemVar, prefix, indent);
+                }
+                break;
+        }
+    }
+
+    /**
+     * __getprop_ 함수를 사용한 다단계 프로퍼티 접근 표현식을 생성한다.
+     * "users"       → "__getprop_(__param_, \"users\")"
+     * "user.Name"   → "__getprop_(__getprop_(__param_, \"user\"), \"Name\")"
+     */
+    private static string BuildLambdaNestedAccess(string paramVar, string propertyPath) {
+        var parts   = propertyPath.Split('.');
+        var current = paramVar;
+        foreach (var part in parts) {
+            current = $"__getprop_({current}, \"{part}\")";
+        }
+        return current;
+    }
+
+    private static string BuildLambdaChainedAccess(string startObj, string path) {
+        var parts   = path.Split('.');
+        var current = startObj;
+        foreach (var part in parts) {
+            current = $"__getprop_({current}, \"{part}\")";
+        }
+        return current;
     }
 
     /**

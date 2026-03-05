@@ -65,6 +65,14 @@ public static class ParameterBinder {
         return (sql, parameters);
     }
 
+    /**
+     * 이름과 값으로 DbParameter를 생성한다.
+     * SG 생성 DynamicSqlBuilder 람다에서 사용한다.
+     */
+    public static DbParameter CreateParameter(string name, object? value) {
+        return new GenericDbParameter(name, value ?? DBNull.Value);
+    }
+
     [UnconditionalSuppressMessage("AOT", "IL2070",
         Justification = "런타임 파라미터 바인딩. AOT 환경에서는 SG가 빌드타임에 바인딩 코드를 생성한다.")]
     private static object? ResolvePropertyValue(object obj, string propertyPath) {

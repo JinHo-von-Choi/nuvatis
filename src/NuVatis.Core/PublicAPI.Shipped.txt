@@ -374,6 +374,8 @@ NuVatis.Session.SqlSessionFactoryBuilder.UseProvider(NuVatis.Provider.IDbProvide
 NuVatis.Statement.MappedStatement
 NuVatis.Statement.MappedStatement.CommandTimeout.get -> int?
 NuVatis.Statement.MappedStatement.CommandTimeout.init -> void
+NuVatis.Statement.MappedStatement.DynamicSqlBuilder.get -> System.Func<object?, (string! Sql, System.Collections.Generic.List<System.Data.Common.DbParameter!>! Parameters)>?
+NuVatis.Statement.MappedStatement.DynamicSqlBuilder.init -> void
 NuVatis.Statement.MappedStatement.FullId.get -> string!
 NuVatis.Statement.MappedStatement.Id.get -> string!
 NuVatis.Statement.MappedStatement.Id.init -> void
@@ -435,6 +437,7 @@ NuVatis.Transaction.ITransaction.RollbackAsync(System.Threading.CancellationToke
 override NuVatis.Core.Sql.SqlIdentifier.ToString() -> string!
 override NuVatis.Mapping.LazyValue<T>.ToString() -> string?
 static NuVatis.Binding.ParameterBinder.Bind(string! sqlSource, object? parameter, string! paramPrefix = "@", System.Data.Common.DbProviderFactory? dbFactory = null) -> (string! Sql, System.Collections.Generic.List<System.Data.Common.DbParameter!>! Parameters)
+static NuVatis.Binding.ParameterBinder.CreateParameter(string! name, object? value) -> System.Data.Common.DbParameter!
 static NuVatis.Cache.CacheKey.Generate(string! statementId, object? parameter) -> string!
 static NuVatis.Core.Sql.SqlIdentifier.From(string! value) -> NuVatis.Core.Sql.SqlIdentifier!
 static NuVatis.Core.Sql.SqlIdentifier.FromAllowed(string! value, params string![]! allowedValues) -> NuVatis.Core.Sql.SqlIdentifier!

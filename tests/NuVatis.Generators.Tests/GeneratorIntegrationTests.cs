@@ -360,6 +360,93 @@ namespace NuVatis.Benchmark.NuVatis.Benchmark.Mappers
     }
 
     /**
+     * XML 매퍼 statement가 Registry의 RegisterXmlStatements에 등록되어야 한다.
+     * Bug: RegistryEmitter가 XML 매퍼 statement를 등록하지 않아 "Statement not found" 런타임 오류.
+     */
+    [Fact]
+    public void SG_Registry_Contains_RegisterXmlStatements_For_XmlMapper() {
+        var source = @"
+using NuVatis.Attributes;
+namespace TestApp.Mappers
+{
+    [NuVatisMapper]
+    public interface IUserMapper
+    {
+        object GetById(int id);
+        int BulkInsert(object param);
+    }
+}";
+
+        var xmlContent = @"<?xml version=""1.0"" encoding=""utf-8"" ?>
+<mapper namespace=""TestApp.Mappers.IUserMapper"">
+  <select id=""GetById"">
+    SELECT id, name FROM users WHERE id = #{id}
+  </select>
+  <insert id=""BulkInsert"">
+    INSERT INTO users (name) VALUES
+    <foreach collection=""users"" item=""user"" open=""("" close="")"" separator="","">
+      #{user.UserName}
+    </foreach>
+  </insert>
+</mapper>";
+
+        var (sources, diagnostics) = RunGenerator(source, xmlContent);
+
+        var registry = sources.FirstOrDefault(s => s.HintName.Contains("Registry"));
+        Assert.False(registry.Equals(default));
+
+        var code = registry.SourceText.ToString();
+
+        // RegisterXmlStatements 메서드가 생성되어야 한다.
+        Assert.Contains("RegisterXmlStatements", code);
+
+        // GetById: 정적 SQL → SqlSource에 직접 삽입
+        Assert.Contains("\"GetById\"", code);
+        Assert.Contains("SELECT id, name FROM users WHERE id = #{id}", code);
+
+        // BulkInsert: 동적 SQL (foreach) → DynamicSqlBuilder 람다 생성
+        Assert.Contains("\"BulkInsert\"", code);
+        Assert.Contains("DynamicSqlBuilder", code);
+
+        // 람다에서 __getprop_를 통한 중첩 프로퍼티 접근이 생성되어야 한다.
+        Assert.Contains("__getprop_", code);
+        Assert.Contains("UserName", code);
+    }
+
+    /**
+     * foreach 내 #{user.UserName} 중첩 프로퍼티 접근이
+     * EmitDynamicBuilderLambda에서 __getprop_ 호출 코드로 생성되어야 한다.
+     */
+    [Fact]
+    public void SG_EmitDynamicBuilderLambda_ForeachNestedProperty_GeneratesGetpropAccess() {
+        var xmlContent = @"<?xml version=""1.0"" encoding=""utf-8"" ?>
+<mapper namespace=""TestApp.Mappers.IUserMapper"">
+  <insert id=""BulkInsert"">
+    INSERT INTO users (name) VALUES
+    <foreach collection=""users"" item=""user"" open=""("" close="")"" separator="","">
+      #{user.UserName}
+    </foreach>
+  </insert>
+</mapper>";
+
+        var mapper    = NuVatis.Generators.Parsing.XmlMapperParser.Parse(xmlContent, default);
+        var stmt      = mapper.Statements[0];
+        var lambda    = NuVatis.Generators.Emitters.ParameterEmitter.EmitDynamicBuilderLambda(stmt.RootNode, "@");
+
+        // 람다가 __getprop_ 헬퍼를 포함해야 한다.
+        Assert.Contains("__getprop_", lambda);
+
+        // foreach 아이템 변수(user_)에서 UserName 프로퍼티를 접근해야 한다.
+        Assert.Contains("\"UserName\"", lambda);
+
+        // 파라미터 인덱스 카운터가 생성되어야 한다.
+        Assert.Contains("__idx_", lambda);
+
+        // ParameterBinder.CreateParameter를 통해 DbParameter를 생성해야 한다.
+        Assert.Contains("ParameterBinder.CreateParameter", lambda);
+    }
+
+    /**
      * 정상 경로 확인: XML resultMap type이 실제 FQN과 일치하면 그대로 사용.
      */
     [Fact]

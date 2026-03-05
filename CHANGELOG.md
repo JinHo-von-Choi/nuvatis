@@ -5,6 +5,56 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.0] - 2026-03-06
+
+### Added
+
+- **동적 SQL 런타임 실행 — DynamicSqlBuilder**: `<foreach>`, `<if>`, `<where>`, `<set>`, `<choose>` 등 동적 태그가 포함된 XML Mapper statement에 대해 Source Generator가 `DynamicSqlBuilder` 람다를 빌드타임에 생성한다. 런타임 리플렉션 없이 동적 SQL이 평가된다.
+  - `MappedStatement.DynamicSqlBuilder`: `Func<object?, (string Sql, List<DbParameter> Parameters)>?` 프로퍼티 추가
+  - `ParameterBinder.CreateParameter(string name, object? value)`: SG 생성 람다에서 사용하는 `DbParameter` 팩토리 메서드 추가
+  - `ParameterEmitter.EmitDynamicBuilderLambda(ParsedSqlNode rootNode)`: 동적 SQL 람다 코드 생성 진입점 추가
+- **`RegistryEmitter.RegisterXmlStatements`**: SG가 `NuVatisMapperRegistry.RegisterXmlStatements(Dictionary<string, MappedStatement>)` 정적 메서드를 생성한다. XML 매퍼의 정적 statement는 `SqlSource` 경로로, 동적 statement는 `DynamicSqlBuilder` 람다 경로로 등록된다.
+- **`<foreach>` 내 중첩 프로퍼티 접근**: `#{user.UserName}` 형태의 중첩 접속을 `<foreach>` 바디 내에서 정상 처리한다. SG가 `__getprop_` 로컬 함수를 생성하여 `BindingFlags.IgnoreCase` 기반 런타임 접근을 수행한다.
+- **`<choose>/<when>/<otherwise>` 동적 람다 지원**: `ChooseNode`를 `EmitDynamicBuilderLambda` 내에서 if/else-if/else 체인으로 코드 생성한다.
+- **`${}` 치환 동적 람다 가드**: 동적 SQL 내 `${}` 파라미터가 `SqlIdentifier` 타입인지 람다 내에서 런타임 검증한다. 타입 불일치 시 `InvalidOperationException` 즉시 발생.
+
+### Changed
+
+- **`SqlSession.BuildSql`**: `statement.DynamicSqlBuilder`가 설정된 경우 `ParameterBinder.Bind` 대신 람다를 우선 호출한다.
+- **`RegistryEmitter.Emit` 시그니처**: `ImmutableArray<ParsedMapper> xmlMappers = default` 파라미터 추가 — XML 매퍼가 없는 프로젝트에서는 기존 동작과 동일하다.
+
+### DI 마이그레이션 (XML 매퍼 사용 시)
+
+XML 매퍼의 statement를 SG 레지스트리 경로로 등록하려면 `RegisterXmlStatements` 호출을 추가한다.
+
+```csharp
+builder.Services.AddNuVatis(options => {
+    options.ConnectionString = builder.Configuration.GetConnectionString("Default");
+    options.Provider         = new PostgreSqlProvider();
+    options.RegisterMappers(NuVatisMapperRegistry.RegisterAll);
+    options.RegisterAttributeStatements(stmts => {
+        NuVatisMapperRegistry.RegisterAttributeStatements(stmts);
+        NuVatisMapperRegistry.RegisterXmlStatements(stmts);   // 추가
+    });
+});
+```
+
+기존처럼 `SqlSessionFactoryBuilder.AddXmlMapper()` 런타임 파싱 경로를 사용하는 경우에는 변경 불필요.
+
+### Tests
+
+- `ParameterEmitterDynamicBuilderTests`: 동적 SQL 코드 생성 45개 단위 테스트 신규 추가
+  - Lambda 보일러플레이트, TextNode, ParameterNode (`#{}` 단순/중첩/deep), StringSubstitution (`${}`) 가드
+  - ForEachNode: 스칼라, open/close/sep, 중첩 프로퍼티, `${}` 내부, 첫 번째 플래그
+  - IfNode, WhereNode, SetNode, ChooseNode 코드 생성 케이스
+  - 복합 시나리오: where+if 조합, foreach+중첩 INSERT, set+update, 벌크 INSERT 스칼라
+  - XML 파서 통합: 정적 statement, 동적 statement 판별 + 람다 생성
+  - RegistryEmitter: SqlSource vs DynamicSqlBuilder 분기, StatementType 대문자화
+- `GeneratorIntegrationTests`: SG 레지스트리 생성 검증 2개 테스트 추가
+- 전체: `NuVatis.Tests` 349 Pass / `NuVatis.Generators.Tests` 134 Pass
+
+---
+
 ## [2.2.0] - 2026-03-05
 
 ### Added
@@ -318,14 +368,14 @@ public static class TableRef {
 
 | Package | Version |
 |---------|---------|
-| NuVatis.Core | 2.1.1 |
-| NuVatis.Generators | 2.1.1 |
-| NuVatis.PostgreSql | 2.1.1 |
-| NuVatis.MySql | 2.1.1 |
-| NuVatis.SqlServer | 2.1.1 |
-| NuVatis.Sqlite | 2.1.1 |
-| NuVatis.Extensions.DependencyInjection | 2.1.1 |
-| NuVatis.Extensions.OpenTelemetry | 2.1.1 |
-| NuVatis.Extensions.EntityFrameworkCore | 2.1.1 |
-| NuVatis.Extensions.Aspire | 2.1.1 |
-| NuVatis.Testing | 2.1.1 |
+| NuVatis.Core | 2.3.0 |
+| NuVatis.Generators | 2.3.0 |
+| NuVatis.PostgreSql | 2.3.0 |
+| NuVatis.MySql | 2.3.0 |
+| NuVatis.SqlServer | 2.3.0 |
+| NuVatis.Sqlite | 2.3.0 |
+| NuVatis.Extensions.DependencyInjection | 2.3.0 |
+| NuVatis.Extensions.OpenTelemetry | 2.3.0 |
+| NuVatis.Extensions.EntityFrameworkCore | 2.3.0 |
+| NuVatis.Extensions.Aspire | 2.3.0 |
+| NuVatis.Testing | 2.3.0 |

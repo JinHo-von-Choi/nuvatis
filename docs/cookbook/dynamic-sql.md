@@ -1,5 +1,34 @@
 # Dynamic SQL Cookbook
 
+## 런타임 실행 경로 (v2.3.0+)
+
+v2.3.0부터 `<foreach>`, `<if>`, `<where>`, `<set>`, `<choose>` 등 동적 태그가 포함된 XML Mapper statement는 Source Generator가 빌드타임에 `DynamicSqlBuilder` 람다를 생성한다. 런타임에 XML을 재파싱하거나 리플렉션으로 프로퍼티를 탐색하는 과정이 없다.
+
+```
+XML Mapper (foreach/if/where 포함)
+    |
+    v  빌드타임
+ParameterEmitter.EmitDynamicBuilderLambda()
+    |
+    v  런타임
+MappedStatement.DynamicSqlBuilder(parameter) -> (sql, parameters)
+```
+
+`<foreach>` 내에서 `#{item.NestedProperty}` 형태의 중첩 프로퍼티 접근도 지원한다.
+
+```xml
+<insert id="InsertBatch">
+  INSERT INTO logs (user_id, message) VALUES
+  <foreach collection="Items" item="log" separator=",">
+    (#{log.UserId}, #{log.Message})
+  </foreach>
+</insert>
+```
+
+이 경우 SG는 `log.UserId`, `log.Message`를 각각 `GetPropertyValue(log, "UserId")` 형태로 분해하여 람다에 삽입한다.
+
+---
+
 ## if - 조건부 SQL
 
 파라미터가 null이 아닌 경우에만 조건을 포함한다.

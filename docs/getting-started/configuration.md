@@ -9,9 +9,16 @@ builder.Services.AddNuVatis(options => {
     options.AutoCommit       = false;    // 기본값: false (명시적 Commit 필요)
     options.DefaultTimeout   = 30;       // 기본 커맨드 타임아웃 (초)
     options.RegisterMappers(NuVatisMapperRegistry.RegisterAll);
-    options.RegisterAttributeStatements(NuVatisMapperRegistry.RegisterAttributeStatements);
+    options.RegisterAttributeStatements(stmts => {
+        NuVatisMapperRegistry.RegisterAttributeStatements(stmts);
+        NuVatisMapperRegistry.RegisterXmlStatements(stmts);   // XML 매퍼 사용 시 필수
+    });
 });
 ```
+
+`RegisterXmlStatements`는 v2.3.0에서 추가된 SG 생성 메서드다. XML 매퍼의 statement를 Source Generator 경로로 등록하며, `<foreach>`/`<if>`/`<where>` 등 동적 태그가 포함된 statement는 `DynamicSqlBuilder` 람다로 등록된다.
+
+XML 매퍼를 사용하지 않거나 `SqlSessionFactoryBuilder.AddXmlMapper()` 런타임 파싱만 사용하는 경우에는 기존 코드 그대로 유지해도 무방하다.
 
 ## 수동 설정 (Non-DI)
 

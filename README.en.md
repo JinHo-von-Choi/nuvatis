@@ -157,7 +157,10 @@ builder.Services.AddNuVatis(options => {
     options.ConnectionString = builder.Configuration.GetConnectionString("Default");
     options.Provider         = new PostgreSqlProvider();
     options.RegisterMappers(NuVatisMapperRegistry.RegisterAll);
-    options.RegisterAttributeStatements(NuVatisMapperRegistry.RegisterAttributeStatements);
+    options.RegisterAttributeStatements(stmts => {
+        NuVatisMapperRegistry.RegisterAttributeStatements(stmts);
+        NuVatisMapperRegistry.RegisterXmlStatements(stmts);  // Required when using XML mappers
+    });
 });
 
 builder.Services.AddHealthChecks().AddNuVatis();

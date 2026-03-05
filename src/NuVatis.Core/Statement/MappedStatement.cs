@@ -28,6 +28,15 @@ public sealed class MappedStatement {
     public bool UseCache                 { get; init; }
 
     /**
+     * 동적 SQL 빌더. null이면 SqlSource + ParameterBinder 경로를 사용한다.
+     * <foreach>, <if>, <where> 등 동적 태그가 포함된 statement에서
+     * SG가 생성하는 람다로 설정된다.
+     *
+     * Func 파라미터: (object? parameter) → (string sql, List<DbParameter> parameters)
+     */
+    public Func<object?, (string Sql, List<System.Data.Common.DbParameter> Parameters)>? DynamicSqlBuilder { get; init; }
+
+    /**
      * namespace.id 형태의 전체 식별자.
      */
     public string FullId => $"{Namespace}.{Id}";

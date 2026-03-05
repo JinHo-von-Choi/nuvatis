@@ -476,11 +476,15 @@ public sealed class SqlSession : ISqlSession {
 
     /**
      * SQL 내의 #{paramName} 바인딩을 처리하여 실행 가능한 SQL과 파라미터를 반환한다.
-     * #{} 패턴이 없으면 원본 SQL을 그대로 반환한다.
+     * DynamicSqlBuilder가 설정된 경우 해당 람다를 사용한다 (foreach 등 동적 SQL).
+     * 그렇지 않으면 SqlSource + ParameterBinder 경로를 사용한다.
      * 반환된 List는 풀에서 대여된 것이므로 사용 후 ReturnParameters로 반납한다.
      */
     private static (string Sql, List<DbParameter> Parameters) BuildSql(
         MappedStatement statement, object? parameter) {
+        if (statement.DynamicSqlBuilder is not null) {
+            return statement.DynamicSqlBuilder(parameter);
+        }
         return ParameterBinder.Bind(statement.SqlSource, parameter);
     }
 

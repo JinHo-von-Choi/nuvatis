@@ -76,7 +76,7 @@ public sealed class NuVatisIncrementalGenerator : IIncrementalGenerator {
             context.AddSource(hintName, SourceText.From(proxySource, Encoding.UTF8));
         }
 
-        var registrySource = RegistryEmitter.Emit(interfaces);
+        var registrySource = RegistryEmitter.Emit(interfaces, mappers);
         context.AddSource("NuVatisMapperRegistry.g.cs", SourceText.From(registrySource, Encoding.UTF8));
     }
 

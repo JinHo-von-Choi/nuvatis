@@ -262,8 +262,9 @@ static NuVatis.Generators.Emitters.DynamicSqlEmitter.HasDynamicNodes(NuVatis.Gen
 static NuVatis.Generators.Emitters.MappingEmitter.EmitMapMethod(NuVatis.Generators.Models.ParsedResultMap! resultMap, string! targetTypeName, Microsoft.CodeAnalysis.INamedTypeSymbol? typeSymbol = null) -> string!
 static NuVatis.Generators.Emitters.MappingEmitter.SanitizeIdPublic(string! id) -> string!
 static NuVatis.Generators.Emitters.ParameterEmitter.EmitBuildSqlMethod(NuVatis.Generators.Models.ParsedStatement! statement, string! providerParameterPrefix, System.Collections.Generic.IReadOnlyDictionary<string!, string!>? paramTypeMap = null) -> string!
+static NuVatis.Generators.Emitters.ParameterEmitter.EmitDynamicBuilderLambda(NuVatis.Generators.Models.ParsedSqlNode! rootNode, string! paramPrefix = "@") -> string!
 static NuVatis.Generators.Emitters.ProxyEmitter.Emit(NuVatis.Generators.Analysis.MapperInterfaceInfo! interfaceInfo, NuVatis.Generators.Models.ParsedMapper? mapper, Microsoft.CodeAnalysis.Compilation? compilation = null) -> string!
-static NuVatis.Generators.Emitters.RegistryEmitter.Emit(System.Collections.Immutable.ImmutableArray<NuVatis.Generators.Analysis.MapperInterfaceInfo!> interfaces) -> string!
+static NuVatis.Generators.Emitters.RegistryEmitter.Emit(System.Collections.Immutable.ImmutableArray<NuVatis.Generators.Analysis.MapperInterfaceInfo!> interfaces, System.Collections.Immutable.ImmutableArray<NuVatis.Generators.Models.ParsedMapper!> xmlMappers = default(System.Collections.Immutable.ImmutableArray<NuVatis.Generators.Models.ParsedMapper!>)) -> string!
 static NuVatis.Generators.Parsing.IncludeResolver.ResolveIncludes(NuVatis.Generators.Models.ParsedMapper! mapper) -> NuVatis.Generators.Models.ParsedMapper!
 static NuVatis.Generators.Parsing.XmlConfigParser.Parse(string! xmlContent) -> NuVatis.Generators.Parsing.ParsedConfig!
 static NuVatis.Generators.Parsing.XmlMapperParser.Parse(string! xmlContent, System.Threading.CancellationToken ct) -> NuVatis.Generators.Models.ParsedMapper!
