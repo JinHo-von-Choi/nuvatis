@@ -24,11 +24,15 @@ jobs:
         dotnet: ['8.0.x']
         include:
           - os: ubuntu-latest
+            dotnet: '6.0.x'
+          - os: ubuntu-latest
             dotnet: '7.0.x'
           - os: ubuntu-latest
             dotnet: '9.0.x'
           - os: ubuntu-latest
             dotnet: '10.0.x'
+          - os: ubuntu-latest
+            dotnet: '11.0.x'
 
     steps:
       - uses: actions/checkout@v4
@@ -37,10 +41,12 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: |
+            6.0.x
             7.0.x
             8.0.x
             9.0.x
             10.0.x
+            11.0.x
 
       - name: Restore
         run: dotnet restore NuVatis.sln
@@ -138,10 +144,12 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: |
+            6.0.x
             7.0.x
             8.0.x
             9.0.x
             10.0.x
+            11.0.x
 
       - name: Restore
         run: dotnet restore NuVatis.sln
@@ -177,10 +185,12 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: |
+            6.0.x
             7.0.x
             8.0.x
             9.0.x
             10.0.x
+            11.0.x
 
       - name: Pack
         run: dotnet pack NuVatis.sln --configuration Release --output ./nupkg

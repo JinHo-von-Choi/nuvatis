@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2026-03-05
+
+### Added
+
+- **net6.0 / net11.0 멀티타겟 지원**: 모든 라이브러리 패키지가 `net6.0;net7.0;net8.0;net9.0;net10.0;net11.0`을 지원한다.
+  - `NuVatis.Extensions.Aspire`는 Aspire 최소 요구사항에 따라 `net8.0+`를 유지한다.
+  - net6.0 폴리필: `RequiredMemberAttribute`, `CompilerFeatureRequiredAttribute`, `ObjectDisposedException.ThrowIf` 조건부 컴파일 추가
+  - CI 매트릭스 및 NuGet publish 워크플로우에 `6.0.x` / `11.0.x` 추가
+- **SqlServer Testcontainers E2E 테스트**: `TestcontainersSqlServerE2ETests` 5개 — Insert/Count/Async/Update/Rollback/Delete 전 사이클 검증 (Docker 없는 환경 자동 Skip)
+- **`SqlServerProvider.CreateConnection` 단위 테스트**: 실제 DB 연결 없이 `SqlConnection` 객체 생성 경로 커버
+
+### Changed
+
+- **내부 리팩토링**: `ColumnMapper`와 `TestExpressionEvaluator`의 중복 `PropertyCache` 필드를
+  `NuVatis.Internal.PropertyReflectionCache` 공유 유틸리티로 통합 (public API 변경 없음)
+  - `normalizeUnderscore: true` — ColumnMapper용, 언더스코어 제거 정규화 포함
+  - `normalizeUnderscore: false` — TestExpressionEvaluator용, 익명 타입 지원 (`CanWrite` 필터 미적용)
+
+### Tests
+
+- `ParameterEmitter.EmitBuildSqlMethod` 코드 생성 경로 4개 단위 테스트 추가 (`ParameterEmitterStringSubstitutionTests`)
+- `PropertyReflectionCache` 5개 단위 테스트 추가
+- 전체: `NuVatis.Tests` 300 Pass / `NuVatis.Generators.Tests` 87 Pass
+
+---
+
 ## [2.1.1] - 2026-03-04
 
 ### Fixed

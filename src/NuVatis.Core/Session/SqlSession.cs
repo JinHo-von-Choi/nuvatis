@@ -489,7 +489,11 @@ public sealed class SqlSession : ISqlSession {
     }
 
     private void EnsureNotDisposed() {
+#if NET8_0_OR_GREATER
         ObjectDisposedException.ThrowIf(_disposed, this);
+#else
+        if (_disposed) throw new ObjectDisposedException(GetType().FullName);
+#endif
     }
 
     private void EnsureNotBusy() {
