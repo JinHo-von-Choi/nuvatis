@@ -59,6 +59,14 @@ public class ProviderTests {
     }
 
     [Fact]
+    public void SqlServerProvider_CreateConnection_ReturnsNonNull() {
+        var p    = new SqlServerProvider();
+        using var conn = p.CreateConnection("Server=localhost;Database=test;User Id=sa;Password=test;TrustServerCertificate=True;");
+        Assert.NotNull(conn);
+        // 연결을 열지 않으므로 실제 SQL Server 불필요
+    }
+
+    [Fact]
     public void NuVatisProviderAttribute_Stores_Name() {
         var attr = new NuVatisProviderAttribute("TestDb");
         Assert.Equal("TestDb", attr.ProviderName);
