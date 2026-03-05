@@ -1,24 +1,9 @@
 version: 2
 updates:
-  - package-ecosystem: "nuget"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-    open-pull-requests-limit: 10
-    labels:
-      - "dependencies"
-    groups:
-      microsoft:
-        patterns:
-          - "Microsoft.*"
-          - "System.*"
-      testing:
-        patterns:
-          - "xunit*"
-          - "coverlet*"
-          - "Moq*"
 
+  # ──────────────────────────────────────────
+  # GitHub Actions
+  # ──────────────────────────────────────────
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
@@ -27,3 +12,215 @@ updates:
     labels:
       - "ci"
     open-pull-requests-limit: 5
+
+  # ──────────────────────────────────────────
+  # Source — Core Runtime
+  # ──────────────────────────────────────────
+  - package-ecosystem: "nuget"
+    directory: "/src/NuVatis.Core"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+    open-pull-requests-limit: 5
+    groups:
+      microsoft-extensions:
+        patterns:
+          - "Microsoft.Extensions.*"
+          - "System.*"
+
+  # ──────────────────────────────────────────
+  # Source — Roslyn Source Generator
+  # ──────────────────────────────────────────
+  - package-ecosystem: "nuget"
+    directory: "/src/NuVatis.Generators"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+    open-pull-requests-limit: 5
+    groups:
+      roslyn:
+        patterns:
+          - "Microsoft.CodeAnalysis.*"
+          - "System.Collections.Immutable"
+
+  # ──────────────────────────────────────────
+  # Source — Providers
+  # ──────────────────────────────────────────
+  - package-ecosystem: "nuget"
+    directory: "/src/NuVatis.PostgreSql"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+    open-pull-requests-limit: 3
+
+  - package-ecosystem: "nuget"
+    directory: "/src/NuVatis.MySql"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+    open-pull-requests-limit: 3
+
+  - package-ecosystem: "nuget"
+    directory: "/src/NuVatis.SqlServer"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+    open-pull-requests-limit: 3
+
+  - package-ecosystem: "nuget"
+    directory: "/src/NuVatis.Sqlite"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+    open-pull-requests-limit: 3
+
+  # ──────────────────────────────────────────
+  # Source — Extensions
+  # ──────────────────────────────────────────
+  - package-ecosystem: "nuget"
+    directory: "/src/NuVatis.Extensions.DependencyInjection"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+    open-pull-requests-limit: 3
+    groups:
+      microsoft-extensions:
+        patterns:
+          - "Microsoft.Extensions.*"
+
+  - package-ecosystem: "nuget"
+    directory: "/src/NuVatis.Extensions.OpenTelemetry"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+    open-pull-requests-limit: 3
+    groups:
+      opentelemetry:
+        patterns:
+          - "OpenTelemetry*"
+
+  - package-ecosystem: "nuget"
+    directory: "/src/NuVatis.Extensions.EntityFrameworkCore"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+    open-pull-requests-limit: 3
+    groups:
+      efcore:
+        patterns:
+          - "Microsoft.EntityFrameworkCore*"
+
+  - package-ecosystem: "nuget"
+    directory: "/src/NuVatis.Extensions.Aspire"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+    open-pull-requests-limit: 3
+    groups:
+      aspire:
+        patterns:
+          - "Aspire.*"
+          - "Microsoft.Extensions.*"
+
+  # ──────────────────────────────────────────
+  # Source — Testing Helper
+  # ──────────────────────────────────────────
+  - package-ecosystem: "nuget"
+    directory: "/src/NuVatis.Testing"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+    open-pull-requests-limit: 3
+
+  # ──────────────────────────────────────────
+  # Tests
+  # ──────────────────────────────────────────
+  - package-ecosystem: "nuget"
+    directory: "/tests/NuVatis.Tests"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "tests"
+    open-pull-requests-limit: 3
+    groups:
+      xunit:
+        patterns:
+          - "xunit*"
+          - "coverlet*"
+          - "Testcontainers*"
+
+  - package-ecosystem: "nuget"
+    directory: "/tests/NuVatis.Generators.Tests"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "tests"
+    open-pull-requests-limit: 3
+    groups:
+      xunit:
+        patterns:
+          - "xunit*"
+          - "coverlet*"
+      roslyn:
+        patterns:
+          - "Microsoft.CodeAnalysis.*"
+
+  # ──────────────────────────────────────────
+  # Benchmarks
+  # ──────────────────────────────────────────
+  - package-ecosystem: "nuget"
+    directory: "/benchmarks/NuVatis.Benchmarks"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+    open-pull-requests-limit: 3
+    groups:
+      microsoft:
+        patterns:
+          - "Microsoft.*"
+          - "System.*"
+
+  # ──────────────────────────────────────────
+  # Samples
+  # ──────────────────────────────────────────
+  - package-ecosystem: "nuget"
+    directory: "/samples/NuVatis.Sample"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+    open-pull-requests-limit: 3
+    groups:
+      microsoft:
+        patterns:
+          - "Microsoft.*"
+          - "System.*"
