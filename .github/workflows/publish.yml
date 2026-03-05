@@ -3,7 +3,7 @@
 #
 # 작성자: 최진호
 # 작성일: 2026-02-25
-# 수정일: 2026-03-05 (3-job 분리: test matrix → pack → publish)
+# 수정일: 2026-03-06 (Test 단계 --no-build 제거, --no-restore 추가 — NETSDK1005 해결)
 #
 # 트리거: v* 태그 push (예: v0.1.0-alpha.1, v1.0.0)
 # 동작:
@@ -98,16 +98,16 @@ jobs:
         run: |
           dotnet test tests/NuVatis.Generators.Tests/ \
             --configuration Release \
-            --no-build \
             --framework ${{ matrix.tfm }} \
+            --no-restore \
             --verbosity normal
 
       - name: Test — Core (${{ matrix.tfm }})
         run: |
           dotnet test tests/NuVatis.Tests/ \
             --configuration Release \
-            --no-build \
             --framework ${{ matrix.tfm }} \
+            --no-restore \
             --verbosity normal \
             --filter "Category!=E2E"
 
