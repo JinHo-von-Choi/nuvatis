@@ -11,6 +11,7 @@
     <PackageTags>nuvatis;mybatis;orm;sql-mapper;source-generator;aot;dotnet</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <Version>2.3.0</Version>
+    <LangVersion>latest</LangVersion>
 
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>

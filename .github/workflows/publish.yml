@@ -87,12 +87,11 @@ jobs:
       - name: Restore
         run: dotnet restore NuVatis.sln
 
-      - name: Build (${{ matrix.tfm }})
+      - name: Build (all TFs)
         run: |
           dotnet build NuVatis.sln \
             --configuration Release \
             --no-restore \
-            --framework ${{ matrix.tfm }} \
             /p:Version=${{ steps.version.outputs.VERSION }}
 
       - name: Test — Generators (${{ matrix.tfm }})

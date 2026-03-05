@@ -71,6 +71,7 @@ public class TypeHandlerRegistryTests {
         Assert.Same(handler2, registry.Get(typeof(int)));
     }
 
+#if NET8_0_OR_GREATER
     [Fact]
     public void BuiltIn_DateOnly_Handler() {
         var registry = new TypeHandlerRegistry();
@@ -86,4 +87,5 @@ public class TypeHandlerRegistryTests {
         registry.Register(handler);
         Assert.Same(handler, registry.Get(typeof(TimeOnly)));
     }
+#endif
 }

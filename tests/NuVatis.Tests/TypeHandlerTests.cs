@@ -25,6 +25,7 @@ public class TypeHandlerTests : IDisposable {
         _conn.Dispose();
     }
 
+#if NET8_0_OR_GREATER
     [Fact]
     public void DateOnlyTypeHandler_GetValue() {
         var handler = new DateOnlyTypeHandler();
@@ -104,6 +105,7 @@ public class TypeHandlerTests : IDisposable {
         handler.SetParameter(param, null);
         Assert.Equal(DBNull.Value, param.Value);
     }
+#endif
 
     public enum Color { Red, Green, Blue }
 
