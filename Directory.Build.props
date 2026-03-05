@@ -10,7 +10,7 @@
     <RepositoryType>git</RepositoryType>
     <PackageTags>nuvatis;mybatis;orm;sql-mapper;source-generator;aot;dotnet</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <Version>2.1.1</Version>
+    <Version>2.2.0</Version>
 
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
@@ -36,10 +36,10 @@
   <!--
     RS0017: Symbols in PublicAPI.txt not found in the current TF.
     #if NET8_0_OR_GREATER types (DateOnlyTypeHandler, TimeOnlyTypeHandler) are declared
-    in Shipped.txt for net8+ coverage, but are absent in net7.0 builds.
-    Suppress RS0017 for net7.0 only to silence expected cross-TF false positives.
+    in Shipped.txt for net8+ coverage, but are absent in net6.0/net7.0 builds.
+    Suppress RS0017 for net6.0 and net7.0 to silence expected cross-TF false positives.
   -->
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net7.0'">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net6.0' Or '$(TargetFramework)' == 'net7.0'">
     <NoWarn>$(NoWarn);RS0017</NoWarn>
   </PropertyGroup>
 
