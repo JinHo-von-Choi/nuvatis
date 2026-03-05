@@ -3,20 +3,20 @@
 #
 # 작성자: 최진호
 # 작성일: 2026-02-25
+# 수정일: 2026-03-05 (3-job 분리: test matrix → pack → publish)
 #
 # 트리거: v* 태그 push (예: v0.1.0-alpha.1, v1.0.0)
 # 동작:
-#   1. Release 빌드 + 테스트
-#   2. NuGet 패키지 생성
-#   3. OIDC 토큰으로 NuGet.org 임시 API 키 획득 (Trusted Publishing)
-#   4. 11개 패키지 NuGet.org에 push (nupkg + snupkg)
+#   1. test  — TF별 병렬 빌드+테스트 (net6~net11, 6 runners 동시)
+#   2. pack  — 전체 멀티타겟 패키지 생성 및 artifact 업로드
+#   3. publish — environment: release (수동 승인 게이트) → NuGet push + GitHub Release
 #
 # 사전 요구사항:
 #   - NuGet.org에서 Trusted Publishing 정책 등록
 #     - Repository owner: JinHo-von-Choi
 #     - Repository name: nuvatis
 #     - Workflow file: publish.yml
-#     - Environment: release (선택사항)
+#     - Environment: release
 #   - GitHub Secrets: NUGET_USER (NuGet.org 사용자명)
 ##############################################################################
 
@@ -33,22 +33,36 @@ env:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
 
 jobs:
-  publish:
-    name: Build, Pack & Publish
+  ##############################################################################
+  # Job 1: 테스트 — TF별 병렬 matrix (6 runners 동시 실행)
+  ##############################################################################
+  test:
+    name: Test (.NET ${{ matrix.dotnet }})
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
 
-    environment: release
-
-    permissions:
-      contents: write
-      id-token: write
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - dotnet: '6.0.x'
+            tfm: net6.0
+          - dotnet: '7.0.x'
+            tfm: net7.0
+          - dotnet: '8.0.x'
+            tfm: net8.0
+          - dotnet: '9.0.x'
+            tfm: net9.0
+          - dotnet: '10.0.x'
+            tfm: net10.0
+          - dotnet: '11.0.x'
+            tfm: net11.0
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup .NET (all SDKs)
+      - name: Setup .NET (stable SDKs)
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: |
@@ -57,41 +71,90 @@ jobs:
             8.0.x
             9.0.x
             10.0.x
-            11.0.x
+
+      - name: Setup .NET 11 (preview/prerelease)
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '11.0.x'
+          dotnet-quality: 'preview'
 
       - name: Extract version from tag
         id: version
         run: |
           TAG="${GITHUB_REF#refs/tags/v}"
           echo "VERSION=${TAG}" >> "$GITHUB_OUTPUT"
-          echo "Publishing version: ${TAG}"
 
       - name: Restore
         run: dotnet restore NuVatis.sln
 
-      - name: Build
+      - name: Build (${{ matrix.tfm }})
         run: |
           dotnet build NuVatis.sln \
             --configuration Release \
             --no-restore \
+            --framework ${{ matrix.tfm }} \
             /p:Version=${{ steps.version.outputs.VERSION }}
 
-      - name: Unit Tests (Generators)
+      - name: Test — Generators (${{ matrix.tfm }})
         run: |
           dotnet test tests/NuVatis.Generators.Tests/ \
             --configuration Release \
             --no-build \
+            --framework ${{ matrix.tfm }} \
             --verbosity normal
 
-      - name: Unit Tests (Core)
+      - name: Test — Core (${{ matrix.tfm }})
         run: |
           dotnet test tests/NuVatis.Tests/ \
             --configuration Release \
             --no-build \
+            --framework ${{ matrix.tfm }} \
             --verbosity normal \
             --filter "Category!=E2E"
 
-      - name: Pack
+  ##############################################################################
+  # Job 2: Pack — 모든 TF 테스트 통과 후 전체 멀티타겟 패키지 생성
+  ##############################################################################
+  pack:
+    name: Pack
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: test
+
+    outputs:
+      version: ${{ steps.version.outputs.VERSION }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET (stable SDKs)
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            6.0.x
+            7.0.x
+            8.0.x
+            9.0.x
+            10.0.x
+
+      - name: Setup .NET 11 (preview/prerelease)
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '11.0.x'
+          dotnet-quality: 'preview'
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          TAG="${GITHUB_REF#refs/tags/v}"
+          echo "VERSION=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "Packing version: ${TAG}"
+
+      - name: Restore
+        run: dotnet restore NuVatis.sln
+
+      - name: Pack (all TFs)
         run: |
           dotnet pack NuVatis.sln \
             --configuration Release \
@@ -139,6 +202,36 @@ jobs:
             ./nupkg/*.snupkg
           retention-days: 90
 
+  ##############################################################################
+  # Job 3: Publish — environment: release 수동 승인 게이트 → NuGet push
+  ##############################################################################
+  publish:
+    name: Publish to NuGet
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: pack
+
+    environment: release
+
+    permissions:
+      contents: write
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET (push용 단일 SDK)
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Download packages artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: nupkg-${{ needs.pack.outputs.version }}
+          path: ./nupkg
+
       - name: NuGet login (OIDC Trusted Publishing)
         uses: NuGet/login@v1
         id: nuget-login
@@ -159,11 +252,11 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ steps.version.outputs.VERSION }}
-          name: NuVatis v${{ steps.version.outputs.VERSION }}
+          tag_name: v${{ needs.pack.outputs.version }}
+          name: NuVatis v${{ needs.pack.outputs.version }}
           body_path: CHANGELOG.md
           files: |
             ./nupkg/*.nupkg
             ./nupkg/*.snupkg
           draft: false
-          prerelease: ${{ contains(steps.version.outputs.VERSION, '-') }}
+          prerelease: ${{ contains(needs.pack.outputs.version, '-') }}

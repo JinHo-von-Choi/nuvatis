@@ -37,7 +37,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup .NET (all SDKs)
+      - name: Setup .NET (stable SDKs)
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: |
@@ -46,7 +46,12 @@ jobs:
             8.0.x
             9.0.x
             10.0.x
-            11.0.x
+
+      - name: Setup .NET 11 (preview/prerelease)
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '11.0.x'
+          dotnet-quality: 'preview'
 
       - name: Restore
         run: dotnet restore NuVatis.sln
@@ -140,7 +145,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup .NET (all SDKs)
+      - name: Setup .NET (stable SDKs)
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: |
@@ -149,7 +154,12 @@ jobs:
             8.0.x
             9.0.x
             10.0.x
-            11.0.x
+
+      - name: Setup .NET 11 (preview/prerelease)
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '11.0.x'
+          dotnet-quality: 'preview'
 
       - name: Restore
         run: dotnet restore NuVatis.sln
@@ -181,7 +191,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup .NET (all SDKs)
+      - name: Setup .NET (stable SDKs)
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: |
@@ -190,7 +200,12 @@ jobs:
             8.0.x
             9.0.x
             10.0.x
-            11.0.x
+
+      - name: Setup .NET 11 (preview/prerelease)
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '11.0.x'
+          dotnet-quality: 'preview'
 
       - name: Pack
         run: dotnet pack NuVatis.sln --configuration Release --output ./nupkg
