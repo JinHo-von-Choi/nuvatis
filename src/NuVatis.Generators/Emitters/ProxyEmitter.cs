@@ -21,7 +21,10 @@ namespace NuVatis.Generators.Emitters;
  * MapperMethodInfo.Parameters에는 FQN 타입 정보(Type 필드)가 이미 존재하므로
  * 기술적 제약은 없으나, 세션 위임 방식에서 인라인 방출 방식으로의 아키텍처 전환이 필요하다.
  *
- * TODO: paramTypeMap을 SG 파이프라인에서 전달 필요 — v3.0 AOT 작업과 함께
+ * TODO(v3.0): 인라인 SQL 빌드 방식으로 전환 필요.
+ * ProxyEmitter가 _session.SelectOne(sqlId) 대신 BuildSql_XXX 로컬 함수를 인라인으로
+ * 방출해야 한다. MapperMethodInfo.Parameters에 FQN 타입이 있으므로 기술적 제약은 없다.
+ * 단기: ParameterEmitter 런타임 가드가 SqlSession 경로에서도 동작하는지 E2E로 검증.
  *
  * @author 최진호
  * @date   2026-02-24
