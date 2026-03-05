@@ -22,7 +22,7 @@ NuVatis is a SQL Mapper framework that simultaneously addresses the performance 
 - Roslyn Source Generator automatically generates mapping code at build time
 - Zero runtime reflection, Native AOT compatible (.NET 8+)
 - ADO.NET-based minimal abstraction, maximum performance
-- Multi-targeting: .NET 7 / 8 / 9 / 10
+- Multi-targeting: .NET 6 / 7 / 8 / 9 / 10 / 11
 - Runtime validation of `${}` string substitution via `SqlIdentifier` type (SQL Injection defense)
 
 ## When NOT to Use NuVatis
@@ -503,8 +503,8 @@ src/
   NuVatis.Extensions.Aspire/         # .NET Aspire integration
   NuVatis.Testing/                   # Test utilities
 tests/
-  NuVatis.Tests/                     # Unit/integration/E2E tests (335 tests)
-  NuVatis.Generators.Tests/          # Source Generator tests (68 tests)
+  NuVatis.Tests/                     # Unit/integration/E2E tests (300+)
+  NuVatis.Generators.Tests/          # Source Generator tests (87)
 benchmarks/
   NuVatis.Benchmarks/                # Performance benchmarks
 samples/
@@ -513,7 +513,7 @@ samples/
 
 ## Requirements
 
-- .NET 7.0+ (.NET 7 / 8 / 9 / 10 multi-targeting)
+- .NET 6.0+ (.NET 6 / 7 / 8 / 9 / 10 / 11 multi-targeting)
 - C# 11+
 
 ## License

@@ -2,7 +2,7 @@
 
 작성자: 최진호
 작성일: 2026-02-26
-수정일: 2026-03-01
+수정일: 2026-03-05
 
 ---
 
@@ -29,17 +29,17 @@ v1.0.0부터 `PublicApiAnalyzers`가 CI에서 모든 public API 변경을 감시
 
 | 패키지 | 설명 | 지원 TF |
 |--------|------|---------|
-| `NuVatis.Core` | 핵심 런타임 (ISqlSession, 매핑, 캐시) | net7.0;net8.0;net9.0;net10.0 |
+| `NuVatis.Core` | 핵심 런타임 (ISqlSession, 매핑, 캐시) | net6.0~net11.0 |
 | `NuVatis.Generators` | Roslyn Source Generator (컴파일 타임) | netstandard2.0 |
-| `NuVatis.PostgreSql` | PostgreSQL Provider (Npgsql) | net7.0~net10.0 |
-| `NuVatis.MySql` | MySQL/MariaDB Provider (MySqlConnector) | net7.0~net10.0 |
-| `NuVatis.SqlServer` | SQL Server Provider (Microsoft.Data.SqlClient) | net7.0~net10.0 |
-| `NuVatis.Sqlite` | SQLite Provider (Microsoft.Data.Sqlite) | net7.0~net10.0 |
-| `NuVatis.Extensions.DependencyInjection` | ASP.NET Core DI + Health Check | net7.0~net10.0 |
-| `NuVatis.Extensions.OpenTelemetry` | OpenTelemetry 분산 추적 | net7.0~net10.0 |
-| `NuVatis.Extensions.EntityFrameworkCore` | EF Core 트랜잭션 공유 | net7.0~net10.0 |
-| `NuVatis.Extensions.Aspire` | .NET Aspire 통합 | net8.0~net10.0 |
-| `NuVatis.Testing` | 테스트 유틸리티 | net7.0~net10.0 |
+| `NuVatis.PostgreSql` | PostgreSQL Provider (Npgsql) | net6.0~net11.0 |
+| `NuVatis.MySql` | MySQL/MariaDB Provider (MySqlConnector) | net6.0~net11.0 |
+| `NuVatis.SqlServer` | SQL Server Provider (Microsoft.Data.SqlClient) | net6.0~net11.0 |
+| `NuVatis.Sqlite` | SQLite Provider (Microsoft.Data.Sqlite) | net6.0~net11.0 |
+| `NuVatis.Extensions.DependencyInjection` | ASP.NET Core DI + Health Check | net6.0~net11.0 |
+| `NuVatis.Extensions.OpenTelemetry` | OpenTelemetry 분산 추적 | net6.0~net11.0 |
+| `NuVatis.Extensions.EntityFrameworkCore` | EF Core 트랜잭션 공유 | net6.0~net11.0 |
+| `NuVatis.Extensions.Aspire` | .NET Aspire 통합 | net8.0~net11.0 |
+| `NuVatis.Testing` | 테스트 유틸리티 | net6.0~net11.0 |
 
 ---
 

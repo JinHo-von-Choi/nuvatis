@@ -22,7 +22,7 @@ NuVatis는 Entity Framework의 성능 오버헤드와 인라인 SQL의 유지보
 - Roslyn Source Generator가 빌드타임에 매핑 코드를 자동 생성
 - 런타임 리플렉션 제로, Native AOT 호환 (.NET 8+)
 - ADO.NET 기반 최소 추상화, 최대 성능
-- .NET 7 / 8 / 9 / 10 동시 지원 (멀티 타겟)
+- .NET 6 / 7 / 8 / 9 / 10 / 11 동시 지원 (멀티 타겟)
 - `SqlIdentifier` 타입으로 `${}` 문자열 치환 런타임 검증 (SQL Injection 방어)
 
 ## When NOT to Use NuVatis
@@ -503,8 +503,8 @@ src/
   NuVatis.Extensions.Aspire/         # .NET Aspire 통합
   NuVatis.Testing/                   # 테스트 유틸리티
 tests/
-  NuVatis.Tests/                     # 단위/통합/E2E 테스트 (335개)
-  NuVatis.Generators.Tests/          # Source Generator 테스트 (68개)
+  NuVatis.Tests/                     # 단위/통합/E2E 테스트 (300개+)
+  NuVatis.Generators.Tests/          # Source Generator 테스트 (87개)
 benchmarks/
   NuVatis.Benchmarks/                # 성능 벤치마크
 samples/
@@ -513,7 +513,7 @@ samples/
 
 ## Requirements
 
-- .NET 7.0+ (.NET 7 / 8 / 9 / 10 멀티 타겟)
+- .NET 6.0+ (.NET 6 / 7 / 8 / 9 / 10 / 11 멀티 타겟)
 - C# 11+
 
 ## License

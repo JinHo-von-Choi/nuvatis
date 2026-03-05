@@ -103,7 +103,7 @@ await session.ExecuteBatchAsync(batch => {
 });
 ```
 
-3건의 INSERT가 1회의 DB 라운드트립으로 처리된다. .NET 7에서는 개별 실행으로 폴백한다.
+3건의 INSERT가 1회의 DB 라운드트립으로 처리된다. .NET 8 미만에서는 개별 실행으로 폴백한다.
 
 ## Connection Pooling 최적화
 
