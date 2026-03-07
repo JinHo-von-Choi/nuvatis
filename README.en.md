@@ -14,13 +14,22 @@
 
 MyBatis-style SQL Mapper for .NET, powered by Roslyn Source Generators.
 
+## Why NuVatis
+
+When I inherited a .NET statistics/metrics service, the previous developer's EF Core code took tens of seconds just to open a single dashboard. Query tuning pushed read performance up to 3,600x faster, but memory consumption hit a structural wall. EF Core's Change Tracker holds state for every materialized entity — a design that causes excessive allocation on large read-heavy workloads. The service kept crashing with OOM.
+
+Dapper is a proven solution to this problem, but mixing SQL directly into C# code didn't scale for managing hundreds of complex queries. Years of working with MyBatis on Java projects had taught me the value of XML-based SQL separation, and I decided to bring that pattern to .NET.
+
+A prototype conversion of the service's heaviest query delivered 2–3x faster execution and 82% lower memory usage. By leveraging Roslyn Source Generators to produce all mapping code at build time, NuVatis eliminates runtime reflection entirely — and works in Native AOT and WDAC (Windows Defender Application Control) environments where EF Core's runtime IL emission is blocked.
+
 ## Overview
 
 NuVatis is a SQL Mapper framework that simultaneously addresses the performance overhead of Entity Framework and the maintainability issues of inline SQL.
 
 - SQL is managed separately via XML or C# Attributes
-- Roslyn Source Generator automatically generates mapping code at build time
-- Zero runtime reflection, Native AOT compatible (.NET 8+)
+- Roslyn Source Generator produces all mapping code at build time — no dynamic code generation at runtime
+- Zero runtime reflection, full Native AOT compatibility (.NET 8+) — the only MyBatis-style SQL mapper with AOT support in the .NET ecosystem
+- Works under WDAC / code signing policies — EF Core's runtime IL Emit is blocked in these environments; NuVatis is unaffected
 - ADO.NET-based minimal abstraction, maximum performance
 - Multi-targeting: .NET 6 / 7 / 8 / 9 / 10 / 11
 - Runtime validation of `${}` string substitution via `SqlIdentifier` type (SQL Injection defense)
@@ -49,11 +58,12 @@ NuVatis is not the right fit for every situation. Use the table below to choose 
 
 | Case | Reason |
 |------|--------|
-| Java MyBatis experience porting to .NET | XML mapper syntax is identical |
+| Developers/teams migrating from Java to .NET | XML mapper syntax is identical to MyBatis. Organizations with both Java and .NET teams can unify query patterns across stacks |
 | Managing hundreds of legacy SQL statements as-is | Separates SQL from code for version control |
 | Heavy dynamic SQL but type safety required | `<if>`/`<where>`/`<foreach>` + NV004 compile errors |
 | Complex JOIN + aggregate queries requiring full control | SQL changes are reflected immediately |
-| Native AOT environments | Source Generator produces reflection-free code |
+| Native AOT environments (.NET 8+) | Source Generator produces all mapping code at build time. No runtime reflection means safe AOT trimming |
+| Enterprise environments with WDAC / code signing policies | EF Core emits IL at runtime, which WDAC blocks. NuVatis uses build-time code generation only |
 
 > **TL;DR**: Use EF Core for dynamic query composition; use NuVatis for managing complex static SQL.
 > Hybrid patterns combining both in the same project are supported.
@@ -192,6 +202,24 @@ var user = mapper.GetById(1);
 mapper.Insert(newUser);
 session.Commit();
 ```
+
+## Benchmark
+
+NuVatis, Dapper, and EF Core were compared across 60 scenarios using BenchmarkDotNet. Below is a summary of representative results.
+
+| Scenario | NuVatis | Dapper | EF Core | Notes |
+|----------|---------|--------|---------|-------|
+| PK single lookup (A01) | 153 us / 4.6 KB | 162 us / 4.6 KB | 255 us / 9.4 KB | NuVatis = Dapper, 1.7x faster than EF Core |
+| WHERE 100 rows (A06) | 364 ms / 109 KB | 373 ms / 110 KB | 674 ms / 123 KB | EF Core 1.9x slower on bulk reads |
+| 100x repeated INSERT (A12) | 1,543 ms / 636 KB | 2,142 ms / 670 KB | 1,643 ms / 202 MB | EF Core memory allocation 326x |
+| 3-table JOIN (B03) | 352 us / 4.7 KB | 354 us / 4.7 KB | 446 us / 14.2 KB | EF Core 3x memory on JOINs |
+| 6-table JOIN (B08) | 3.5 ms / 39 KB | 3.5 ms / 39 KB | 4.6 ms / 134 KB | EF Core 3.4x memory on complex JOINs |
+| BULK INSERT 100 rows (D01) | 31 ms / 372 KB | 38 ms / 372 KB | 173 ms / 79 MB | EF Core memory 218x |
+| BULK INSERT 10K rows (D03) | 41 ms / 187 KB | 33 ms / 187 KB | 85 ms / 40 MB | EF Core memory 216x |
+| Large read 100K rows (E01) | 746 ms / 6.8 MB | 757 ms / 6.7 MB | 1,099 ms / 7.5 MB | EF Core 1.5x slower on large result sets |
+| Memory pressure test (E05) | 1.9 ms / 485 KB | 2.1 ms / 485 KB | 5.7 ms / 5.8 MB | EF Core memory 12x |
+
+Full results for all 60 scenarios are available on the [benchmark dashboard](https://jinho-von-choi.github.io/nuvatis-sample).
 
 ## Sample Repository
 
