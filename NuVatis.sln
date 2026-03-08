@@ -45,6 +45,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuVatis.QueryBuilder", "src
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuVatis.QueryBuilder.Tests", "tests\NuVatis.QueryBuilder.Tests\NuVatis.QueryBuilder.Tests.csproj", "{8AD65937-9207-4ACB-9D0D-E5E7650B1A59}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuVatis.QueryBuilder.Tools", "src\NuVatis.QueryBuilder.Tools\NuVatis.QueryBuilder.Tools.csproj", "{B7D75ED6-1270-4BA3-B3FA-ACF060212C53}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -259,6 +261,18 @@ Global
 		{8AD65937-9207-4ACB-9D0D-E5E7650B1A59}.Release|x64.Build.0 = Release|Any CPU
 		{8AD65937-9207-4ACB-9D0D-E5E7650B1A59}.Release|x86.ActiveCfg = Release|Any CPU
 		{8AD65937-9207-4ACB-9D0D-E5E7650B1A59}.Release|x86.Build.0 = Release|Any CPU
+		{B7D75ED6-1270-4BA3-B3FA-ACF060212C53}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7D75ED6-1270-4BA3-B3FA-ACF060212C53}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7D75ED6-1270-4BA3-B3FA-ACF060212C53}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{B7D75ED6-1270-4BA3-B3FA-ACF060212C53}.Debug|x64.Build.0 = Debug|Any CPU
+		{B7D75ED6-1270-4BA3-B3FA-ACF060212C53}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B7D75ED6-1270-4BA3-B3FA-ACF060212C53}.Debug|x86.Build.0 = Debug|Any CPU
+		{B7D75ED6-1270-4BA3-B3FA-ACF060212C53}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7D75ED6-1270-4BA3-B3FA-ACF060212C53}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B7D75ED6-1270-4BA3-B3FA-ACF060212C53}.Release|x64.ActiveCfg = Release|Any CPU
+		{B7D75ED6-1270-4BA3-B3FA-ACF060212C53}.Release|x64.Build.0 = Release|Any CPU
+		{B7D75ED6-1270-4BA3-B3FA-ACF060212C53}.Release|x86.ActiveCfg = Release|Any CPU
+		{B7D75ED6-1270-4BA3-B3FA-ACF060212C53}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -281,5 +295,6 @@ Global
 		{72A114A1-FC77-4558-BD6D-783D511B748C} = {F0870B8B-A820-4738-BBDA-691350D7AA0A}
 		{DCE9BFFD-ACD2-4527-84B5-3AB5FE0671B3} = {F0870B8B-A820-4738-BBDA-691350D7AA0A}
 		{8AD65937-9207-4ACB-9D0D-E5E7650B1A59} = {D4D03429-1790-4FBB-80AC-185D22920B72}
+		{B7D75ED6-1270-4BA3-B3FA-ACF060212C53} = {F0870B8B-A820-4738-BBDA-691350D7AA0A}
 	EndGlobalSection
 EndGlobal
