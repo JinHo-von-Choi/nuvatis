@@ -61,6 +61,39 @@ public class MappingEmitterTests {
         Assert.Contains("obj.C =", code);
     }
 
+    [Fact]
+    public void EmitMapMethodFromType_WithNullTypeSymbol_GeneratesSwitchDispatch()
+    {
+        var code = MappingEmitter.EmitMapMethodFromType(
+            "Map_T_MyApp_User",
+            "MyApp.User",
+            typeSymbol: null);
+
+        Assert.NotNull(code);
+        Assert.Contains("Map_T_MyApp_User", code!);
+        Assert.Contains("reader.FieldCount", code!);
+        Assert.Contains("switch (__key)", code!);
+        Assert.Contains("new MyApp.User()", code!);
+        Assert.Contains("return obj;", code!);
+    }
+
+    [Fact]
+    public void EmitMapMethodFromType_WithNullTypeSymbol_EmptySwitch_WhenNoProperties()
+    {
+        var code = MappingEmitter.EmitMapMethodFromType("Map_T_Empty", "Empty", null);
+
+        Assert.NotNull(code);
+        Assert.Contains("switch (__key)", code!);
+        Assert.DoesNotContain("case ", code!);
+    }
+
+    [Fact]
+    public void EmitMapMethodFromType_NullTypeSymbol_DoesNotReturnNull()
+    {
+        var code = MappingEmitter.EmitMapMethodFromType("Map_T_X", "X", null);
+        Assert.NotNull(code);
+    }
+
     private static ParsedResultMap CreateResultMap(
         string id, string type, params (string column, string property)[] mappings) {
 
