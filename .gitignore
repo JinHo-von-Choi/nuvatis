@@ -64,3 +64,4 @@ msbuild.binlog
 **/TestResults/
 *.trx
 coverage-results/
+.worktrees/
