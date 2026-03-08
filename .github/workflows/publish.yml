@@ -63,7 +63,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Setup .NET (stable SDKs)
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: |
             6.0.x
@@ -73,7 +73,7 @@ jobs:
             10.0.x
 
       - name: Setup .NET 11 (preview/prerelease)
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '11.0.x'
           dotnet-quality: 'preview'
@@ -128,7 +128,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Setup .NET (stable SDKs)
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: |
             6.0.x
@@ -138,7 +138,7 @@ jobs:
             10.0.x
 
       - name: Setup .NET 11 (preview/prerelease)
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '11.0.x'
           dotnet-quality: 'preview'
@@ -221,7 +221,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Setup .NET (push용 단일 SDK)
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '9.0.x'
 
