@@ -1,4 +1,6 @@
 #nullable enable
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -58,13 +60,14 @@ public static class ProxyEmitter {
         sb.AppendLine("            _session = session;");
         sb.AppendLine("        }");
 
+        Dictionary<string, string>? resultTypeMethodRefs = null;
         if (mapper is not null && compilation is not null) {
-            EmitMappingMethods(sb, interfaceInfo, mapper, compilation);
+            resultTypeMethodRefs = EmitMappingMethods(sb, interfaceInfo, mapper, compilation);
         }
 
         foreach (var method in interfaceInfo.Methods) {
             sb.AppendLine();
-            EmitMethod(sb, method, sqlNamespace, mapper);
+            EmitMethod(sb, method, sqlNamespace, mapper, resultTypeMethodRefs);
         }
 
         sb.AppendLine("    }");
@@ -79,9 +82,12 @@ public static class ProxyEmitter {
      * "NuVatis"가 포함되어 루트 네임스페이스가 중복 생성되는 시나리오)를 위해,
      * GetTypeByMetadataName 실패 시 인터페이스 메서드의 Roslyn FQN으로 폴백한다.
      */
-    private static void EmitMappingMethods(
+    private static Dictionary<string, string> EmitMappingMethods(
         StringBuilder sb, MapperInterfaceInfo interfaceInfo, ParsedMapper mapper, Compilation compilation) {
 
+        var resultTypeMethodRefs = new Dictionary<string, string>(StringComparer.Ordinal);
+
+        // 기존: ResultMap 기반 매핑 메서드
         var resultMapTypeOverrides = BuildResultMapTypeOverrides(interfaceInfo, mapper);
 
         foreach (var resultMap in mapper.ResultMaps) {
@@ -101,6 +107,35 @@ public static class ProxyEmitter {
             sb.AppendLine();
             sb.Append(code);
         }
+
+        // 신규: resultType-only statement 매핑 메서드 (중복 타입은 한 번만 생성)
+        var generatedTypes = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var stmt in mapper.Statements) {
+            if (stmt.ResultType is null || stmt.ResultMapId is not null) continue;
+
+            var typeSymbol = compilation.GetTypeByMetadataName(stmt.ResultType);
+            if (typeSymbol is null) continue;
+
+            var targetTypeName = TypeResolver.GetFullyQualifiedName(typeSymbol);
+            var methodName     = "Map_T_" + SanitizeTypeName(stmt.ResultType);
+
+            if (generatedTypes.Add(stmt.ResultType)) {
+                var code = MappingEmitter.EmitMapMethodFromType(methodName, targetTypeName, typeSymbol);
+                if (code is not null) {
+                    sb.AppendLine();
+                    sb.Append(code);
+                } else {
+                    methodName = null!;
+                }
+            }
+
+            if (methodName is not null) {
+                resultTypeMethodRefs[stmt.Id] = methodName;
+            }
+        }
+
+        return resultTypeMethodRefs;
     }
 
     /**
@@ -136,7 +171,8 @@ public static class ProxyEmitter {
         StringBuilder sb,
         MapperMethodInfo method,
         string sqlNamespace,
-        ParsedMapper? mapper) {
+        ParsedMapper? mapper,
+        Dictionary<string, string>? resultTypeMethodRefs = null) {
 
         var paramsList = string.Join(", ", method.Parameters.Select(p => $"{p.Type} {p.Name}"));
         var asyncMod   = method.IsAsync ? "async " : "";
@@ -157,6 +193,9 @@ public static class ProxyEmitter {
             var parsedStmt = mapper?.Statements.FirstOrDefault(s => s.Id == method.Name);
             if (parsedStmt?.ResultMapId is not null) {
                 resultMapMethodRef = $"Map_{MappingEmitter.SanitizeIdPublic(parsedStmt.ResultMapId)}";
+            } else if (parsedStmt?.ResultType is not null
+                       && resultTypeMethodRefs?.TryGetValue(method.Name, out var rtRef) == true) {
+                resultMapMethodRef = rtRef;
             }
             EmitSelectMethod(sb, method, sqlId, paramExpr, ctExpr, resultMapMethodRef);
         } else {
@@ -259,5 +298,10 @@ public static class ProxyEmitter {
         return interfaceName.StartsWith("I") && interfaceName.Length > 1 && char.IsUpper(interfaceName[1])
             ? interfaceName.Substring(1) + "Impl"
             : interfaceName + "Impl";
+    }
+
+    private static string SanitizeTypeName(string typeName) {
+        return typeName.Replace(".", "_").Replace("<", "_").Replace(">", "_")
+                       .Replace(",", "_").Replace(" ", "_");
     }
 }
