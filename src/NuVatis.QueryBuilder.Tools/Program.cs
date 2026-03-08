@@ -17,29 +17,33 @@ root.AddOption(nsOpt);
 root.AddOption(schemaOpt);
 
 root.SetHandler(async (provider, conn, output, ns, schema) => {
-    ISchemaScanner scanner = provider.ToLowerInvariant() switch {
-        "postgresql" => new PostgreSqlSchemaScanner(),
-        "mysql"      => new MySqlSchemaScanner(),
-        _            => throw new ArgumentException($"알 수 없는 프로바이더: {provider}. postgresql 또는 mysql을 사용하세요.")
-    };
+    try {
+        ISchemaScanner scanner = provider.ToLowerInvariant() switch {
+            "postgresql" => new PostgreSqlSchemaScanner(),
+            "mysql"      => new MySqlSchemaScanner(),
+            _            => throw new ArgumentException($"알 수 없는 프로바이더: {provider}. postgresql 또는 mysql을 사용하세요.")
+        };
 
-    Console.WriteLine($"[nuvatis-gen] 스키마 스캔 중: {schema} ({provider})");
-    var tables = await scanner.ScanAsync(conn, schema);
-    Console.WriteLine($"[nuvatis-gen] 테이블 {tables.Count}개 발견");
+        Console.WriteLine($"[nuvatis-gen] 스키마 스캔 중: {schema} ({provider})");
+        var tables = await scanner.ScanAsync(conn, schema);
+        Console.WriteLine($"[nuvatis-gen] 테이블 {tables.Count}개 발견");
 
-    Directory.CreateDirectory(output);
+        Directory.CreateDirectory(output);
 
-    foreach (var table in tables) {
-        var code     = TableClassGenerator.Generate(table, ns, provider);
-        var fileName = Path.Combine(output, $"{TableClassGenerator.ToPascalCase(table.Name)}Table.g.cs");
-        await File.WriteAllTextAsync(fileName, code);
-        Console.WriteLine($"[nuvatis-gen]   생성: {fileName}");
+        foreach (var table in tables) {
+            var code     = TableClassGenerator.Generate(table, ns, provider);
+            var fileName = Path.Combine(output, $"{TableClassGenerator.ToPascalCase(table.Name)}Table.g.cs");
+            await File.WriteAllTextAsync(fileName, code);
+            Console.WriteLine($"[nuvatis-gen]   생성: {fileName}");
+        }
+
+        var tablesEntry = TableClassGenerator.GenerateTablesEntry(tables, ns);
+        await File.WriteAllTextAsync(Path.Combine(output, "Tables.g.cs"), tablesEntry);
+        Console.WriteLine("[nuvatis-gen] 완료.");
+    } catch (Exception ex) {
+        Console.Error.WriteLine($"[nuvatis-gen] 오류: {ex.Message}");
+        Environment.Exit(1);
     }
-
-    var tablesEntry = TableClassGenerator.GenerateTablesEntry(tables, ns);
-    await File.WriteAllTextAsync(Path.Combine(output, "Tables.g.cs"), tablesEntry);
-    Console.WriteLine("[nuvatis-gen] 완료.");
-
 }, providerOpt, connOpt, outputOpt, nsOpt, schemaOpt);
 
 return await root.InvokeAsync(args);
