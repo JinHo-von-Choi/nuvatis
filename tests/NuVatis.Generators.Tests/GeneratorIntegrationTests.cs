@@ -446,6 +446,153 @@ namespace TestApp.Mappers
         Assert.Contains("ParameterBinder.CreateParameter", lambda);
     }
 
+    private static (ImmutableArray<GeneratedSourceResult> Sources, ImmutableArray<Diagnostic> Diagnostics)
+        RunGenerator(string[] sources, (string fileName, string content)[]? additionalTexts = null) {
+
+        var syntaxTrees = sources
+            .Select(s => CSharpSyntaxTree.ParseText(s))
+            .ToArray();
+
+        var references = new MetadataReference[] {
+            MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location),
+            MetadataReference.CreateFromFile(Assembly.Load("System.Runtime").Location),
+            MetadataReference.CreateFromFile(Assembly.Load("System.Collections").Location),
+            MetadataReference.CreateFromFile(Assembly.Load("System.Threading.Tasks").Location),
+            MetadataReference.CreateFromFile(Assembly.Load("netstandard").Location),
+        };
+
+        var compilation = CSharpCompilation.Create(
+            "TestAssembly",
+            syntaxTrees,
+            references,
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+        var generator = new NuVatisIncrementalGenerator();
+
+        GeneratorDriver driver;
+        if (additionalTexts is { Length: > 0 }) {
+            var texts = ImmutableArray.CreateRange(
+                additionalTexts.Select(t =>
+                    (AdditionalText)new InMemoryAdditionalText(t.fileName, t.content)));
+            driver = CSharpGeneratorDriver.Create(
+                generators: new[] { generator.AsSourceGenerator() },
+                additionalTexts: texts);
+        } else {
+            driver = CSharpGeneratorDriver.Create(
+                generators: new[] { generator.AsSourceGenerator() });
+        }
+
+        driver = driver.RunGeneratorsAndUpdateCompilation(
+            compilation, out var outputCompilation, out _);
+
+        var result  = driver.GetRunResult();
+        var genSources = result.Results.SelectMany(r => r.GeneratedSources).ToImmutableArray();
+
+        var allDiagnostics = result.Diagnostics
+            .Concat(outputCompilation.GetDiagnostics())
+            .ToImmutableArray();
+
+        return (genSources, allDiagnostics);
+    }
+
+    /**
+     * resultType-only select 문에서 복합 DTO 타입에 대해
+     * Map_T_{FlatFqn} 메서드와 switch 분기 코드가 생성되어야 한다.
+     */
+    [Fact]
+    public void ResultTypeOnlyStatement_GeneratesSwitchDispatchMethod() {
+        var userSource = @"
+namespace MyApp
+{
+    public class UserDto
+    {
+        public int    Id   { get; set; }
+        public string Name { get; set; }
+    }
+}";
+
+        var mapperXml = @"<?xml version=""1.0"" encoding=""UTF-8""?>
+<mapper namespace=""MyApp.IUserMapper"">
+    <select id=""GetUser"" resultType=""MyApp.UserDto"">
+        SELECT id, name FROM users WHERE id = #{id}
+    </select>
+</mapper>";
+
+        var mapperInterface = @"
+namespace MyApp
+{
+    [NuVatis.Attributes.NuVatisMapper]
+    public interface IUserMapper
+    {
+        MyApp.UserDto GetUser(int id);
+    }
+}";
+
+        var (sources, diagnostics) = RunGenerator(
+            new[] { Stubs, userSource, mapperInterface },
+            new[] { ("UserMapper.xml", mapperXml) });
+
+        // SG 자체 진단(NV00x)만 에러 체크 — 생성 코드 컴파일 에러는 런타임 ref 누락이므로 제외
+        var sgErrors = diagnostics.Where(d =>
+            d.Severity == DiagnosticSeverity.Error &&
+            d.Id.StartsWith("NV")).ToArray();
+        Assert.Empty(sgErrors);
+
+        var implFile = sources.FirstOrDefault(f => f.HintName == "IUserMapperImpl.g.cs");
+        Assert.False(implFile.Equals(default),
+            $"IUserMapperImpl.g.cs not generated. Hints: [{string.Join(", ", sources.Select(s => s.HintName))}]");
+
+        var code = implFile.SourceText.ToString();
+
+        Assert.Contains("Map_T_MyApp_UserDto", code);
+        Assert.Contains("reader.FieldCount", code);
+        Assert.Contains("switch (__key)", code);
+    }
+
+    /**
+     * resultType이 System.Int32 같은 스칼라 타입일 때
+     * Map_T_* 메서드와 switch 분기 코드가 생성되어서는 안 된다.
+     */
+    [Fact]
+    public void ResultTypeOnlyStatement_ScalarType_DoesNotGenerateSwitchMethod() {
+        var mapperXml = @"<?xml version=""1.0"" encoding=""UTF-8""?>
+<mapper namespace=""MyApp.ICountMapper"">
+    <select id=""CountUsers"" resultType=""System.Int32"">
+        SELECT COUNT(*) FROM users
+    </select>
+</mapper>";
+
+        var mapperInterface = @"
+namespace MyApp
+{
+    [NuVatis.Attributes.NuVatisMapper]
+    public interface ICountMapper
+    {
+        int CountUsers();
+    }
+}";
+
+        var (sources, diagnostics) = RunGenerator(
+            new[] { Stubs, mapperInterface },
+            new[] { ("CountMapper.xml", mapperXml) });
+
+        // SG 자체 진단(NV00x)만 에러 체크
+        var sgErrors = diagnostics.Where(d =>
+            d.Severity == DiagnosticSeverity.Error &&
+            d.Id.StartsWith("NV")).ToArray();
+        Assert.Empty(sgErrors);
+
+        var implFile = sources.FirstOrDefault(f => f.HintName == "ICountMapperImpl.g.cs");
+        Assert.False(implFile.Equals(default),
+            $"ICountMapperImpl.g.cs not generated. Hints: [{string.Join(", ", sources.Select(s => s.HintName))}]");
+
+        var code = implFile.SourceText.ToString();
+
+        Assert.DoesNotContain("Map_T_System_Int32", code);
+        Assert.DoesNotContain("switch (__key)", code);
+    }
+
     /**
      * 정상 경로 확인: XML resultMap type이 실제 FQN과 일치하면 그대로 사용.
      */
