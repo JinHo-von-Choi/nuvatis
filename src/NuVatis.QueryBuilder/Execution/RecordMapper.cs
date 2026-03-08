@@ -1,15 +1,20 @@
-namespace NuVatis.QueryBuilder.Execution;
-
 using System.Collections.Concurrent;
 using System.Data.Common;
 using System.Reflection;
+
+namespace NuVatis.QueryBuilder.Execution;
 
 public static class RecordMapper {
     private static readonly ConcurrentDictionary<Type, Dictionary<string, PropertyInfo>> _cache = new();
 
     public static T MapRow<T>(DbDataReader reader) {
-        if (IsScalar(typeof(T)))
-            return (T)Convert.ChangeType(reader.GetValue(0), typeof(T))!;
+        var underlyingType = Nullable.GetUnderlyingType(typeof(T));
+        var effectiveType  = underlyingType ?? typeof(T);
+
+        if (IsScalar(effectiveType)) {
+            if (reader.IsDBNull(0)) return default!;
+            return (T)Convert.ChangeType(reader.GetValue(0), effectiveType)!;
+        }
 
         var map = _cache.GetOrAdd(typeof(T), BuildMap);
         var obj = Activator.CreateInstance<T>();

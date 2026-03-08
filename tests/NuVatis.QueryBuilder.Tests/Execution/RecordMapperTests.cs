@@ -54,4 +54,18 @@ public class RecordMapperTests {
         Assert.Equal(1,  result.Id);
         Assert.Equal("", result.Name); // default 유지
     }
+
+    [Fact]
+    public void MapRow_NullableScalarInt_ReturnsValue() {
+        var reader = new FakeDataReader(["count"], [5]);
+        var result = RecordMapper.MapRow<int?>(reader);
+        Assert.Equal(5, result);
+    }
+
+    [Fact]
+    public void MapRow_NullableScalarNull_ReturnsNull() {
+        var reader = new FakeDataReader(["count"], [null]);
+        var result = RecordMapper.MapRow<int?>(reader);
+        Assert.Null(result);
+    }
 }

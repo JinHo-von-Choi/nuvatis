@@ -1,8 +1,8 @@
-namespace NuVatis.QueryBuilder.Execution;
-
 using System.Data.Common;
 using NuVatis.QueryBuilder.Ast;
 using NuVatis.QueryBuilder.Rendering;
+
+namespace NuVatis.QueryBuilder.Execution;
 
 public static class QueryExecutor {
     public static List<T> Fetch<T>(SelectQuery query, DbConnection conn, ISqlDialect dialect)
@@ -37,6 +37,12 @@ public static class QueryExecutor {
         return result;
     }
 
+    /// <summary>INSERT/UPDATE/DELETE 쿼리를 실행합니다.</summary>
+    /// <param name="query">InsertQuery, UpdateQuery, DeleteQuery 중 하나여야 합니다.</param>
+    /// <param name="conn">열린 상태의 DB 연결.</param>
+    /// <param name="dialect">렌더링에 사용할 SQL 방언.</param>
+    /// <returns>영향받은 행 수.</returns>
+    /// <exception cref="ArgumentException">지원하지 않는 쿼리 타입 전달 시.</exception>
     public static int Execute(object query, DbConnection conn, ISqlDialect dialect) {
         var rendered = query switch {
             InsertQuery q => dialect.Render(q),
