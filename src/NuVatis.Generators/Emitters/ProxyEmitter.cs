@@ -118,7 +118,7 @@ public static class ProxyEmitter {
             if (typeSymbol is null) continue;
 
             var targetTypeName = TypeResolver.GetFullyQualifiedName(typeSymbol);
-            var methodName     = "Map_T_" + SanitizeTypeName(stmt.ResultType);
+            string? methodName = "Map_T_" + SanitizeTypeName(stmt.ResultType);
 
             if (generatedTypes.Add(stmt.ResultType)) {
                 var code = MappingEmitter.EmitMapMethodFromType(methodName, targetTypeName, typeSymbol);
@@ -126,7 +126,7 @@ public static class ProxyEmitter {
                     sb.AppendLine();
                     sb.Append(code);
                 } else {
-                    methodName = null!;
+                    methodName = null;
                 }
             }
 
