@@ -7,6 +7,12 @@ public abstract class BaseDialect : ISqlDialect {
     public abstract string QuoteIdentifier(string name);
     public abstract string Placeholder(int index);
 
+    /**
+     * DbParameter.ParameterName에 할당할 이름. 기본값은 Placeholder와 동일합니다.
+     * PostgreSQL처럼 positional binding을 쓰는 dialect는 빈 문자열로 오버라이드하세요.
+     */
+    public virtual string ParameterName(int index) => Placeholder(index);
+
     public RenderedSql Render(SelectQuery q) {
         if (q.FromTable is null)
             throw new InvalidOperationException("FROM 절이 없습니다.");

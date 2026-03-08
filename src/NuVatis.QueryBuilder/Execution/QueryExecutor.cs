@@ -63,7 +63,7 @@ public static class QueryExecutor {
         cmd.CommandText = sql;
         for (int i = 0; i < pars.Count; i++) {
             var p           = cmd.CreateParameter();
-            p.ParameterName = dialect.Placeholder(i);
+            p.ParameterName = dialect.ParameterName(i);
             p.Value         = pars[i] ?? DBNull.Value;
             cmd.Parameters.Add(p);
         }
