@@ -32,6 +32,23 @@ public static class MappingEmitter {
         ["System.Char"]           = "GetChar",
     };
 
+    private static readonly System.Collections.Generic.HashSet<SpecialType> ScalarSpecialTypes = new() {
+        SpecialType.System_Boolean,
+        SpecialType.System_Byte,
+        SpecialType.System_SByte,
+        SpecialType.System_Int16,
+        SpecialType.System_UInt16,
+        SpecialType.System_Int32,
+        SpecialType.System_UInt32,
+        SpecialType.System_Int64,
+        SpecialType.System_UInt64,
+        SpecialType.System_Single,
+        SpecialType.System_Double,
+        SpecialType.System_Decimal,
+        SpecialType.System_Char,
+        SpecialType.System_String,
+    };
+
     /**
      * ResultMap에 대한 매핑 메서드를 생성한다.
      *
@@ -91,6 +108,43 @@ public static class MappingEmitter {
         return map;
     }
 
+    private static bool IsScalarTypeSymbol(INamedTypeSymbol typeSymbol) {
+        var actual = typeSymbol;
+        if (actual.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T
+            && actual.TypeArguments.Length == 1
+            && actual.TypeArguments[0] is INamedTypeSymbol inner) {
+            actual = inner;
+        }
+        if (ScalarSpecialTypes.Contains(actual.SpecialType)) return true;
+        if (actual.TypeKind == TypeKind.Enum) return true;
+        var fqn = actual.ToDisplayString();
+        return fqn is "System.DateTime" or "System.DateTimeOffset" or "System.Guid"
+                    or "System.TimeSpan";
+    }
+
+    private static System.Collections.Generic.IEnumerable<string> GetWritablePropertyNames(
+        INamedTypeSymbol? typeSymbol) {
+
+        if (typeSymbol is null) yield break;
+
+        var current = typeSymbol;
+        var seen    = new System.Collections.Generic.HashSet<string>(System.StringComparer.Ordinal);
+
+        while (current is not null) {
+            foreach (var member in current.GetMembers()) {
+                if (member is IPropertySymbol {
+                    DeclaredAccessibility: Accessibility.Public,
+                    IsStatic: false,
+                    SetMethod: not null } prop) {
+                    if (seen.Add(prop.Name)) {
+                        yield return prop.Name;
+                    }
+                }
+            }
+            current = current.BaseType;
+        }
+    }
+
     private static string UnwrapNullable(ITypeSymbol type) {
         if (type is INamedTypeSymbol { OriginalDefinition.SpecialType: SpecialType.System_Nullable_T } nullable
             && nullable.TypeArguments.Length == 1) {
@@ -110,6 +164,51 @@ public static class MappingEmitter {
         }
 
         return $"reader.GetFieldValue<object>({ordinalVar})";
+    }
+
+    /**
+     * resultType-only 쿼리에 대해 switch-dispatch 매핑 메서드를 생성한다.
+     * reader.FieldCount를 순회하며 정규화된 컬럼명(underscore 제거, 소문자)으로
+     * 프로퍼티에 값을 할당한다. 스칼라 타입이면 null을 반환한다.
+     *
+     * @param methodName     생성할 메서드 이름 (예: "Map_T_MyApp_User")
+     * @param targetTypeName 대상 타입의 FQN (예: "MyApp.User")
+     * @param typeSymbol     Roslyn 타입 심볼. null이면 빈 switch 생성 (GetFieldValue 폴백 없음)
+     * @returns 생성된 메서드 소스, 스칼라 타입이면 null
+     */
+    public static string? EmitMapMethodFromType(
+        string methodName,
+        string targetTypeName,
+        INamedTypeSymbol? typeSymbol) {
+
+        if (typeSymbol is not null && IsScalarTypeSymbol(typeSymbol)) return null;
+
+        var propertyTypes = BuildPropertyTypeMap(typeSymbol);
+        var propertyNames = GetWritablePropertyNames(typeSymbol);
+        var sb            = new StringBuilder(512);
+
+        sb.AppendLine($"        static {targetTypeName} {methodName}(System.Data.Common.DbDataReader reader)");
+        sb.AppendLine("        {");
+        sb.AppendLine($"            var obj = new {targetTypeName}();");
+        sb.AppendLine("            for (int __i = 0; __i < reader.FieldCount; __i++)");
+        sb.AppendLine("            {");
+        sb.AppendLine("                if (reader.IsDBNull(__i)) continue;");
+        sb.AppendLine("                var __key = reader.GetName(__i).Replace(\"_\", \"\").ToLowerInvariant();");
+        sb.AppendLine("                switch (__key)");
+        sb.AppendLine("                {");
+
+        foreach (var propName in propertyNames) {
+            var switchKey = propName.ToLowerInvariant();
+            var readExpr  = GetReadExpression(propName, "__i", propertyTypes);
+            sb.AppendLine($"                    case \"{switchKey}\": obj.{propName} = {readExpr}; break;");
+        }
+
+        sb.AppendLine("                }");
+        sb.AppendLine("            }");
+        sb.AppendLine("            return obj;");
+        sb.AppendLine("        }");
+
+        return sb.ToString();
     }
 
     public static string SanitizeIdPublic(string id) {
