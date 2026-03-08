@@ -1,4 +1,5 @@
 #nullable enable
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -32,7 +33,7 @@ public static class MappingEmitter {
         ["System.Char"]           = "GetChar",
     };
 
-    private static readonly System.Collections.Generic.HashSet<SpecialType> ScalarSpecialTypes = new() {
+    private static readonly HashSet<SpecialType> ScalarSpecialTypes = new() {
         SpecialType.System_Boolean,
         SpecialType.System_Byte,
         SpecialType.System_SByte,
@@ -122,13 +123,14 @@ public static class MappingEmitter {
                     or "System.TimeSpan";
     }
 
-    private static System.Collections.Generic.IEnumerable<string> GetWritablePropertyNames(
+    private static IEnumerable<(string Name, string? TypeFqn)> GetWritableProperties(
         INamedTypeSymbol? typeSymbol) {
 
         if (typeSymbol is null) yield break;
 
-        var current = typeSymbol;
-        var seen    = new System.Collections.Generic.HashSet<string>(System.StringComparer.Ordinal);
+        var propertyTypes = BuildPropertyTypeMap(typeSymbol);
+        var current       = typeSymbol;
+        var seen          = new HashSet<string>(StringComparer.Ordinal);
 
         while (current is not null) {
             foreach (var member in current.GetMembers()) {
@@ -137,7 +139,9 @@ public static class MappingEmitter {
                     IsStatic: false,
                     SetMethod: not null } prop) {
                     if (seen.Add(prop.Name)) {
-                        yield return prop.Name;
+                        string? typeFqn = null;
+                        propertyTypes?.TryGetValue(prop.Name, out typeFqn);
+                        yield return (prop.Name, typeFqn);
                     }
                 }
             }
@@ -183,9 +187,8 @@ public static class MappingEmitter {
 
         if (typeSymbol is not null && IsScalarTypeSymbol(typeSymbol)) return null;
 
-        var propertyTypes = BuildPropertyTypeMap(typeSymbol);
-        var propertyNames = GetWritablePropertyNames(typeSymbol);
-        var sb            = new StringBuilder(512);
+        var properties = GetWritableProperties(typeSymbol);
+        var sb         = new StringBuilder(512);
 
         sb.AppendLine($"        static {targetTypeName} {methodName}(System.Data.Common.DbDataReader reader)");
         sb.AppendLine("        {");
@@ -197,9 +200,13 @@ public static class MappingEmitter {
         sb.AppendLine("                switch (__key)");
         sb.AppendLine("                {");
 
-        foreach (var propName in propertyNames) {
+        foreach (var (propName, typeFqn) in properties) {
             var switchKey = propName.ToLowerInvariant();
-            var readExpr  = GetReadExpression(propName, "__i", propertyTypes);
+            var readExpr  = typeFqn is not null && TypeToReaderMethod.TryGetValue(typeFqn, out var readerMethod)
+                ? $"reader.{readerMethod}(__i)"
+                : typeFqn is not null
+                    ? $"reader.GetFieldValue<{typeFqn}>(__i)"
+                    : $"reader.GetFieldValue<object>(__i)";
             sb.AppendLine($"                    case \"{switchKey}\": obj.{propName} = {readExpr}; break;");
         }
 
