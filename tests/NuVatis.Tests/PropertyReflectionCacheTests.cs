@@ -25,9 +25,17 @@ public class PropertyReflectionCacheTests {
     private static readonly MethodInfo GetOrBuildMethod =
         CacheType.GetMethod("GetOrBuild", BindingFlags.Static | BindingFlags.Public)!;
 
+    private static readonly MethodInfo GetPropertyMethod =
+        CacheType.GetMethod("GetProperty", BindingFlags.Static | BindingFlags.Public)!;
+
     /** GetOrBuild를 리플렉션으로 호출한다. */
     private static Dictionary<string, PropertyInfo> GetOrBuild(Type type, bool normalizeUnderscore = false) {
         return (Dictionary<string, PropertyInfo>)GetOrBuildMethod.Invoke(null, new object[] { type, normalizeUnderscore })!;
+    }
+
+    /** GetProperty를 리플렉션으로 호출한다. */
+    private static PropertyInfo? GetProperty(Type type, string name) {
+        return (PropertyInfo?)GetPropertyMethod.Invoke(null, new object[] { type, name });
     }
 
     [Fact]
@@ -61,5 +69,31 @@ public class PropertyReflectionCacheTests {
     public void GetOrBuild_WithoutNormalization_DoesNotRegisterNormalizedKeys() {
         var map = GetOrBuild(typeof(SampleModel), normalizeUnderscore: false);
         Assert.True(map.ContainsKey("UserId"));
+    }
+
+    [Fact]
+    public void GetProperty_KnownProperty_ReturnsPropInfo() {
+        var prop = GetProperty(typeof(SampleModel), "UserName");
+        Assert.NotNull(prop);
+        Assert.Equal("UserName", prop!.Name);
+    }
+
+    [Fact]
+    public void GetProperty_UnknownProperty_ReturnsNull() {
+        var prop = GetProperty(typeof(SampleModel), "NonExistent");
+        Assert.Null(prop);
+    }
+
+    [Fact]
+    public void GetProperty_CaseInsensitive_ReturnsProperty() {
+        var prop = GetProperty(typeof(SampleModel), "username");
+        Assert.NotNull(prop);
+    }
+
+    [Fact]
+    public void GetProperty_SameTypeTwice_ReturnsSameObject() {
+        var p1 = GetProperty(typeof(SampleModel), "UserName");
+        var p2 = GetProperty(typeof(SampleModel), "UserName");
+        Assert.Same(p1, p2);
     }
 }

@@ -1,8 +1,6 @@
-using System.Collections.Concurrent;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
 using System.Text.RegularExpressions;
 using NuVatis.Internal;
 
@@ -22,7 +20,6 @@ public static class ParameterBinder {
         @"#\{(\w+(?:\.\w+)*)\}",
         RegexOptions.Compiled);
 
-    private static readonly ConcurrentDictionary<(Type, string), PropertyInfo?> PropertyCache = new();
 
     /**
      * SQL 내의 #{...} 바인딩을 처리하여 실행 가능한 SQL과 DbParameter 리스트를 반환한다.
@@ -73,8 +70,6 @@ public static class ParameterBinder {
         return new GenericDbParameter(name, value ?? DBNull.Value);
     }
 
-    [UnconditionalSuppressMessage("AOT", "IL2070",
-        Justification = "런타임 파라미터 바인딩. AOT 환경에서는 SG가 빌드타임에 바인딩 코드를 생성한다.")]
     private static object? ResolvePropertyValue(object obj, string propertyPath) {
         var parts   = propertyPath.Split('.');
         var current = obj;
@@ -82,11 +77,7 @@ public static class ParameterBinder {
         foreach (var part in parts) {
             if (current is null) return null;
 
-            var type = current.GetType();
-            var key  = (type, part);
-
-            var prop = PropertyCache.GetOrAdd(key, k =>
-                k.Item1.GetProperty(k.Item2, BindingFlags.Public | BindingFlags.Instance));
+            var prop = NuVatis.Internal.PropertyReflectionCache.GetProperty(current.GetType(), part);
 
             if (prop is null) return null;
             current = prop.GetValue(current);

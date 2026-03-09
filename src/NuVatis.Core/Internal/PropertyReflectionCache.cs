@@ -14,9 +14,6 @@ namespace NuVatis.Internal;
  * @author 최진호
  * @date   2026-03-05
  */
-// TODO(v3.0): ParameterBinder.cs의 ConcurrentDictionary<(Type, string), PropertyInfo?> 캐시도
-// 이 클래스에 통합 가능하나 키 타입이 (Type, string) 튜플로 달라 별도 오버로드 필요.
-// 이번 Task 2 범위에서는 제외하고 추후 캐시 통합 작업 시 같이 처리한다.
 internal static class PropertyReflectionCache {
 
     // normalizeUnderscore=true (ColumnMapper 용)
@@ -36,6 +33,16 @@ internal static class PropertyReflectionCache {
      *                            false이면 읽기 전용 포함 모든 프로퍼티 등록
      *                            (TestExpressionEvaluator 전용: 익명 타입 지원)
      */
+    /// <summary>
+    /// 지정 타입에서 이름으로 단일 프로퍼티를 조회한다.
+    /// 대소문자 무관(OrdinalIgnoreCase). 없으면 null 반환.
+    /// ParameterBinder의 경로 탐색에서 사용한다.
+    /// </summary>
+    public static PropertyInfo? GetProperty(Type type, string name) {
+        var map = GetOrBuild(type, normalizeUnderscore: false);
+        return map.TryGetValue(name, out var prop) ? prop : null;
+    }
+
     [UnconditionalSuppressMessage("AOT", "IL2070",
         Justification = "런타임 리플렉션. AOT 환경에서는 SG가 빌드타임 코드를 생성한다.")]
     public static Dictionary<string, PropertyInfo> GetOrBuild(
