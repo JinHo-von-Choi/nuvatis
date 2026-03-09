@@ -7,8 +7,9 @@ dotnet add package NuVatis.Core
 dotnet add package NuVatis.Generators
 dotnet add package NuVatis.PostgreSql          # PostgreSQL
 dotnet add package NuVatis.MySql               # MySQL/MariaDB
-dotnet add package NuVatis.SqlServer           # SQL Server
+dotnet add package NuVatis.SqlServer           # SQL Server / MSSQL
 dotnet add package NuVatis.Sqlite              # SQLite
+dotnet add package NuVatis.Oracle              # Oracle 12c+
 dotnet add package NuVatis.Extensions.DependencyInjection  # ASP.NET Core DI
 ```
 
@@ -19,6 +20,8 @@ dotnet add package NuVatis.Extensions.OpenTelemetry         # 분산 추적
 dotnet add package NuVatis.Extensions.EntityFrameworkCore    # EF Core 통합
 dotnet add package NuVatis.Extensions.Aspire                # .NET Aspire 통합
 dotnet add package NuVatis.Testing                          # 테스트 유틸리티
+dotnet add package NuVatis.QueryBuilder                     # jOOQ 스타일 타입 안전 SQL DSL
+dotnet tool install -g NuVatis.QueryBuilder.Tools           # DB 스키마 스캐너 + 코드 생성기
 ```
 
 ## Requirements

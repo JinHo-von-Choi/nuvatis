@@ -332,6 +332,33 @@ Task<int> FlushStatementsAsync(CancellationToken ct = default)
 
 ---
 
+### SelectOneSql / SelectListSql / ExecuteSql
+
+사전 빌드된 SQL을 직접 실행한다. Source Generator가 생성하는 프록시 클래스 내부에서 호출하며, 레지스트리 조회(`ResolveStatement`) 없이 인터셉터·트랜잭션 경로를 유지한 채 실행한다.
+
+```csharp
+T? SelectOneSql<T>(string statementId, string sql,
+    IReadOnlyList<DbParameter> parameters, Func<DbDataReader, T> mapper)
+Task<T?> SelectOneSqlAsync<T>(string statementId, string sql,
+    IReadOnlyList<DbParameter> parameters, Func<DbDataReader, T> mapper,
+    CancellationToken ct = default)
+
+IList<T> SelectListSql<T>(string statementId, string sql,
+    IReadOnlyList<DbParameter> parameters, Func<DbDataReader, T> mapper)
+Task<IList<T>> SelectListSqlAsync<T>(string statementId, string sql,
+    IReadOnlyList<DbParameter> parameters, Func<DbDataReader, T> mapper,
+    CancellationToken ct = default)
+
+int ExecuteSql(string statementId, string sql,
+    IReadOnlyList<DbParameter> parameters)
+Task<int> ExecuteSqlAsync(string statementId, string sql,
+    IReadOnlyList<DbParameter> parameters, CancellationToken ct = default)
+```
+
+> 이 메서드들은 SG 생성 프록시 전용 저수준 API다. 일반 애플리케이션 코드에서는 Mapper 인터페이스를 통해 호출하라.
+
+---
+
 ### GetMapper\<T\>
 
 Mapper 인터페이스의 구현체를 가져온다. Source Generator가 생성한 구현체를 DI 없이 직접 사용할 때 활용한다.
