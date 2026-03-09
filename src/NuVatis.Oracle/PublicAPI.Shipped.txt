@@ -1,0 +1,8 @@
+#nullable enable
+NuVatis.Oracle.OracleProvider
+NuVatis.Oracle.OracleProvider.CreateConnection(string! connectionString) -> System.Data.Common.DbConnection!
+NuVatis.Oracle.OracleProvider.GetParameterName(int index) -> string!
+NuVatis.Oracle.OracleProvider.Name.get -> string!
+NuVatis.Oracle.OracleProvider.OracleProvider() -> void
+NuVatis.Oracle.OracleProvider.ParameterPrefix.get -> string!
+NuVatis.Oracle.OracleProvider.WrapIdentifier(string! name) -> string!
