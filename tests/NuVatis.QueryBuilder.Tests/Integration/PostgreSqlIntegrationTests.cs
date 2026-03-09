@@ -73,6 +73,7 @@ public abstract class PostgreSqlTestBase : IAsyncLifetime {
 // ---------------------------------------------------------------------------
 // Read — 조회 전용 테스트 (공유 시드 데이터 불변)
 // ---------------------------------------------------------------------------
+[Trait("Category", "Integration")]
 public sealed class PostgreSqlReadTests : PostgreSqlTestBase {
     [Fact]
     public void Fetch_ActiveAdultUsers_ReturnsOneRow() {
@@ -123,6 +124,7 @@ public sealed class PostgreSqlReadTests : PostgreSqlTestBase {
 // ---------------------------------------------------------------------------
 // Insert — 독립 컨테이너 (상태 오염 없음)
 // ---------------------------------------------------------------------------
+[Trait("Category", "Integration")]
 public sealed class PostgreSqlInsertTests : PostgreSqlTestBase {
     [Fact]
     public void Execute_Insert_AddsRow() {
@@ -139,6 +141,7 @@ public sealed class PostgreSqlInsertTests : PostgreSqlTestBase {
 // ---------------------------------------------------------------------------
 // Update — 독립 컨테이너 (상태 오염 없음)
 // ---------------------------------------------------------------------------
+[Trait("Category", "Integration")]
 public sealed class PostgreSqlUpdateTests : PostgreSqlTestBase {
     [Fact]
     public void Execute_Update_ChangesStatus() {
@@ -159,6 +162,7 @@ public sealed class PostgreSqlUpdateTests : PostgreSqlTestBase {
 // ---------------------------------------------------------------------------
 // Delete — 독립 컨테이너 (상태 오염 없음)
 // ---------------------------------------------------------------------------
+[Trait("Category", "Integration")]
 public sealed class PostgreSqlDeleteTests : PostgreSqlTestBase {
     [Fact]
     public void Execute_Delete_RemovesRow() {
