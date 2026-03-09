@@ -17,8 +17,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)../../schemas/netis-mapper.xsd" Pack="true" PackagePath="schemas/" Visible="false" />
-    <None Include="$(MSBuildThisFileDirectory)../../schemas/netis-config.xsd" Pack="true" PackagePath="schemas/" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)../../schemas/nuvatis-mapper.xsd" Pack="true" PackagePath="schemas/" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)../../schemas/nuvatis-config.xsd" Pack="true" PackagePath="schemas/" Visible="false" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
