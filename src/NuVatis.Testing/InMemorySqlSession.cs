@@ -107,6 +107,24 @@ public sealed class InMemorySqlSession : ISqlSession {
         return SelectListAsync<T>(statementId, parameter, ct);
     }
 
+    public T? SelectOneSql<T>(string statementId, string sql, IReadOnlyList<DbParameter> parameters, Func<DbDataReader, T> mapper)
+        => SelectOne<T>(statementId);
+
+    public Task<T?> SelectOneSqlAsync<T>(string statementId, string sql, IReadOnlyList<DbParameter> parameters, Func<DbDataReader, T> mapper, CancellationToken ct = default)
+        => Task.FromResult(SelectOne<T>(statementId));
+
+    public IList<T> SelectListSql<T>(string statementId, string sql, IReadOnlyList<DbParameter> parameters, Func<DbDataReader, T> mapper)
+        => SelectList<T>(statementId);
+
+    public Task<IList<T>> SelectListSqlAsync<T>(string statementId, string sql, IReadOnlyList<DbParameter> parameters, Func<DbDataReader, T> mapper, CancellationToken ct = default)
+        => Task.FromResult(SelectList<T>(statementId));
+
+    public int ExecuteSql(string statementId, string sql, IReadOnlyList<DbParameter> parameters)
+        => Insert(statementId);
+
+    public Task<int> ExecuteSqlAsync(string statementId, string sql, IReadOnlyList<DbParameter> parameters, CancellationToken ct = default)
+        => Task.FromResult(Insert(statementId));
+
     public int Insert(string statementId, object? parameter = null) {
         _capturedQueries.Add(new(statementId, parameter, "Insert"));
         return _results.TryGetValue(statementId, out var result) ? (int)result : 0;

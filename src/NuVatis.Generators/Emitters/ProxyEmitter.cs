@@ -12,26 +12,13 @@ namespace NuVatis.Generators.Emitters;
 /**
  * Mapper 인터페이스의 정적 프록시 구현 클래스 C# 소스를 생성한다.
  * ResultMap이 있는 select 쿼리에 대해 SG 생성 매핑 메서드를 통합한다.
- *
- * NOTE (Issue 2 — paramTypeMap SG 파이프라인 연결):
- * 현재 ProxyEmitter는 SQL 세션에 SQL ID만 전달하는 방식으로 작동한다.
- * ParameterEmitter.EmitBuildSqlMethod는 이 파이프라인에서 호출되지 않는다.
- * 동적 SQL BuildSql_XXX 로컬 함수는 런타임에 ISqlSession이 직접 생성한다.
- *
- * SG 파이프라인에서 paramTypeMap을 구성하여 ParameterEmitter에 전달하려면
- * ProxyEmitter가 ISqlSession 대신 BuildSql_XXX 메서드를 인라인으로 방출해야 한다.
- * MapperMethodInfo.Parameters에는 FQN 타입 정보(Type 필드)가 이미 존재하므로
- * 기술적 제약은 없으나, 세션 위임 방식에서 인라인 방출 방식으로의 아키텍처 전환이 필요하다.
- *
- * TODO(v3.0): 인라인 SQL 빌드 방식으로 전환 필요.
- * ProxyEmitter가 _session.SelectOne(sqlId) 대신 BuildSql_XXX 로컬 함수를 인라인으로
- * 방출해야 한다. MapperMethodInfo.Parameters에 FQN 타입이 있으므로 기술적 제약은 없다.
- * 단기: ParameterEmitter 런타임 가드가 SqlSession 경로에서도 동작하는지 E2E로 검증.
+ * 각 statement마다 BuildSql_XXX 정적 메서드를 인라인으로 방출하여
+ * ISqlSession 레지스트리 조회를 우회하고 SelectOneSql/ExecuteSql 계열 메서드를 호출한다.
  *
  * @author 최진호
  * @date   2026-02-24
  * @modified 2026-02-26 SG ResultMap 매핑 통합
- * @modified 2026-02-28 Issue 2 제약사항 문서화
+ * @modified 2026-03-09 인라인 SQL 빌드 방식으로 전환 (BuildSql_XXX + SelectOneSql/ExecuteSql)
  */
 public static class ProxyEmitter {
 
@@ -46,6 +33,7 @@ public static class ProxyEmitter {
         sb.AppendLine("using System.Data.Common;");
         sb.AppendLine("using System.Threading;");
         sb.AppendLine("using System.Threading.Tasks;");
+        sb.AppendLine("using NuVatis.Mapping;");
         sb.AppendLine("using NuVatis.Session;");
         sb.AppendLine();
         sb.AppendLine($"namespace {interfaceInfo.Namespace}");
@@ -65,6 +53,16 @@ public static class ProxyEmitter {
             resultTypeMethodRefs = EmitMappingMethods(sb, interfaceInfo, mapper, compilation);
         }
 
+        // 각 statement마다 BuildSql_XXX 정적 메서드를 인라인으로 방출한다.
+        if (mapper is not null) {
+            foreach (var stmt in mapper.Statements) {
+                var paramTypeMap = BuildParamTypeMap(interfaceInfo, stmt);
+                var buildSqlCode = ParameterEmitter.EmitBuildSqlStaticMethod(stmt, "@", paramTypeMap);
+                sb.AppendLine();
+                sb.Append(buildSqlCode);
+            }
+        }
+
         foreach (var method in interfaceInfo.Methods) {
             sb.AppendLine();
             EmitMethod(sb, method, sqlNamespace, mapper, resultTypeMethodRefs);
@@ -73,6 +71,26 @@ public static class ProxyEmitter {
         sb.AppendLine("    }");
         sb.AppendLine("}");
         return sb.ToString();
+    }
+
+    /**
+     * statement의 데이터 파라미터 타입 맵을 구성한다.
+     * MapperMethodInfo.Parameters에서 비-CancellationToken 파라미터를 찾아
+     * 파라미터명 → FQN 타입명 매핑을 반환한다.
+     */
+    private static Dictionary<string, string>? BuildParamTypeMap(
+        MapperInterfaceInfo interfaceInfo,
+        ParsedStatement stmt) {
+
+        var method = interfaceInfo.Methods.FirstOrDefault(m => m.Name == stmt.Id);
+        if (method is null) return null;
+
+        var dataParam = method.Parameters.FirstOrDefault(p => !p.IsCancellationToken);
+        if (dataParam is null) return null;
+
+        return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) {
+            [dataParam.Name] = dataParam.Type
+        };
     }
 
     /**
@@ -186,26 +204,95 @@ public static class ProxyEmitter {
         var paramExpr = dataParam?.Name ?? "null";
         var ctExpr    = ctParam?.Name ?? "default";
 
-        var stmtType = ResolveStatementType(method, mapper);
+        var stmtType   = ResolveStatementType(method, mapper);
+        var parsedStmt = mapper?.Statements.FirstOrDefault(s => s.Id == method.Name);
+
+        // BuildSql_XXX 인라인 방출은 ParsedStatement가 있을 때만 사용한다.
+        // mapper가 없거나 statement가 없는 경우(어노테이션 전용)는 레지스트리 위임 방식으로 폴백한다.
+        var hasBuildSql = parsedStmt is not null;
 
         if (stmtType == "Select") {
             string? resultMapMethodRef = null;
-            var parsedStmt = mapper?.Statements.FirstOrDefault(s => s.Id == method.Name);
             if (parsedStmt?.ResultMapId is not null) {
                 resultMapMethodRef = $"Map_{MappingEmitter.SanitizeIdPublic(parsedStmt.ResultMapId)}";
             } else if (parsedStmt?.ResultType is not null
                        && resultTypeMethodRefs?.TryGetValue(method.Name, out var rtRef) == true) {
                 resultMapMethodRef = rtRef;
             }
-            EmitSelectMethod(sb, method, sqlId, paramExpr, ctExpr, resultMapMethodRef);
+            if (hasBuildSql) {
+                EmitSelectMethod(sb, method, sqlId, paramExpr, ctExpr, resultMapMethodRef);
+            } else {
+                EmitSelectMethodLegacy(sb, method, sqlId, paramExpr, ctExpr, resultMapMethodRef);
+            }
         } else {
-            EmitWriteMethod(sb, method, stmtType, sqlId, paramExpr, ctExpr);
+            if (hasBuildSql) {
+                EmitWriteMethod(sb, method, stmtType, sqlId, paramExpr, ctExpr);
+            } else {
+                EmitWriteMethodLegacy(sb, method, stmtType, sqlId, paramExpr, ctExpr);
+            }
         }
 
         sb.AppendLine("        }");
     }
 
     private static void EmitSelectMethod(
+        StringBuilder sb,
+        MapperMethodInfo method,
+        string sqlId,
+        string paramExpr,
+        string ctExpr,
+        string? resultMapMethodRef = null) {
+
+        var buildSqlCall = $"BuildSql_{SanitizeName(method.Name)}({paramExpr})";
+
+        if (method.ReturnsList) {
+            var elementType = method.ElementType ?? "object";
+            var mapperArg   = resultMapMethodRef
+                ?? $"NuVatis.Mapping.ColumnMapper.MapRow<{elementType}>";
+            if (method.IsAsync) {
+                sb.AppendLine($"            var (__sql_, __pars_) = {buildSqlCall};");
+                sb.AppendLine($"            return await _session.SelectListSqlAsync<{elementType}>(\"{sqlId}\", __sql_, __pars_, {mapperArg}, {ctExpr}).ConfigureAwait(false);");
+            } else {
+                sb.AppendLine($"            var (__sql_, __pars_) = {buildSqlCall};");
+                sb.AppendLine($"            return _session.SelectListSql<{elementType}>(\"{sqlId}\", __sql_, __pars_, {mapperArg});");
+            }
+        } else {
+            var resultType = method.IsAsync
+                ? (method.UnwrappedReturnType ?? "object")
+                : method.ReturnType;
+            var mapperArg = resultMapMethodRef
+                ?? $"NuVatis.Mapping.ColumnMapper.MapRow<{resultType}>";
+            if (method.IsAsync) {
+                sb.AppendLine($"            var (__sql_, __pars_) = {buildSqlCall};");
+                sb.AppendLine($"            return await _session.SelectOneSqlAsync<{resultType}>(\"{sqlId}\", __sql_, __pars_, {mapperArg}, {ctExpr}).ConfigureAwait(false);");
+            } else {
+                sb.AppendLine($"            var (__sql_, __pars_) = {buildSqlCall};");
+                sb.AppendLine($"            return _session.SelectOneSql<{resultType}>(\"{sqlId}\", __sql_, __pars_, {mapperArg});");
+            }
+        }
+    }
+
+    private static void EmitWriteMethod(
+        StringBuilder sb,
+        MapperMethodInfo method,
+        string stmtType,
+        string sqlId,
+        string paramExpr,
+        string ctExpr) {
+
+        var buildSqlCall = $"BuildSql_{SanitizeName(method.Name)}({paramExpr})";
+        sb.AppendLine($"            var (__sql_, __pars_) = {buildSqlCall};");
+        if (method.IsAsync) {
+            sb.AppendLine($"            return await _session.ExecuteSqlAsync(\"{sqlId}\", __sql_, __pars_, {ctExpr}).ConfigureAwait(false);");
+        } else {
+            sb.AppendLine($"            return _session.ExecuteSql(\"{sqlId}\", __sql_, __pars_);");
+        }
+    }
+
+    /**
+     * ParsedStatement 없는 레거시 경로 (어노테이션 전용 매퍼): _session.SelectOne/SelectList 위임.
+     */
+    private static void EmitSelectMethodLegacy(
         StringBuilder sb,
         MapperMethodInfo method,
         string sqlId,
@@ -248,7 +335,10 @@ public static class ProxyEmitter {
         }
     }
 
-    private static void EmitWriteMethod(
+    /**
+     * ParsedStatement 없는 레거시 경로 (어노테이션 전용 매퍼): _session.Insert/Update/Delete 위임.
+     */
+    private static void EmitWriteMethodLegacy(
         StringBuilder sb,
         MapperMethodInfo method,
         string stmtType,
@@ -261,6 +351,13 @@ public static class ProxyEmitter {
         } else {
             sb.AppendLine($"            return _session.{stmtType}(\"{sqlId}\", {paramExpr});");
         }
+    }
+
+    /**
+     * 메서드명을 BuildSql_ 접미사에 안전하게 사용할 수 있는 식별자로 변환한다.
+     */
+    private static string SanitizeName(string name) {
+        return name.Replace(".", "_").Replace("-", "_");
     }
 
     private static string ResolveStatementType(MapperMethodInfo method, ParsedMapper? mapper) {

@@ -404,6 +404,150 @@ public sealed class SqlSession : ISqlSession {
         }
     }
 
+    /// <inheritdoc />
+    public T? SelectOneSql<T>(
+        string statementId, string sql,
+        IReadOnlyList<DbParameter> parameters,
+        Func<DbDataReader, T> mapper) {
+
+        EnsureNotDisposed();
+        EnsureNotBusy();
+        try {
+            var ctx = CreateInterceptorContextRaw(statementId, sql, parameters, StatementType.Select);
+            return ExecuteTimed(ctx,
+                () => _executor.SelectOne(MakeSqlStmt(statementId), ctx.Sql, ctx.Parameters, mapper));
+        } finally {
+            ReleaseBusy();
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<T?> SelectOneSqlAsync<T>(
+        string statementId, string sql,
+        IReadOnlyList<DbParameter> parameters,
+        Func<DbDataReader, T> mapper,
+        CancellationToken ct = default) {
+
+        EnsureNotDisposed();
+        EnsureNotBusy();
+        try {
+            var ctx = CreateInterceptorContextRaw(statementId, sql, parameters, StatementType.Select);
+            return await ExecuteTimedAsync(ctx,
+                () => _executor.SelectOneAsync(MakeSqlStmt(statementId), ctx.Sql, ctx.Parameters, mapper, ct), ct)
+                .ConfigureAwait(false);
+        } finally {
+            ReleaseBusy();
+        }
+    }
+
+    /// <inheritdoc />
+    public IList<T> SelectListSql<T>(
+        string statementId, string sql,
+        IReadOnlyList<DbParameter> parameters,
+        Func<DbDataReader, T> mapper) {
+
+        EnsureNotDisposed();
+        EnsureNotBusy();
+        try {
+            var ctx = CreateInterceptorContextRaw(statementId, sql, parameters, StatementType.Select);
+            return ExecuteTimed(ctx,
+                () => _executor.SelectList(MakeSqlStmt(statementId), ctx.Sql, ctx.Parameters, mapper));
+        } finally {
+            ReleaseBusy();
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<IList<T>> SelectListSqlAsync<T>(
+        string statementId, string sql,
+        IReadOnlyList<DbParameter> parameters,
+        Func<DbDataReader, T> mapper,
+        CancellationToken ct = default) {
+
+        EnsureNotDisposed();
+        EnsureNotBusy();
+        try {
+            var ctx = CreateInterceptorContextRaw(statementId, sql, parameters, StatementType.Select);
+            return await ExecuteTimedAsync(ctx,
+                () => _executor.SelectListAsync(MakeSqlStmt(statementId), ctx.Sql, ctx.Parameters, mapper, ct), ct)
+                .ConfigureAwait(false);
+        } finally {
+            ReleaseBusy();
+        }
+    }
+
+    /// <inheritdoc />
+    public int ExecuteSql(
+        string statementId, string sql,
+        IReadOnlyList<DbParameter> parameters) {
+
+        EnsureNotDisposed();
+        EnsureNotBusy();
+        try {
+            var ctx = CreateInterceptorContextRaw(statementId, sql, parameters, StatementType.Insert);
+            return ExecuteTimed(ctx,
+                () => _executor.Execute(MakeSqlStmt(statementId), ctx.Sql, ctx.Parameters),
+                (c, r) => c.AffectedRows = r);
+        } finally {
+            ReleaseBusy();
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<int> ExecuteSqlAsync(
+        string statementId, string sql,
+        IReadOnlyList<DbParameter> parameters,
+        CancellationToken ct = default) {
+
+        EnsureNotDisposed();
+        EnsureNotBusy();
+        try {
+            var ctx = CreateInterceptorContextRaw(statementId, sql, parameters, StatementType.Insert);
+            return await ExecuteTimedAsync(ctx,
+                () => _executor.ExecuteAsync(MakeSqlStmt(statementId), ctx.Sql, ctx.Parameters, ct), ct,
+                (c, r) => c.AffectedRows = r)
+                .ConfigureAwait(false);
+        } finally {
+            ReleaseBusy();
+        }
+    }
+
+    /**
+     * SQL-direct 오버로드용 InterceptorContext를 생성한다.
+     * statement 레지스트리 조회 없이 statementId만 컨텍스트에 기록한다.
+     */
+    private InterceptorContext CreateInterceptorContextRaw(
+        string statementId,
+        string sql,
+        IReadOnlyList<DbParameter> parameters,
+        StatementType statementType) {
+
+        var ctx               = InterceptorContextPool.Rent();
+        ctx.StatementId       = statementId;
+        ctx.Sql               = sql;
+        ctx.Parameters        = parameters;
+        ctx.Parameter         = null;
+        ctx.StatementType     = statementType;
+        ctx.ElapsedMilliseconds = 0;
+        ctx.AffectedRows      = null;
+        ctx.Exception         = null;
+        return ctx;
+    }
+
+    /**
+     * SQL-direct 경로에서 IExecutor가 요구하는 MappedStatement를 최소 정보로 생성한다.
+     * CommandTimeout은 configuration 기본값을 사용한다. SelectKey, 캐시, 동적 SQL 빌더는 불필요.
+     */
+    private MappedStatement MakeSqlStmt(string statementId) {
+        return new MappedStatement {
+            Id        = statementId,
+            Namespace = string.Empty,
+            Type      = StatementType.Select,
+            SqlSource = string.Empty,
+            CommandTimeout = _configuration.DefaultCommandTimeout
+        };
+    }
+
     private int ExecuteWrite(string statementId, object? parameter) {
         EnsureNotDisposed();
         EnsureNotBusy();

@@ -63,6 +63,51 @@ public static class ParameterEmitter {
         return sb.ToString();
     }
 
+    /**
+     * BuildSql_{id} 정적 메서드 소스를 생성한다 (ProxyEmitter 인라인 방출용).
+     *
+     * dbFactory 없이 NuVatis.Binding.ParameterBinder.CreateParameter를 사용하여
+     * DbParameter를 생성하므로, SG 생성 프록시 클래스에서 factory 참조 없이 호출 가능하다.
+     * EmitDynamicBuilderLambda의 본문을 정적 메서드로 래핑하는 방식으로 구현된다.
+     *
+     * 생성되는 메서드 시그니처:
+     *   private static (string Sql, System.Collections.Generic.List&lt;System.Data.Common.DbParameter&gt; Parameters)
+     *       BuildSql_{id}(object? __param_)
+     *
+     * @param statement              파싱된 SQL 구문 정보
+     * @param providerParameterPrefix DB 파라미터 접두사 (@, :, ? 등)
+     * @param paramTypeMap           파라미터명 → CLR FQN 타입명 매핑 (null이면 보수적 가드 삽입)
+     */
+    public static string EmitBuildSqlStaticMethod(
+        ParsedStatement statement,
+        string providerParameterPrefix,
+        IReadOnlyDictionary<string, string>? paramTypeMap = null) {
+
+        var sb = new StringBuilder(2048);
+
+        sb.AppendLine($"        private static (string Sql, System.Collections.Generic.List<System.Data.Common.DbParameter> Parameters) BuildSql_{SanitizeId(statement.Id)}(object? __param_)");
+        sb.AppendLine("        {");
+        sb.AppendLine("            var __sb_     = new System.Text.StringBuilder(256);");
+        sb.AppendLine("            var __params_ = new System.Collections.Generic.List<System.Data.Common.DbParameter>();");
+        sb.AppendLine("            var __idx_    = 0;");
+        sb.AppendLine("            static object? __getprop_(object? o_, string n_)");
+        sb.AppendLine("            {");
+        sb.AppendLine("                if (o_ == null) return null;");
+        sb.AppendLine("                var p_ = o_.GetType().GetProperty(n_,");
+        sb.AppendLine("                    System.Reflection.BindingFlags.Public |");
+        sb.AppendLine("                    System.Reflection.BindingFlags.Instance |");
+        sb.AppendLine("                    System.Reflection.BindingFlags.IgnoreCase);");
+        sb.AppendLine("                return p_?.GetValue(o_);");
+        sb.AppendLine("            }");
+
+        EmitLambdaNode(sb, statement.RootNode, "__param_", providerParameterPrefix, 3);
+
+        sb.AppendLine("            return (__sb_.ToString(), __params_);");
+        sb.AppendLine("        }");
+
+        return sb.ToString();
+    }
+
     private static void EmitNode(
         StringBuilder sb,
         ParsedSqlNode node,

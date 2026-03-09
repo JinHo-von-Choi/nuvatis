@@ -12,3 +12,4 @@ NuVatis.Generators.Models.ParsedSelectKey.Sql.init -> void
 NuVatis.Generators.Models.ParsedStatement.ParsedStatement(string! Id, string! StatementType, string? ResultMapId, string? ResultType, string? ParameterType, NuVatis.Generators.Models.ParsedSqlNode! RootNode, int? Timeout = null, NuVatis.Generators.Models.ParsedSelectKey? SelectKey = null) -> void
 NuVatis.Generators.Models.ParsedStatement.SelectKey.get -> NuVatis.Generators.Models.ParsedSelectKey?
 NuVatis.Generators.Models.ParsedStatement.SelectKey.init -> void
+NuVatis.Generators.Emitters.ParameterEmitter.EmitBuildSqlStaticMethod(NuVatis.Generators.Models.ParsedStatement! statement, string! providerParameterPrefix, System.Collections.Generic.IReadOnlyDictionary<string!, string!>? paramTypeMap = null) -> string!

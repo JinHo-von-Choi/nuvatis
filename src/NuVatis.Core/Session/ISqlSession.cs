@@ -160,4 +160,63 @@ public interface ISqlSession : IDisposable, IAsyncDisposable {
     /// <inheritdoc cref="SelectList{T}(string, object?, Func{DbDataReader, T})"/>
     /// <param name="ct">취소 토큰.</param>
     Task<IList<T>> SelectListAsync<T>(string statementId, object? parameter, Func<DbDataReader, T> mapper, CancellationToken ct = default);
+
+    /// <summary>
+    /// SG 생성 프록시가 사전 빌드한 SQL로 단일 행을 조회한다.
+    /// statementId는 인터셉터/캐시 컨텍스트에만 사용되며, 레지스트리 조회를 수행하지 않는다.
+    /// </summary>
+    /// <typeparam name="T">결과 매핑 대상 타입.</typeparam>
+    /// <param name="statementId">인터셉터 컨텍스트용 statement id. 형식: <c>Namespace.Id</c></param>
+    /// <param name="sql">이미 빌드된 실행 SQL 문자열.</param>
+    /// <param name="parameters">바인딩된 DbParameter 목록.</param>
+    /// <param name="mapper">SG가 생성한 <see cref="DbDataReader"/> → <typeparamref name="T"/> 매핑 함수.</param>
+    /// <returns>매핑된 결과 객체. 결과가 없으면 <c>default(T)</c>.</returns>
+    T? SelectOneSql<T>(string statementId, string sql,
+        IReadOnlyList<DbParameter> parameters,
+        Func<DbDataReader, T> mapper);
+
+    /// <inheritdoc cref="SelectOneSql{T}(string, string, IReadOnlyList{DbParameter}, Func{DbDataReader, T})"/>
+    /// <param name="ct">취소 토큰.</param>
+    Task<T?> SelectOneSqlAsync<T>(string statementId, string sql,
+        IReadOnlyList<DbParameter> parameters,
+        Func<DbDataReader, T> mapper,
+        CancellationToken ct = default);
+
+    /// <summary>
+    /// SG 생성 프록시가 사전 빌드한 SQL로 복수 행을 조회한다.
+    /// statementId는 인터셉터/캐시 컨텍스트에만 사용되며, 레지스트리 조회를 수행하지 않는다.
+    /// </summary>
+    /// <typeparam name="T">결과 매핑 대상 타입.</typeparam>
+    /// <param name="statementId">인터셉터 컨텍스트용 statement id. 형식: <c>Namespace.Id</c></param>
+    /// <param name="sql">이미 빌드된 실행 SQL 문자열.</param>
+    /// <param name="parameters">바인딩된 DbParameter 목록.</param>
+    /// <param name="mapper">SG가 생성한 <see cref="DbDataReader"/> → <typeparamref name="T"/> 매핑 함수.</param>
+    /// <returns>매핑된 결과 목록. 결과가 없으면 빈 목록.</returns>
+    IList<T> SelectListSql<T>(string statementId, string sql,
+        IReadOnlyList<DbParameter> parameters,
+        Func<DbDataReader, T> mapper);
+
+    /// <inheritdoc cref="SelectListSql{T}(string, string, IReadOnlyList{DbParameter}, Func{DbDataReader, T})"/>
+    /// <param name="ct">취소 토큰.</param>
+    Task<IList<T>> SelectListSqlAsync<T>(string statementId, string sql,
+        IReadOnlyList<DbParameter> parameters,
+        Func<DbDataReader, T> mapper,
+        CancellationToken ct = default);
+
+    /// <summary>
+    /// SG 생성 프록시가 사전 빌드한 SQL로 INSERT/UPDATE/DELETE를 실행한다.
+    /// statementId는 인터셉터 컨텍스트에만 사용되며, 레지스트리 조회를 수행하지 않는다.
+    /// </summary>
+    /// <param name="statementId">인터셉터 컨텍스트용 statement id. 형식: <c>Namespace.Id</c></param>
+    /// <param name="sql">이미 빌드된 실행 SQL 문자열.</param>
+    /// <param name="parameters">바인딩된 DbParameter 목록.</param>
+    /// <returns>영향받은 행 수.</returns>
+    int ExecuteSql(string statementId, string sql,
+        IReadOnlyList<DbParameter> parameters);
+
+    /// <inheritdoc cref="ExecuteSql(string, string, IReadOnlyList{DbParameter})"/>
+    /// <param name="ct">취소 토큰.</param>
+    Task<int> ExecuteSqlAsync(string statementId, string sql,
+        IReadOnlyList<DbParameter> parameters,
+        CancellationToken ct = default);
 }
