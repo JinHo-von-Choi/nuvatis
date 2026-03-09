@@ -51,9 +51,18 @@ public abstract class BaseDialect : ISqlDialect {
         }
 
         if (q.LimitValue.HasValue)
-            sb.Append($" LIMIT {q.LimitValue} OFFSET {q.OffsetValue ?? 0}");
+            AppendPagination(sb, q);
 
         return new(sb.ToString(), pars);
+    }
+
+    /**
+     * SELECT 쿼리의 페이지네이션 절을 StringBuilder에 추가한다.
+     * 기본 구현은 표준 LIMIT/OFFSET 문법을 사용한다 (MySQL, PostgreSQL 호환).
+     * MSSQL/Oracle은 OFFSET n ROWS FETCH NEXT m ROWS ONLY 문법으로 오버라이드한다.
+     */
+    protected virtual void AppendPagination(StringBuilder sb, SelectQuery q) {
+        sb.Append($" LIMIT {q.LimitValue} OFFSET {q.OffsetValue ?? 0}");
     }
 
     public RenderedSql Render(InsertQuery q) {
