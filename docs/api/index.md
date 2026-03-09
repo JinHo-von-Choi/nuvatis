@@ -25,9 +25,13 @@
 | NuVatis.Extensions.DependencyInjection | `Microsoft.Extensions.DependencyInjection` (확장 메서드) |
 | NuVatis.Extensions.OpenTelemetry | `NuVatis.Extensions.OpenTelemetry` |
 | NuVatis.Extensions.EntityFrameworkCore | `NuVatis.Extensions.EntityFrameworkCore` |
-| NuVatis.PostgreSql | `NuVatis.Provider.PostgreSql` |
-| NuVatis.MySql | `NuVatis.Provider.MySql` |
-| NuVatis.SqlServer | `NuVatis.Provider.SqlServer` |
+| NuVatis.PostgreSql | `NuVatis.PostgreSql` |
+| NuVatis.MySql | `NuVatis.MySql` |
+| NuVatis.SqlServer | `NuVatis.SqlServer` |
+| NuVatis.Sqlite | `NuVatis.Sqlite` |
+| NuVatis.Oracle | `NuVatis.Oracle` |
+| NuVatis.QueryBuilder | `NuVatis.QueryBuilder.Rendering`, `NuVatis.QueryBuilder.Ast` |
+| NuVatis.Extensions.Aspire | `NuVatis.Extensions.Aspire` |
 
 ---
 

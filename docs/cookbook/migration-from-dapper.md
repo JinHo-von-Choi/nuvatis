@@ -123,16 +123,17 @@ var id = connection.ExecuteScalar<int>(
 NuVatis:
 ```xml
 <insert id="Insert">
-  <selectKey keyProperty="Id" order="AFTER">
-    SELECT lastval()
-  </selectKey>
-  INSERT INTO users (name, email) VALUES (@Name, @Email)
+  INSERT INTO users (name, email) VALUES (#{Name}, #{Email})
 </insert>
+
+<select id="LastInsertId" resultType="int">
+  SELECT lastval()
+</select>
 ```
 
 ```csharp
 session.Insert("UserMapper.Insert", user);
-// user.Id가 자동으로 채워진다
+user.Id = session.SelectOne<int>("UserMapper.LastInsertId") ?? 0;
 ```
 
 #### 트랜잭션

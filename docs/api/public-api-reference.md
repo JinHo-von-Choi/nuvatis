@@ -35,6 +35,9 @@ v1.0.0부터 `PublicApiAnalyzers`가 CI에서 모든 public API 변경을 감시
 | `NuVatis.MySql` | MySQL/MariaDB Provider (MySqlConnector) | net6.0~net11.0 |
 | `NuVatis.SqlServer` | SQL Server Provider (Microsoft.Data.SqlClient) | net6.0~net11.0 |
 | `NuVatis.Sqlite` | SQLite Provider (Microsoft.Data.Sqlite) | net6.0~net11.0 |
+| `NuVatis.Oracle` | Oracle Provider (Oracle.ManagedDataAccess.Core, Oracle 12c+) | net6.0~net11.0 |
+| `NuVatis.QueryBuilder` | jOOQ 스타일 타입 안전 SQL DSL | net6.0~net11.0 |
+| `NuVatis.QueryBuilder.Tools` | dotnet global tool — DB 스키마 스캐너 + 코드 생성기 | net8.0 |
 | `NuVatis.Extensions.DependencyInjection` | ASP.NET Core DI + Health Check | net6.0~net11.0 |
 | `NuVatis.Extensions.OpenTelemetry` | OpenTelemetry 분산 추적 | net6.0~net11.0 |
 | `NuVatis.Extensions.EntityFrameworkCore` | EF Core 트랜잭션 공유 | net6.0~net11.0 |
@@ -522,14 +525,15 @@ public interface IDbProvider
 | `MySqlProvider` | NuVatis.MySql | MySQL / MariaDB (MySqlConnector) |
 | `SqlServerProvider` | NuVatis.SqlServer | SQL Server (Microsoft.Data.SqlClient) |
 | `SqliteProvider` | NuVatis.Sqlite | SQLite (Microsoft.Data.Sqlite) |
+| `OracleProvider` | NuVatis.Oracle | Oracle 12c+ (Oracle.ManagedDataAccess.Core) |
 
 **커스텀 프로바이더 작성 예제**
 
 ```csharp
-[NuVatisProvider("Oracle")]
-public class OracleProvider : IDbProvider {
-    public string Name            => "Oracle";
-    public string ParameterPrefix => ":";
+[NuVatisProvider("CustomDb")]
+public class CustomDbProvider : IDbProvider {
+    public string Name            => "CustomDb";
+    public string ParameterPrefix => "@";
 
     public DbConnection CreateConnection(string connectionString)
         => new OracleConnection(connectionString);
