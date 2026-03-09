@@ -4,14 +4,17 @@ public sealed class SelectQuery : QueryNode {
     private readonly List<FieldNode>  _fields  = [];
     private readonly List<JoinClause> _joins   = [];
     private readonly List<SortField>  _orderBy = [];
+    private readonly List<FieldNode>  _groupBy = [];
 
-    public IReadOnlyList<FieldNode>  Fields         => _fields;
-    public TableNode?                FromTable       { get; private set; }
-    public IReadOnlyList<JoinClause> Joins           => _joins;
-    public ConditionNode?            WhereCondition  { get; private set; }
-    public IReadOnlyList<SortField>  OrderByFields   => _orderBy;
-    public int?                      LimitValue      { get; private set; }
-    public int?                      OffsetValue     { get; private set; }
+    public IReadOnlyList<FieldNode>  Fields          => _fields;
+    public TableNode?                FromTable        { get; private set; }
+    public IReadOnlyList<JoinClause> Joins            => _joins;
+    public ConditionNode?            WhereCondition   { get; private set; }
+    public IReadOnlyList<SortField>  OrderByFields    => _orderBy;
+    public int?                      LimitValue       { get; private set; }
+    public int?                      OffsetValue      { get; private set; }
+    public IReadOnlyList<FieldNode>  GroupByFields    => _groupBy;
+    public ConditionNode?            HavingCondition  { get; private set; }
 
     public SelectQuery Select(params FieldNode[] fields) {
         _fields.AddRange(fields);
@@ -50,6 +53,16 @@ public sealed class SelectQuery : QueryNode {
 
     public SelectQuery Offset(int offset) {
         OffsetValue = offset;
+        return this;
+    }
+
+    public SelectQuery GroupBy(params FieldNode[] fields) {
+        _groupBy.AddRange(fields);
+        return this;
+    }
+
+    public SelectQuery Having(ConditionNode condition) {
+        HavingCondition = condition;
         return this;
     }
 }

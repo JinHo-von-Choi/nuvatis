@@ -20,7 +20,10 @@
     </PackageReference>
     <PackageReference Include="Npgsql" Version="9.*" />
     <PackageReference Include="Testcontainers.PostgreSql" Version="4.*" />
+    <PackageReference Include="MySqlConnector" Version="2.*" />
     <PackageReference Include="Testcontainers.MySql" Version="4.*" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="6.*" />
+    <PackageReference Include="Testcontainers.MsSql" Version="4.*" />
     <PackageReference Include="coverlet.collector" Version="6.0.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
