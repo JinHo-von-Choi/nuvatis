@@ -24,7 +24,7 @@ public abstract class BaseDialect : ISqlDialect {
         if (q.Fields.Count == 0) {
             sb.Append('*');
         } else {
-            sb.Append(string.Join(", ", q.Fields.Select(f => QuoteIdentifier(f.ColumnName))));
+            sb.Append(string.Join(", ", q.Fields.Select(RenderFieldExpr)));
         }
 
         sb.Append(" FROM ");
@@ -42,6 +42,16 @@ public abstract class BaseDialect : ISqlDialect {
         if (q.WhereCondition != null) {
             sb.Append(" WHERE ");
             AppendCondition(sb, q.WhereCondition, pars);
+        }
+
+        if (q.GroupByFields.Count > 0) {
+            sb.Append(" GROUP BY ");
+            sb.Append(string.Join(", ", q.GroupByFields.Select(RenderFieldExpr)));
+        }
+
+        if (q.HavingCondition != null) {
+            sb.Append(" HAVING ");
+            AppendCondition(sb, q.HavingCondition, pars);
         }
 
         if (q.OrderByFields.Count > 0) {
@@ -123,6 +133,11 @@ public abstract class BaseDialect : ISqlDialect {
         return new(sb.ToString(), pars);
     }
 
+    private string RenderFieldExpr(FieldNode f) =>
+        f is AggregateFieldBase af
+            ? $"{af.FunctionName}({(af.ColumnName == "*" ? "*" : QuoteIdentifier(af.ColumnName))})"
+            : QuoteIdentifier(f.ColumnName);
+
     private void AppendTable(StringBuilder sb, TableNode t) {
         sb.Append($"{QuoteIdentifier(t.Schema)}.{QuoteIdentifier(t.Name)}");
         if (t.Alias != null) sb.Append($" AS {QuoteIdentifier(t.Alias)}");
@@ -131,11 +146,11 @@ public abstract class BaseDialect : ISqlDialect {
     protected void AppendCondition(StringBuilder sb, ConditionNode cond, List<object?> pars) {
         switch (cond) {
             case BinaryCondition { Value: FieldNode fn } b:
-                sb.Append($"{QuoteIdentifier(b.Field.ColumnName)} {b.Operator} {QuoteIdentifier(fn.ColumnName)}");
+                sb.Append($"{RenderFieldExpr(b.Field)} {b.Operator} {RenderFieldExpr(fn)}");
                 break;
             case BinaryCondition b:
                 pars.Add(b.Value);
-                sb.Append($"{QuoteIdentifier(b.Field.ColumnName)} {b.Operator} {Placeholder(pars.Count - 1)}");
+                sb.Append($"{RenderFieldExpr(b.Field)} {b.Operator} {Placeholder(pars.Count - 1)}");
                 break;
             case IsNullCondition n:
                 sb.Append($"{QuoteIdentifier(n.Field.ColumnName)} {(n.Negated ? "IS NOT NULL" : "IS NULL")}");

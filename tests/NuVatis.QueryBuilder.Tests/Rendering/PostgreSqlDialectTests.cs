@@ -128,4 +128,39 @@ public class PostgreSqlDialectTests {
         Assert.Equal("$1", _dialect.Placeholder(0));
         Assert.Equal("$3", _dialect.Placeholder(2));
     }
+
+    [Fact]
+    public void Render_SelectAggregate_RendersFunction() {
+        var cnt = Agg.Count();
+        var q   = new SelectQuery().Select(cnt).From(U);
+        var r   = _dialect.Render(q);
+
+        Assert.Contains("COUNT(*)", r.Sql);
+    }
+
+    [Fact]
+    public void Render_SelectWithGroupBy_RendersGroupByClause() {
+        var q = new SelectQuery()
+                    .Select(U_STATUS)
+                    .From(U)
+                    .GroupBy(U_STATUS);
+        var r = _dialect.Render(q);
+
+        Assert.Contains("GROUP BY \"status\"", r.Sql);
+    }
+
+    [Fact]
+    public void Render_SelectWithGroupByAndHaving_RendersHaving() {
+        var cnt = Agg.Count();
+        var q   = new SelectQuery()
+                      .Select(U_STATUS, cnt)
+                      .From(U)
+                      .GroupBy(U_STATUS)
+                      .Having(cnt.Gt(1));
+        var r = _dialect.Render(q);
+
+        Assert.Contains("GROUP BY \"status\"", r.Sql);
+        Assert.Contains("HAVING COUNT(*) > $1", r.Sql);
+        Assert.Equal(new object?[] { 1 }, r.Parameters);
+    }
 }
