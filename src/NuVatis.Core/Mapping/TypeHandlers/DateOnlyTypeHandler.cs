@@ -12,13 +12,16 @@ namespace NuVatis.Mapping.TypeHandlers;
  */
 public sealed class DateOnlyTypeHandler : ITypeHandler {
 
+    /// <inheritdoc />
     public Type TargetType => typeof(DateOnly);
 
+    /// <inheritdoc />
     public object? GetValue(DbDataReader reader, int ordinal) {
         var dateTime = reader.GetDateTime(ordinal);
         return DateOnly.FromDateTime(dateTime);
     }
 
+    /// <inheritdoc />
     public void SetParameter(DbParameter parameter, object? value) {
         if (value is DateOnly dateOnly) {
             parameter.Value = dateOnly.ToDateTime(TimeOnly.MinValue);

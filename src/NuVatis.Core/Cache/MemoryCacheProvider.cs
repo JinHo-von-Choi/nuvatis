@@ -18,6 +18,7 @@ public sealed class MemoryCacheProvider : ICacheProvider, IDisposable {
     private readonly ConcurrentDictionary<string, CacheConfig>    _configs = new();
     private readonly ConcurrentDictionary<string, Timer?>         _timers = new();
 
+    /// <inheritdoc />
     public void RegisterNamespace(string namespace_, CacheConfig config) {
         _configs[namespace_] = config;
         _caches.GetOrAdd(namespace_, _ => new NamespaceCache(config.Size));
@@ -34,22 +35,26 @@ public sealed class MemoryCacheProvider : ICacheProvider, IDisposable {
         }
     }
 
+    /// <inheritdoc />
     public object? Get(string namespace_, string cacheKey) {
         if (!_caches.TryGetValue(namespace_, out var cache)) return null;
         return cache.Get(cacheKey);
     }
 
+    /// <inheritdoc />
     public void Put(string namespace_, string cacheKey, object value) {
         if (!_caches.TryGetValue(namespace_, out var cache)) return;
         cache.Put(cacheKey, value);
     }
 
+    /// <inheritdoc />
     public void Flush(string namespace_) {
         if (_caches.TryGetValue(namespace_, out var cache)) {
             cache.Clear();
         }
     }
 
+    /// <inheritdoc />
     public void Dispose() {
         foreach (var timer in _timers.Values) {
             timer?.Dispose();

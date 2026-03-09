@@ -8,6 +8,8 @@ namespace NuVatis.Mapping;
  * @date   2026-02-24
  */
 public enum FetchType {
+    /// <summary>쿼리 실행 시 즉시 연관 객체를 로딩한다 (기본값).</summary>
     Eager,
+    /// <summary>연관 프로퍼티에 처음 접근할 때 로딩한다.</summary>
     Lazy
 }

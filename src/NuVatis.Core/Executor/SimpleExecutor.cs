@@ -20,11 +20,13 @@ public sealed class SimpleExecutor : IExecutor {
     private readonly int?           _defaultCommandTimeout;
     private bool                    _disposed;
 
+    /// <summary>SimpleExecutor 인스턴스를 초기화한다.</summary>
     public SimpleExecutor(AdoTransaction transaction, int? defaultCommandTimeout = null) {
         _transaction           = transaction;
         _defaultCommandTimeout = defaultCommandTimeout;
     }
 
+    /// <inheritdoc />
     public T? SelectOne<T>(
         MappedStatement statement,
         string sql,
@@ -39,6 +41,7 @@ public sealed class SimpleExecutor : IExecutor {
         return reader.Read() ? mapper(reader) : default;
     }
 
+    /// <inheritdoc />
     public async Task<T?> SelectOneAsync<T>(
         MappedStatement statement,
         string sql,
@@ -54,6 +57,7 @@ public sealed class SimpleExecutor : IExecutor {
         return await reader.ReadAsync(ct).ConfigureAwait(false) ? mapper(reader) : default;
     }
 
+    /// <inheritdoc />
     public IList<T> SelectList<T>(
         MappedStatement statement,
         string sql,
@@ -72,6 +76,7 @@ public sealed class SimpleExecutor : IExecutor {
         return results;
     }
 
+    /// <inheritdoc />
     public async Task<IList<T>> SelectListAsync<T>(
         MappedStatement statement,
         string sql,
@@ -123,6 +128,7 @@ public sealed class SimpleExecutor : IExecutor {
         }
     }
 
+    /// <inheritdoc />
     public ResultSetGroup SelectMultiple(
         MappedStatement statement,
         string sql,
@@ -136,6 +142,7 @@ public sealed class SimpleExecutor : IExecutor {
         return new ResultSetGroup(reader, command);
     }
 
+    /// <inheritdoc />
     public async Task<ResultSetGroup> SelectMultipleAsync(
         MappedStatement statement,
         string sql,
@@ -150,6 +157,7 @@ public sealed class SimpleExecutor : IExecutor {
         return new ResultSetGroup(reader, command);
     }
 
+    /// <inheritdoc />
     public int Execute(
         MappedStatement statement,
         string sql,
@@ -161,6 +169,7 @@ public sealed class SimpleExecutor : IExecutor {
         return command.ExecuteNonQuery();
     }
 
+    /// <inheritdoc />
     public async Task<int> ExecuteAsync(
         MappedStatement statement,
         string sql,
@@ -173,9 +182,13 @@ public sealed class SimpleExecutor : IExecutor {
         return await command.ExecuteNonQueryAsync(ct).ConfigureAwait(false);
     }
 
+    /// <inheritdoc />
     public void Commit() => _transaction.Commit();
+    /// <inheritdoc />
     public Task CommitAsync(CancellationToken ct) => _transaction.CommitAsync(ct);
+    /// <inheritdoc />
     public void Rollback() => _transaction.Rollback();
+    /// <inheritdoc />
     public Task RollbackAsync(CancellationToken ct) => _transaction.RollbackAsync(ct);
 
     /**
@@ -215,12 +228,14 @@ public sealed class SimpleExecutor : IExecutor {
         return command;
     }
 
+    /// <inheritdoc />
     public void Dispose() {
         if (_disposed) return;
         _disposed = true;
         _transaction.Dispose();
     }
 
+    /// <inheritdoc />
     public async ValueTask DisposeAsync() {
         if (_disposed) return;
         _disposed = true;

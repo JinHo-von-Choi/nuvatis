@@ -382,6 +382,7 @@ public sealed class SqlSession : ISqlSession {
         EnsureNotBusy();
         try {
             var statement         = ResolveStatement(statementId);
+            var selectKey         = statement.SelectKey;
             var (sql, parameters) = BuildSql(statement, parameter);
             var ctx               = CreateInterceptorContext(statement, sql, parameters, parameter);
 
@@ -393,10 +394,19 @@ public sealed class SqlSession : ISqlSession {
                 return 0;
             }
 
+            if (selectKey?.Order == SelectKeyOrder.Before) {
+                ApplySelectKey(selectKey, parameter);
+            }
+
             var affected = ExecuteTimed(ctx,
                 () => _executor.Execute(statement, ctx.Sql, ctx.Parameters),
                 (c, r) => c.AffectedRows = r);
             FlushNamespaceCache(statement);
+
+            if (selectKey?.Order == SelectKeyOrder.After) {
+                ApplySelectKey(selectKey, parameter);
+            }
+
             return affected;
         } finally {
             ReleaseBusy();
@@ -408,6 +418,7 @@ public sealed class SqlSession : ISqlSession {
         EnsureNotBusy();
         try {
             var statement         = ResolveStatement(statementId);
+            var selectKey         = statement.SelectKey;
             var (sql, parameters) = BuildSql(statement, parameter);
             var ctx               = CreateInterceptorContext(statement, sql, parameters, parameter);
 
@@ -419,15 +430,70 @@ public sealed class SqlSession : ISqlSession {
                 return 0;
             }
 
+            if (selectKey?.Order == SelectKeyOrder.Before) {
+                await ApplySelectKeyAsync(selectKey, parameter, ct).ConfigureAwait(false);
+            }
+
             var affected = await ExecuteTimedAsync(ctx,
                 () => _executor.ExecuteAsync(statement, ctx.Sql, ctx.Parameters, ct), ct,
                 (c, r) => c.AffectedRows = r)
                 .ConfigureAwait(false);
             FlushNamespaceCache(statement);
+
+            if (selectKey?.Order == SelectKeyOrder.After) {
+                await ApplySelectKeyAsync(selectKey, parameter, ct).ConfigureAwait(false);
+            }
+
             return affected;
         } finally {
             ReleaseBusy();
         }
+    }
+
+    /**
+     * selectKey 보조 SELECT를 동기 실행하여 결과를 파라미터 객체의 키 프로퍼티에 주입한다.
+     */
+    private void ApplySelectKey(SelectKeyConfig selectKey, object? parameter) {
+        if (parameter is null) return;
+
+        var keyStmt = new MappedStatement {
+            Id        = "__selectKey__",
+            Namespace = "",
+            Type      = StatementType.Select,
+            SqlSource = selectKey.Sql,
+        };
+        var (keySql, keyParams) = ParameterBinder.Bind(keyStmt.SqlSource, null);
+        var value               = _executor.SelectOne(keyStmt, keySql, keyParams, reader => reader.GetValue(0));
+        if (value is null or DBNull) return;
+
+        var prop = parameter.GetType().GetProperty(
+            selectKey.KeyProperty,
+            System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+        prop?.SetValue(parameter, Convert.ChangeType(value, prop.PropertyType));
+    }
+
+    /**
+     * selectKey 보조 SELECT를 비동기 실행하여 결과를 파라미터 객체의 키 프로퍼티에 주입한다.
+     */
+    private async Task ApplySelectKeyAsync(
+        SelectKeyConfig selectKey, object? parameter, CancellationToken ct) {
+        if (parameter is null) return;
+
+        var keyStmt = new MappedStatement {
+            Id        = "__selectKey__",
+            Namespace = "",
+            Type      = StatementType.Select,
+            SqlSource = selectKey.Sql,
+        };
+        var (keySql, keyParams) = ParameterBinder.Bind(keyStmt.SqlSource, null);
+        var value               = await _executor.SelectOneAsync(
+            keyStmt, keySql, keyParams, reader => reader.GetValue(0), ct).ConfigureAwait(false);
+        if (value is null or DBNull) return;
+
+        var prop = parameter.GetType().GetProperty(
+            selectKey.KeyProperty,
+            System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+        prop?.SetValue(parameter, Convert.ChangeType(value, prop.PropertyType));
     }
 
     /**

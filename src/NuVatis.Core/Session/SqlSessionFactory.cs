@@ -22,8 +22,10 @@ public sealed class SqlSessionFactory : ISqlSessionFactory {
     private readonly InterceptorPipeline _interceptorPipeline = new();
     private Func<Type, ISqlSession, object>? _mapperFactory;
 
+    /// <summary>현재 팩토리의 NuVatis 설정.</summary>
     public NuVatisConfiguration Configuration { get; }
 
+    /// <summary>SqlSessionFactory 인스턴스를 초기화한다.</summary>
     public SqlSessionFactory(
         NuVatisConfiguration configuration,
         IDbProvider provider,
@@ -47,6 +49,7 @@ public sealed class SqlSessionFactory : ISqlSessionFactory {
         _interceptorPipeline.Add(interceptor);
     }
 
+    /// <inheritdoc />
     public ISqlSession OpenSession(bool autoCommit = false) {
         var transaction = new AdoTransaction(
             _provider,
@@ -59,6 +62,7 @@ public sealed class SqlSessionFactory : ISqlSessionFactory {
         return new SqlSession(Configuration, executor, autoCommit, _mapperFactory, logger, _interceptorPipeline);
     }
 
+    /// <inheritdoc />
     public ISqlSession OpenReadOnlySession() {
         var transaction = new AdoTransaction(
             _provider,
@@ -71,6 +75,7 @@ public sealed class SqlSessionFactory : ISqlSessionFactory {
         return new SqlSession(Configuration, executor, autoCommit: true, _mapperFactory, logger, _interceptorPipeline);
     }
 
+    /// <inheritdoc />
     public ISqlSession OpenBatchSession() {
         var transaction = new AdoTransaction(
             _provider,

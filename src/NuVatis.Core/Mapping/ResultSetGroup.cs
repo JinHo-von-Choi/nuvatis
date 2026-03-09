@@ -127,6 +127,7 @@ public sealed class ResultSetGroup : IDisposable, IAsyncDisposable {
 #endif
     }
 
+    /// <summary>DbDataReader와 DbCommand를 동기적으로 해제한다.</summary>
     public void Dispose() {
         if (_disposed) return;
         _disposed = true;
@@ -134,6 +135,7 @@ public sealed class ResultSetGroup : IDisposable, IAsyncDisposable {
         _command.Dispose();
     }
 
+    /// <summary>DbDataReader와 DbCommand를 비동기적으로 해제한다.</summary>
     public async ValueTask DisposeAsync() {
         if (_disposed) return;
         _disposed = true;

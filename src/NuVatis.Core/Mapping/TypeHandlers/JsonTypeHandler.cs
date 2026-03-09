@@ -19,12 +19,16 @@ namespace NuVatis.Mapping.TypeHandlers;
 public sealed class JsonTypeHandler<T> : ITypeHandler where T : class {
     private readonly JsonSerializerOptions? _options;
 
+    /// <summary>JSON 직렬화 옵션을 지정하여 JsonTypeHandler를 초기화한다.</summary>
+    /// <param name="options">JSON 직렬화 옵션. null이면 기본값을 사용한다.</param>
     public JsonTypeHandler(JsonSerializerOptions? options = null) {
         _options = options;
     }
 
+    /// <inheritdoc />
     public Type TargetType => typeof(T);
 
+    /// <inheritdoc />
     public object? GetValue(DbDataReader reader, int ordinal) {
         if (reader.IsDBNull(ordinal)) return null;
         var json = reader.GetString(ordinal);
@@ -32,6 +36,7 @@ public sealed class JsonTypeHandler<T> : ITypeHandler where T : class {
         return JsonSerializer.Deserialize<T>(json, _options);
     }
 
+    /// <inheritdoc />
     public void SetParameter(DbParameter parameter, object? value) {
         parameter.Value = value is null
             ? DBNull.Value

@@ -30,6 +30,7 @@ public sealed class AdoTransaction : ITransaction {
     private DbTransaction? _transaction;
     private bool _disposed;
 
+    /// <summary>현재 열려 있는 DbConnection. 아직 열리지 않은 경우 null.</summary>
     public DbConnection? Connection => _connection;
 
     /**
@@ -77,6 +78,7 @@ public sealed class AdoTransaction : ITransaction {
         return new AdoTransaction(connection, transaction);
     }
 
+    /// <inheritdoc />
     public DbConnection GetConnection() {
         if (_disposed) throw new ObjectDisposedException(nameof(AdoTransaction));
 
@@ -92,6 +94,7 @@ public sealed class AdoTransaction : ITransaction {
         return _connection;
     }
 
+    /// <inheritdoc />
     public async Task<DbConnection> GetConnectionAsync(CancellationToken ct = default) {
         if (_disposed) throw new ObjectDisposedException(nameof(AdoTransaction));
 
@@ -107,8 +110,10 @@ public sealed class AdoTransaction : ITransaction {
         return _connection;
     }
 
+    /// <inheritdoc />
     public DbTransaction? GetDbTransaction() => _transaction;
 
+    /// <inheritdoc />
     public void Commit() {
         if (!_ownsConnection) return;
 
@@ -119,6 +124,7 @@ public sealed class AdoTransaction : ITransaction {
         }
     }
 
+    /// <inheritdoc />
     public async Task CommitAsync(CancellationToken ct = default) {
         if (!_ownsConnection) return;
 
@@ -129,6 +135,7 @@ public sealed class AdoTransaction : ITransaction {
         }
     }
 
+    /// <inheritdoc />
     public void Rollback() {
         if (!_ownsConnection) return;
 
@@ -139,6 +146,7 @@ public sealed class AdoTransaction : ITransaction {
         }
     }
 
+    /// <inheritdoc />
     public async Task RollbackAsync(CancellationToken ct = default) {
         if (!_ownsConnection) return;
 
@@ -149,6 +157,7 @@ public sealed class AdoTransaction : ITransaction {
         }
     }
 
+    /// <inheritdoc />
     public void Dispose() {
         if (_disposed) return;
         _disposed = true;
@@ -159,6 +168,7 @@ public sealed class AdoTransaction : ITransaction {
         }
     }
 
+    /// <inheritdoc />
     public async ValueTask DisposeAsync() {
         if (_disposed) return;
         _disposed = true;

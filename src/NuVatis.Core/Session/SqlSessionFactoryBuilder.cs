@@ -18,27 +18,32 @@ public sealed class SqlSessionFactoryBuilder {
     private ILoggerFactory? _loggerFactory;
     private readonly DbProviderRegistry _providerRegistry = new();
 
+    /// <summary>사용할 DB 프로바이더를 설정한다.</summary>
     public SqlSessionFactoryBuilder UseProvider(IDbProvider provider) {
         _provider = provider;
         _providerRegistry.Register(provider);
         return this;
     }
 
+    /// <summary>데이터베이스 연결 문자열을 설정한다.</summary>
     public SqlSessionFactoryBuilder ConnectionString(string connectionString) {
         _connectionString = connectionString;
         return this;
     }
 
+    /// <summary>XML 매퍼 설정 파일 경로를 추가한다.</summary>
     public SqlSessionFactoryBuilder AddXmlConfiguration(string path) {
         _xmlConfigPath = path;
         return this;
     }
 
+    /// <summary>로깅에 사용할 ILoggerFactory를 설정한다.</summary>
     public SqlSessionFactoryBuilder UseLoggerFactory(ILoggerFactory loggerFactory) {
         _loggerFactory = loggerFactory;
         return this;
     }
 
+    /// <summary>설정을 완료하고 SqlSessionFactory 인스턴스를 생성한다.</summary>
     public SqlSessionFactory Build() {
         if (_provider is null) {
             throw new InvalidOperationException(

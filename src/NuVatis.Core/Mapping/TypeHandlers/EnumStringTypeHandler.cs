@@ -11,8 +11,10 @@ namespace NuVatis.Mapping.TypeHandlers;
  */
 public sealed class EnumStringTypeHandler<TEnum> : ITypeHandler where TEnum : struct, Enum {
 
+    /// <inheritdoc />
     public Type TargetType => typeof(TEnum);
 
+    /// <inheritdoc />
     public object? GetValue(DbDataReader reader, int ordinal) {
         var str = reader.GetString(ordinal);
         if (Enum.TryParse<TEnum>(str, ignoreCase: true, out var result)) {
@@ -22,6 +24,7 @@ public sealed class EnumStringTypeHandler<TEnum> : ITypeHandler where TEnum : st
             $"'{str}'을(를) {typeof(TEnum).Name}으로 변환할 수 없습니다.");
     }
 
+    /// <inheritdoc />
     public void SetParameter(DbParameter parameter, object? value) {
         parameter.Value = value is null ? DBNull.Value : value.ToString()!;
     }

@@ -17,6 +17,13 @@ public static class TestExpressionEvaluator {
 
     private static readonly string[] Operators = { "!=", "==", ">=", "<=", ">", "<" };
 
+    /// <summary>
+    /// MyBatis 호환 test 표현식을 평가하여 조건 참·거짓을 반환한다.
+    /// <c>and</c>/<c>or</c> 복합 표현식과 비교 연산자(<c>==</c>, <c>!=</c>, <c>&gt;</c>, 등)를 지원한다.
+    /// </summary>
+    /// <param name="testExpression">평가할 표현식 문자열. <see langword="null"/> 또는 공백이면 항상 <see langword="true"/>.</param>
+    /// <param name="parameter">파라미터 객체. 표현식의 프로퍼티 참조 기준.</param>
+    /// <returns>표현식이 참이면 <see langword="true"/>.</returns>
     public static bool Evaluate(string? testExpression, object? parameter) {
         if (string.IsNullOrWhiteSpace(testExpression)) return true;
         if (parameter is null) return false;
@@ -34,6 +41,13 @@ public static class TestExpressionEvaluator {
         return EvaluateSubExpression(testExpression.Trim(), parameter);
     }
 
+    /// <summary>
+    /// 점(.) 구분 경로로 객체의 중첩 프로퍼티 값을 읽는다.
+    /// <c>size</c>/<c>length</c>는 각각 <c>Count</c>/<c>Length</c>로 자동 변환한다.
+    /// </summary>
+    /// <param name="obj">탐색을 시작할 루트 객체.</param>
+    /// <param name="propertyPath">점 구분 프로퍼티 경로 (예: <c>"Address.City"</c>).</param>
+    /// <returns>해당 경로의 값. 객체가 <see langword="null"/>이거나 경로를 찾지 못하면 <see langword="null"/>.</returns>
     [UnconditionalSuppressMessage("AOT", "IL2070",
         Justification = "동적 SQL 런타임 평가는 reflection 사용이 불가피. SG 생성 코드 경로에서는 호출되지 않음.")]
     public static object? GetPropertyValue(object? obj, string propertyPath) {

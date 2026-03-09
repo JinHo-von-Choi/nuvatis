@@ -12,8 +12,10 @@ namespace NuVatis.Mapping.TypeHandlers;
  */
 public sealed class TimeOnlyTypeHandler : ITypeHandler {
 
+    /// <inheritdoc />
     public Type TargetType => typeof(TimeOnly);
 
+    /// <inheritdoc />
     public object? GetValue(DbDataReader reader, int ordinal) {
         var value = reader.GetValue(ordinal);
         return value switch {
@@ -24,6 +26,7 @@ public sealed class TimeOnlyTypeHandler : ITypeHandler {
         };
     }
 
+    /// <inheritdoc />
     public void SetParameter(DbParameter parameter, object? value) {
         if (value is TimeOnly timeOnly) {
             parameter.Value = timeOnly.ToTimeSpan();

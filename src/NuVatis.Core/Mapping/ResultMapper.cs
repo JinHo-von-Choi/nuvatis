@@ -19,10 +19,16 @@ public sealed class ResultMapper {
     private readonly Dictionary<string, ResultMapDefinition> _resultMaps;
     private readonly ConcurrentDictionary<Type, PropertyInfo[]> _propertyCache = new();
 
+    /// <summary>지정된 ResultMap 정의로 ResultMapper를 초기화한다.</summary>
+    /// <param name="resultMaps">ResultMap ID를 키로 하는 ResultMapDefinition 사전.</param>
     public ResultMapper(Dictionary<string, ResultMapDefinition> resultMaps) {
         _resultMaps = resultMaps;
     }
 
+    /// <summary>
+    /// DbDataReader의 현재 행을 지정된 resultMapId 정의에 따라 T 인스턴스로 매핑한다.
+    /// SG(Source Generator) 경로에서는 정적 생성 코드를 사용하며, 이 메서드는 런타임 폴백 경로이다.
+    /// </summary>
     [UnconditionalSuppressMessage("AOT", "IL2070",
         Justification = "런타임 ResultMap 매핑은 reflection 사용이 불가피. SG 경로에서는 정적 매핑 코드 사용.")]
     public T MapRow<T>(DbDataReader reader, string resultMapId) where T : new() {
@@ -32,6 +38,10 @@ public sealed class ResultMapper {
         return (T)MapRowInternal(reader, def, null, typeof(T));
     }
 
+    /// <summary>
+    /// DbDataReader의 모든 행을 resultMapId 정의에 따라 T 리스트로 매핑한다.
+    /// ID 컬럼이 정의된 경우 1:N Collection 그룹핑을 수행한다.
+    /// </summary>
     public IList<T> MapRows<T>(DbDataReader reader, string resultMapId) where T : new() {
         if (!_resultMaps.TryGetValue(resultMapId, out var def))
             throw new KeyNotFoundException($"ResultMap '{resultMapId}'을 찾을 수 없습니다.");

@@ -21,16 +21,20 @@ public sealed class BatchExecutor : IDisposable, IAsyncDisposable {
     private readonly List<BatchItem> _batch = new();
     private bool                     _disposed;
 
+    /// <summary>BatchExecutor 인스턴스를 초기화한다.</summary>
     public BatchExecutor(AdoTransaction transaction) {
         _transaction = transaction;
     }
 
+    /// <summary>현재 배치에 쌓인 쿼리 수.</summary>
     public int Count => _batch.Count;
 
+    /// <summary>쿼리를 배치에 추가한다.</summary>
     public void Add(MappedStatement statement, string sql, IReadOnlyList<DbParameter> parameters) {
         _batch.Add(new BatchItem(statement, sql, parameters));
     }
 
+    /// <summary>배치에 쌓인 쿼리를 일괄 실행하고 총 영향 행수를 반환한다.</summary>
     public int Flush() {
         if (_batch.Count == 0) return 0;
 
@@ -46,6 +50,7 @@ public sealed class BatchExecutor : IDisposable, IAsyncDisposable {
         return FlushSequential(connection, dbTransaction);
     }
 
+    /// <summary>배치에 쌓인 쿼리를 비동기로 일괄 실행하고 총 영향 행수를 반환한다.</summary>
     public async Task<int> FlushAsync(CancellationToken ct = default) {
         if (_batch.Count == 0) return 0;
 
@@ -61,9 +66,13 @@ public sealed class BatchExecutor : IDisposable, IAsyncDisposable {
         return await FlushSequentialAsync(connection, dbTransaction, ct).ConfigureAwait(false);
     }
 
+    /// <summary>트랜잭션을 커밋한다.</summary>
     public void Commit()   => _transaction.Commit();
+    /// <summary>트랜잭션을 비동기로 커밋한다.</summary>
     public Task CommitAsync(CancellationToken ct = default) => _transaction.CommitAsync(ct);
+    /// <summary>트랜잭션을 롤백한다.</summary>
     public void Rollback()  => _transaction.Rollback();
+    /// <summary>트랜잭션을 비동기로 롤백한다.</summary>
     public Task RollbackAsync(CancellationToken ct = default) => _transaction.RollbackAsync(ct);
 
 #if NET8_0_OR_GREATER
@@ -166,12 +175,14 @@ public sealed class BatchExecutor : IDisposable, IAsyncDisposable {
         return command;
     }
 
+    /// <inheritdoc />
     public void Dispose() {
         if (_disposed) return;
         _disposed = true;
         _transaction.Dispose();
     }
 
+    /// <inheritdoc />
     public async ValueTask DisposeAsync() {
         if (_disposed) return;
         _disposed = true;

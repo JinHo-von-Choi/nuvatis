@@ -43,16 +43,20 @@ public sealed class MetricsInterceptor : ISqlInterceptor, IDisposable {
             description: "SQL query execution duration in seconds");
     }
 
+    /// <inheritdoc />
     public void BeforeExecute(InterceptorContext context) { }
 
+    /// <inheritdoc />
     public void AfterExecute(InterceptorContext context) {
         RecordMetrics(context);
     }
 
+    /// <inheritdoc />
     public Task BeforeExecuteAsync(InterceptorContext context, CancellationToken ct) {
         return Task.CompletedTask;
     }
 
+    /// <inheritdoc />
     public Task AfterExecuteAsync(InterceptorContext context, CancellationToken ct) {
         RecordMetrics(context);
         return Task.CompletedTask;
@@ -72,6 +76,7 @@ public sealed class MetricsInterceptor : ISqlInterceptor, IDisposable {
         }
     }
 
+    /// <inheritdoc />
     public void Dispose() {
         _meter.Dispose();
     }

@@ -12,16 +12,19 @@ namespace NuVatis.Interceptor;
 public sealed class LoggingInterceptor : ISqlInterceptor {
     private readonly ILogger _logger;
 
+    /// <summary>LoggingInterceptor 인스턴스를 초기화한다.</summary>
     public LoggingInterceptor(ILogger logger) {
         _logger = logger;
     }
 
+    /// <inheritdoc />
     public void BeforeExecute(InterceptorContext context) {
         _logger.LogDebug(
             "[NuVatis] Executing {StatementId}: {Sql}",
             context.StatementId, context.Sql);
     }
 
+    /// <inheritdoc />
     public void AfterExecute(InterceptorContext context) {
         if (context.Exception is not null) {
             _logger.LogError(
@@ -35,11 +38,13 @@ public sealed class LoggingInterceptor : ISqlInterceptor {
         }
     }
 
+    /// <inheritdoc />
     public Task BeforeExecuteAsync(InterceptorContext context, CancellationToken ct) {
         BeforeExecute(context);
         return Task.CompletedTask;
     }
 
+    /// <inheritdoc />
     public Task AfterExecuteAsync(InterceptorContext context, CancellationToken ct) {
         AfterExecute(context);
         return Task.CompletedTask;
