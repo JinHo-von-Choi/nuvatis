@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>NuVatis.QueryBuilder.Tools</RootNamespace>
+    <LangVersion>latest</LangVersion>
+    <PackageId>NuVatis.QueryBuilder.Tools</PackageId>
+    <ToolCommandName>nuvatis-gen</ToolCommandName>
+    <PackAsTool>true</PackAsTool>
+    <Description>dotnet tool — DB 스키마 스캔 후 NuVatis.QueryBuilder 타입 안전 테이블 클래스 생성</Description>
+    <IsPackable>true</IsPackable>
+    <Version>0.1.0-alpha</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Npgsql"                  Version="9.*" />
+    <PackageReference Include="MySqlConnector"           Version="2.*" />
+    <PackageReference Include="System.CommandLine"       Version="2.0.0-beta4.22272.1" />
+  </ItemGroup>
+
+  <!-- dotnet tool(Exe)은 공개 API 추적 불필요 — Directory.Build.props 자동 적용 무효화 -->
+  <ItemGroup>
+    <PackageReference Remove="Microsoft.CodeAnalysis.PublicApiAnalyzers" />
+  </ItemGroup>
+</Project>

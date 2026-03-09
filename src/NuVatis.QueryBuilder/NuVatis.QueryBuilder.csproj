@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net6.0;net7.0;net8.0;net9.0;net10.0;net11.0</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>NuVatis.QueryBuilder</RootNamespace>
+    <PackageId>NuVatis.QueryBuilder</PackageId>
+    <Description>Type-safe SQL query builder for .NET — jOOQ-style fluent DSL with AST-based rendering</Description>
+  </PropertyGroup>
+</Project>
