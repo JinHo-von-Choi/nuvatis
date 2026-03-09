@@ -83,14 +83,19 @@ public abstract class BaseDialect : ISqlDialect {
         AppendTable(sb, q.Table);
         sb.Append(" (");
         sb.Append(string.Join(", ", q.Columns.Select(f => QuoteIdentifier(f.ColumnName))));
-        sb.Append(") VALUES (");
+        sb.Append(") VALUES ");
 
-        for (int i = 0; i < q.Values.Count; i++) {
-            if (i > 0) sb.Append(", ");
-            pars.Add(q.Values[i]);
-            sb.Append(Placeholder(pars.Count - 1));
+        var rows = q.Rows.Count > 0 ? q.Rows : (q.Values.Count > 0 ? [q.Values] : []);
+        var rowSql = new List<string>();
+        foreach (var row in rows) {
+            var cells = new List<string>();
+            foreach (var val in row) {
+                pars.Add(val);
+                cells.Add(Placeholder(pars.Count - 1));
+            }
+            rowSql.Add($"({string.Join(", ", cells)})");
         }
-        sb.Append(')');
+        sb.Append(string.Join(", ", rowSql));
 
         return new(sb.ToString(), pars);
     }

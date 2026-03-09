@@ -19,6 +19,8 @@ public sealed class SelectStep {
 
     public SelectStep From(TableNode table)                { _query.From(table);      return this; }
     public SelectStep Where(ConditionNode condition)       { _query.Where(condition); return this; }
+    public SelectStep GroupBy(params FieldNode[] fields)   { _query.GroupBy(fields);  return this; }
+    public SelectStep Having(ConditionNode condition)       { _query.Having(condition); return this; }
     public SelectStep OrderBy(params SortField[] fields)   { _query.OrderBy(fields);  return this; }
     public SelectStep Limit(int limit)                     { _query.Limit(limit);     return this; }
     public SelectStep Offset(int offset)                   { _query.Offset(offset);   return this; }

@@ -19,6 +19,7 @@ public sealed class InsertStep {
 
     public InsertStep Columns(params FieldNode[] columns) { _query.Into(columns);       return this; }
     public InsertStep Values(params object?[] values)     { _query.WithValues(values);  return this; }
+    public InsertStep AddRow(params object?[] values)     { _query.AddRow(values);      return this; }
 
     public RenderedSql ToSql() => _dialect.Render(_query);
 

@@ -130,6 +130,30 @@ public class PostgreSqlDialectTests {
     }
 
     [Fact]
+    public void Render_BulkInsert_GeneratesMultipleValueClauses() {
+        var q = new InsertQuery(U)
+                    .Into(U_ID, U_NAME)
+                    .AddRow(1, "Alice")
+                    .AddRow(2, "Bob")
+                    .AddRow(3, "Carol");
+        var r = _dialect.Render(q);
+
+        Assert.Contains("($1, $2)", r.Sql);
+        Assert.Contains("($3, $4)", r.Sql);
+        Assert.Contains("($5, $6)", r.Sql);
+        Assert.Equal(6, r.Parameters.Count);
+    }
+
+    [Fact]
+    public void Render_SingleInsert_BackwardCompatible() {
+        var q = new InsertQuery(U).Into(U_ID, U_NAME).WithValues(1, "Alice");
+        var r = _dialect.Render(q);
+
+        Assert.Contains("VALUES ($1, $2)", r.Sql);
+        Assert.Equal(2, r.Parameters.Count);
+    }
+
+    [Fact]
     public void Render_SelectAggregate_RendersFunction() {
         var cnt = Agg.Count();
         var q   = new SelectQuery().Select(cnt).From(U);
