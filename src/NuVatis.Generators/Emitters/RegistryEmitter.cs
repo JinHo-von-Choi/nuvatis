@@ -129,6 +129,20 @@ public static class RegistryEmitter {
                 if (stmt.Timeout.HasValue) {
                     sb.AppendLine($"                CommandTimeout = {stmt.Timeout.Value},");
                 }
+                if (stmt.SelectKey is not null) {
+                    var order = stmt.SelectKey.Order == "Before"
+                        ? "NuVatis.Statement.SelectKeyOrder.Before"
+                        : "NuVatis.Statement.SelectKeyOrder.After";
+                    sb.AppendLine($"                SelectKey = new NuVatis.Statement.SelectKeyConfig");
+                    sb.AppendLine("                {");
+                    sb.AppendLine($"                    KeyProperty = \"{EscapeString(stmt.SelectKey.KeyProperty)}\",");
+                    sb.AppendLine($"                    Sql         = @\"{stmt.SelectKey.Sql.Replace("\"", "\"\"")}\",");
+                    sb.AppendLine($"                    Order       = {order},");
+                    if (stmt.SelectKey.ResultType is not null) {
+                        sb.AppendLine($"                    ResultType  = \"{EscapeString(stmt.SelectKey.ResultType)}\",");
+                    }
+                    sb.AppendLine("                },");
+                }
 
                 if (isDynamic) {
                     sb.AppendLine("                SqlSource = \"\",");

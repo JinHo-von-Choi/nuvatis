@@ -11,6 +11,7 @@
     <IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">true</IsAotCompatible>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);CS1570;CS1573</NoWarn>
+    <!-- CS1591 경고 없음 — 모든 public API 문서화 완료 -->
   </PropertyGroup>
 
   <ItemGroup>

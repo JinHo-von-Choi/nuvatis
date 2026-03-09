@@ -125,6 +125,20 @@ public static class XmlMapperParser {
             timeout = parsed;
         }
 
+        ParsedSelectKey? selectKey = null;
+        if (element.Name.LocalName == "insert") {
+            var sk = element.Element("selectKey");
+            if (sk is not null) {
+                selectKey = new ParsedSelectKey(
+                    KeyProperty: RequireAttr(sk, "keyProperty"),
+                    Sql:         sk.Value.Trim(),
+                    Order:       sk.Attribute("order")?.Value ?? "After",
+                    ResultType:  sk.Attribute("resultType")?.Value
+                );
+                sk.Remove();
+            }
+        }
+
         return new ParsedStatement(
             Id:            RequireAttr(element, "id"),
             StatementType: CapitalizeFirst(element.Name.LocalName),
@@ -132,7 +146,8 @@ public static class XmlMapperParser {
             ResultType:    element.Attribute("resultType")?.Value,
             ParameterType: element.Attribute("parameterType")?.Value,
             RootNode:      ParseChildNodes(element),
-            Timeout:       timeout
+            Timeout:       timeout,
+            SelectKey:     selectKey
         );
     }
 

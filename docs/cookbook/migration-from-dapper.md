@@ -120,7 +120,22 @@ var id = connection.ExecuteScalar<int>(
     user);
 ```
 
-NuVatis:
+NuVatis (`selectKey` 방식 — 권장):
+```xml
+<insert id="Insert">
+  <selectKey keyProperty="Id" order="After">
+    SELECT lastval()
+  </selectKey>
+  INSERT INTO users (name, email) VALUES (#{Name}, #{Email})
+</insert>
+```
+
+```csharp
+session.Insert("UserMapper.Insert", user);
+// user.Id에 자동으로 생성된 키가 주입되어 있다
+```
+
+NuVatis (수동 2-step 방식):
 ```xml
 <insert id="Insert">
   INSERT INTO users (name, email) VALUES (#{Name}, #{Email})

@@ -196,7 +196,7 @@ NuVatis.Generators.Models.ParsedStatement.Id.get -> string!
 NuVatis.Generators.Models.ParsedStatement.Id.init -> void
 NuVatis.Generators.Models.ParsedStatement.ParameterType.get -> string?
 NuVatis.Generators.Models.ParsedStatement.ParameterType.init -> void
-NuVatis.Generators.Models.ParsedStatement.ParsedStatement(string! Id, string! StatementType, string? ResultMapId, string? ResultType, string? ParameterType, NuVatis.Generators.Models.ParsedSqlNode! RootNode, int? Timeout = null) -> void
+~NuVatis.Generators.Models.ParsedStatement.ParsedStatement(string! Id, string! StatementType, string? ResultMapId, string? ResultType, string? ParameterType, NuVatis.Generators.Models.ParsedSqlNode! RootNode, int? Timeout = null) -> void
 NuVatis.Generators.Models.ParsedStatement.ResultMapId.get -> string?
 NuVatis.Generators.Models.ParsedStatement.ResultMapId.init -> void
 NuVatis.Generators.Models.ParsedStatement.ResultType.get -> string?

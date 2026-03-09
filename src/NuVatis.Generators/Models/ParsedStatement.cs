@@ -9,5 +9,13 @@ public sealed record ParsedStatement(
     string? ResultType,
     string? ParameterType,
     ParsedSqlNode RootNode,
-    int? Timeout = null
+    int? Timeout              = null,
+    ParsedSelectKey? SelectKey = null
+);
+
+public record ParsedSelectKey(
+    string  KeyProperty,
+    string  Sql,
+    string  Order,
+    string? ResultType = null
 );

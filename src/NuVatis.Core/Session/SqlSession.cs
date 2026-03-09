@@ -34,6 +34,7 @@ public sealed class SqlSession : ISqlSession {
     private bool _committed;
     private bool _disposed;
 
+    /// <inheritdoc />
     public bool IsBatchMode => _batchExecutor is not null;
 
     internal SqlSession(
@@ -53,6 +54,7 @@ public sealed class SqlSession : ISqlSession {
         _batchExecutor       = batchExecutor;
     }
 
+    /// <inheritdoc />
     public T? SelectOne<T>(string statementId, object? parameter = null) {
         EnsureNotDisposed();
         EnsureNotBusy();
@@ -72,6 +74,7 @@ public sealed class SqlSession : ISqlSession {
         }
     }
 
+    /// <inheritdoc />
     public async Task<T?> SelectOneAsync<T>(string statementId, object? parameter = null, CancellationToken ct = default) {
         EnsureNotDisposed();
         EnsureNotBusy();
@@ -92,6 +95,7 @@ public sealed class SqlSession : ISqlSession {
         }
     }
 
+    /// <inheritdoc />
     public IList<T> SelectList<T>(string statementId, object? parameter = null) {
         EnsureNotDisposed();
         EnsureNotBusy();
@@ -111,6 +115,7 @@ public sealed class SqlSession : ISqlSession {
         }
     }
 
+    /// <inheritdoc />
     public async Task<IList<T>> SelectListAsync<T>(string statementId, object? parameter = null, CancellationToken ct = default) {
         EnsureNotDisposed();
         EnsureNotBusy();
@@ -165,6 +170,7 @@ public sealed class SqlSession : ISqlSession {
         }
     }
 
+    /// <inheritdoc />
     public ResultSetGroup SelectMultiple(string statementId, object? parameter = null) {
         EnsureNotDisposed();
         EnsureNotBusy();
@@ -180,6 +186,7 @@ public sealed class SqlSession : ISqlSession {
         }
     }
 
+    /// <inheritdoc />
     public async Task<ResultSetGroup> SelectMultipleAsync(
         string statementId, object? parameter = null, CancellationToken ct = default) {
         EnsureNotDisposed();
@@ -197,6 +204,7 @@ public sealed class SqlSession : ISqlSession {
         }
     }
 
+    /// <inheritdoc />
     public T? SelectOne<T>(string statementId, object? parameter, Func<DbDataReader, T> mapper) {
         EnsureNotDisposed();
         EnsureNotBusy();
@@ -214,6 +222,7 @@ public sealed class SqlSession : ISqlSession {
         }
     }
 
+    /// <inheritdoc />
     public async Task<T?> SelectOneAsync<T>(
         string statementId, object? parameter, Func<DbDataReader, T> mapper, CancellationToken ct = default) {
         EnsureNotDisposed();
@@ -233,6 +242,7 @@ public sealed class SqlSession : ISqlSession {
         }
     }
 
+    /// <inheritdoc />
     public IList<T> SelectList<T>(string statementId, object? parameter, Func<DbDataReader, T> mapper) {
         EnsureNotDisposed();
         EnsureNotBusy();
@@ -250,6 +260,7 @@ public sealed class SqlSession : ISqlSession {
         }
     }
 
+    /// <inheritdoc />
     public async Task<IList<T>> SelectListAsync<T>(
         string statementId, object? parameter, Func<DbDataReader, T> mapper, CancellationToken ct = default) {
         EnsureNotDisposed();
@@ -269,13 +280,20 @@ public sealed class SqlSession : ISqlSession {
         }
     }
 
+    /// <inheritdoc />
     public int Insert(string statementId, object? parameter = null) => ExecuteWrite(statementId, parameter);
+    /// <inheritdoc />
     public Task<int> InsertAsync(string statementId, object? parameter = null, CancellationToken ct = default) => ExecuteWriteAsync(statementId, parameter, ct);
+    /// <inheritdoc />
     public int Update(string statementId, object? parameter = null) => ExecuteWrite(statementId, parameter);
+    /// <inheritdoc />
     public Task<int> UpdateAsync(string statementId, object? parameter = null, CancellationToken ct = default) => ExecuteWriteAsync(statementId, parameter, ct);
+    /// <inheritdoc />
     public int Delete(string statementId, object? parameter = null) => ExecuteWrite(statementId, parameter);
+    /// <inheritdoc />
     public Task<int> DeleteAsync(string statementId, object? parameter = null, CancellationToken ct = default) => ExecuteWriteAsync(statementId, parameter, ct);
 
+    /// <inheritdoc />
     public void Commit() {
         EnsureNotDisposed();
         if (_batchExecutor is { Count: > 0 }) {
@@ -285,6 +303,7 @@ public sealed class SqlSession : ISqlSession {
         _committed = true;
     }
 
+    /// <inheritdoc />
     public async Task CommitAsync(CancellationToken ct = default) {
         EnsureNotDisposed();
         if (_batchExecutor is { Count: > 0 }) {
@@ -294,16 +313,19 @@ public sealed class SqlSession : ISqlSession {
         _committed = true;
     }
 
+    /// <inheritdoc />
     public void Rollback() {
         EnsureNotDisposed();
         _executor.Rollback();
     }
 
+    /// <inheritdoc />
     public async Task RollbackAsync(CancellationToken ct = default) {
         EnsureNotDisposed();
         await _executor.RollbackAsync(ct).ConfigureAwait(false);
     }
 
+    /// <inheritdoc />
     public T GetMapper<T>() where T : class {
         EnsureNotDisposed();
 
@@ -316,6 +338,7 @@ public sealed class SqlSession : ISqlSession {
         return (T)_mapperFactory(typeof(T), this);
     }
 
+    /// <inheritdoc />
     public async Task ExecuteInTransactionAsync(Func<Task> action, CancellationToken ct = default) {
         EnsureNotDisposed();
         try {
@@ -327,6 +350,7 @@ public sealed class SqlSession : ISqlSession {
         }
     }
 
+    /// <inheritdoc />
     public void Dispose() {
         if (_disposed) return;
         _disposed = true;
@@ -340,6 +364,7 @@ public sealed class SqlSession : ISqlSession {
         _executor.Dispose();
     }
 
+    /// <inheritdoc />
     public async ValueTask DisposeAsync() {
         if (_disposed) return;
         _disposed = true;
@@ -353,6 +378,7 @@ public sealed class SqlSession : ISqlSession {
         await _executor.DisposeAsync().ConfigureAwait(false);
     }
 
+    /// <inheritdoc />
     public int FlushStatements() {
         EnsureNotDisposed();
         if (_batchExecutor is null) return 0;
@@ -365,6 +391,7 @@ public sealed class SqlSession : ISqlSession {
         }
     }
 
+    /// <inheritdoc />
     public async Task<int> FlushStatementsAsync(CancellationToken ct = default) {
         EnsureNotDisposed();
         if (_batchExecutor is null) return 0;

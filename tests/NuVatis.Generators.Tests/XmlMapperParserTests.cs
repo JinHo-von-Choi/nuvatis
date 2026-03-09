@@ -306,4 +306,44 @@ public class XmlMapperParserTests {
         Assert.Equal("pattern", bind!.Name);
         Assert.Equal("'%' + name + '%'", bind.Value);
     }
+
+    [Fact]
+    public void ParseStatement_InsertWithSelectKey_ParsesSelectKey()
+    {
+        const string xml = """
+            <?xml version="1.0" encoding="utf-8" ?>
+            <mapper namespace="MyApp.IUserMapper">
+              <insert id="Insert">
+                <selectKey keyProperty="Id" order="After" resultType="int">
+                  SELECT lastval()
+                </selectKey>
+                INSERT INTO users (name) VALUES (#{Name})
+              </insert>
+            </mapper>
+            """;
+        var mapper = XmlMapperParser.Parse(xml, default);
+        var stmt   = mapper!.Statements.Single();
+        Assert.NotNull(stmt.SelectKey);
+        Assert.Equal("Id",    stmt.SelectKey!.KeyProperty);
+        Assert.Equal("After", stmt.SelectKey.Order);
+        Assert.Contains("lastval()", stmt.SelectKey.Sql);
+    }
+
+    [Fact]
+    public void ParseStatement_InsertWithSelectKey_SqlSourceExcludesSelectKeyTag()
+    {
+        const string xml = """
+            <?xml version="1.0" encoding="utf-8" ?>
+            <mapper namespace="MyApp.IUserMapper">
+              <insert id="Insert">
+                <selectKey keyProperty="Id" order="After">SELECT lastval()</selectKey>
+                INSERT INTO users (name) VALUES (#{Name})
+              </insert>
+            </mapper>
+            """;
+        var mapper  = XmlMapperParser.Parse(xml, default);
+        var stmt    = mapper!.Statements.Single();
+        var sqlText = stmt.RootNode?.ToString() ?? "";
+        Assert.DoesNotContain("lastval", sqlText);
+    }
 }
