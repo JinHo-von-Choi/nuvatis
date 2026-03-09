@@ -25,9 +25,13 @@ EXPECTED_PACKAGES=(
     "NuVatis.PostgreSql"
     "NuVatis.MySql"
     "NuVatis.SqlServer"
+    "NuVatis.Sqlite"
+    "NuVatis.Oracle"
+    "NuVatis.QueryBuilder"
     "NuVatis.Extensions.DependencyInjection"
     "NuVatis.Extensions.OpenTelemetry"
     "NuVatis.Extensions.EntityFrameworkCore"
+    "NuVatis.Extensions.Aspire"
     "NuVatis.Testing"
 )
 
