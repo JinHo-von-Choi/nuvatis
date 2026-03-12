@@ -510,7 +510,7 @@ Pack (스크립트):
 ./pack.sh 1.0.1                 # 버전 지정
 ```
 
-pack.sh는 빌드, 테스트, 패키징, 13개 패키지 검증을 자동 수행한다.
+pack.sh는 빌드, 테스트, 패키징, 14개 패키지 검증을 자동 수행한다.
 
 ## CI/CD
 
@@ -532,7 +532,7 @@ git tag v2.0.0
 git push origin v2.0.0
 ```
 
-태그 push 시 publish.yml이 자동 실행되어 13개 패키지를 NuGet.org에 배포하고 GitHub Release를 자동 생성한다.
+태그 push 시 publish.yml이 자동 실행되어 14개 패키지를 NuGet.org에 배포하고 GitHub Release를 자동 생성한다.
 
 ## Project Structure
 

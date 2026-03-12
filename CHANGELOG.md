@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.0] - 2026-03-09
+
+### Added
+
+- **NuVatis.QueryBuilder**: jOOQ 스타일 타입 안전 SQL DSL. PostgreSQL, MySQL, SQL Server, Oracle 4종 방언을 지원한다. `DslContext` + Fluent Step API로 Select/Insert/Update/Delete 쿼리를 빌드타임에 구성한다.
+- **NuVatis.QueryBuilder.Tools**: `dotnet tool`로 DB 스키마를 스캔하여 테이블/컬럼 메타데이터 C# 클래스를 생성하는 코드 생성기.
+- **NuVatis.Oracle**: Oracle 12c+ Provider (Oracle.ManagedDataAccess.Core 23.*). Double-quote 인용, colon 파라미터, OFFSET/FETCH 페이지네이션.
+- **`<selectKey>` 지원**: XML 매퍼에서 `<selectKey>` 태그를 통해 Insert 후 자동 생성 키를 반환한다.
+- **ProxyEmitter `BuildSql_XXX` 인라인 방출**: SG가 `ParsedStatement` 기반 SQL 빌드 메서드를 프록시 내부에 직접 생성한다. 레지스트리 조회 없이 SQL을 인라인으로 구성하여 `MappedStatement` 런타임 의존성을 제거한다.
+- **`InMemorySqlSession` SQL-direct 메서드**: `SelectOneSql`, `SelectListSql`, `ExecuteSql` 및 Async 변형 6개 추가. SG 생성 프록시가 SQL-direct 경로를 사용할 때 `InMemorySqlSession`으로 테스트 가능하다.
+- **PostgreSQL Testcontainers 통합 테스트**: Docker 기반 실제 DB로 엔드투엔드 검증.
+- **QueryBuilder GroupBy/Having**: `SelectStep`에 `GroupBy()`, `Having()` 메서드 추가. `AggregateField<T>` 및 `Agg` 팩토리 (Count, Sum, Avg, Min, Max).
+- **QueryBuilder BULK INSERT**: `InsertStep`에 `AddRow()` 메서드 추가. 다중 행 INSERT VALUES 지원.
+
+### Changed
+
+- **ParameterBinder PropertyCache 통합**: `PropertyCache` → `PropertyReflectionCache.GetProperty`로 통합. 중복 캐시 제거.
+- **CS1591 XML 문서화**: 인터페이스, 구현체, 모델 전체에 XML 문서 주석 추가. `CS1591` NoWarn 제거.
+- **CI**: benchmark/docs 워크플로에 .NET 11 SDK 추가.
+
+### Fixed
+
+- 로고 이미지 512x512 압축 (1.1MB -> 83KB, NuGet 1MB 한도 초과 해소)
+- `TableNode.As()` 불변성 수정 -- 새 인스턴스를 반환하도록 변경
+- XSD 스키마 파일 `netis-*.xsd` -> `nuvatis-*.xsd` 리네이밍
+- 통합 테스트 상태 격리 -- 뮤테이션 테스트 클래스 분리
+
 ## [2.3.0] - 2026-03-06
 
 ### Added

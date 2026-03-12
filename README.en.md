@@ -80,6 +80,9 @@ NuVatis is not the right fit for every situation. Use the table below to choose 
 | `NuVatis.MySql` | MySQL/MariaDB Provider (MySqlConnector) |
 | `NuVatis.SqlServer` | SQL Server Provider (Microsoft.Data.SqlClient) |
 | `NuVatis.Sqlite` | SQLite Provider (Microsoft.Data.Sqlite) |
+| `NuVatis.Oracle` | Oracle Provider (Oracle.ManagedDataAccess.Core, Oracle 12c+) |
+| `NuVatis.QueryBuilder` | jOOQ-style type-safe SQL DSL (PostgreSQL, MySQL, SQL Server, Oracle dialects) |
+| `NuVatis.QueryBuilder.Tools` | dotnet global tool — DB schema scanner + QueryBuilder code generator |
 | `NuVatis.Extensions.DependencyInjection` | Microsoft DI integration + Health Check |
 | `NuVatis.Extensions.OpenTelemetry` | OpenTelemetry distributed tracing (ActivitySource) |
 | `NuVatis.Extensions.EntityFrameworkCore` | EF Core DbContext connection/transaction sharing |
@@ -489,7 +492,7 @@ Pack (script):
 ./pack.sh 1.0.1                 # Specify version explicitly
 ```
 
-`pack.sh` automatically handles building, testing, packaging, and validating all 11 packages.
+`pack.sh` automatically handles building, testing, packaging, and validating all 14 packages.
 
 ## CI/CD
 
@@ -511,7 +514,7 @@ git tag v2.0.0
 git push origin v2.0.0
 ```
 
-Pushing a tag triggers `publish.yml` automatically, publishing all 11 packages to NuGet.org and creating a GitHub Release.
+Pushing a tag triggers `publish.yml` automatically, publishing all 14 packages to NuGet.org and creating a GitHub Release.
 
 ## Project Structure
 
