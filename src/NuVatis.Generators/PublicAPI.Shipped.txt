@@ -289,3 +289,4 @@ static readonly NuVatis.Generators.Diagnostics.DiagnosticDescriptors.SqlInjectio
 static readonly NuVatis.Generators.Diagnostics.DiagnosticDescriptors.StatementNotFound -> Microsoft.CodeAnalysis.DiagnosticDescriptor!
 static readonly NuVatis.Generators.Diagnostics.DiagnosticDescriptors.TestExpressionCompilationFailed -> Microsoft.CodeAnalysis.DiagnosticDescriptor!
 static readonly NuVatis.Generators.Diagnostics.DiagnosticDescriptors.UnusedResultMap -> Microsoft.CodeAnalysis.DiagnosticDescriptor!
+static NuVatis.Generators.Emitters.MappingEmitter.EmitMapMethodFromType(string! methodName, string! targetTypeName, Microsoft.CodeAnalysis.INamedTypeSymbol? typeSymbol) -> string?

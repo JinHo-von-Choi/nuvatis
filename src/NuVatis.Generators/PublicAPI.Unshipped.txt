@@ -1,2 +1,1 @@
 #nullable enable
-static NuVatis.Generators.Emitters.MappingEmitter.EmitMapMethodFromType(string! methodName, string! targetTypeName, Microsoft.CodeAnalysis.INamedTypeSymbol? typeSymbol) -> string?
