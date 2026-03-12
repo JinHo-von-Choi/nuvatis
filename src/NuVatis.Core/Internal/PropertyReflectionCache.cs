@@ -38,13 +38,15 @@ internal static class PropertyReflectionCache {
     /// 대소문자 무관(OrdinalIgnoreCase). 없으면 null 반환.
     /// ParameterBinder의 경로 탐색에서 사용한다.
     /// </summary>
+    [RequiresUnreferencedCode(
+        "런타임 리플렉션 폴백. Source Generator 경로에서는 호출되지 않는다.")]
     public static PropertyInfo? GetProperty(Type type, string name) {
         var map = GetOrBuild(type, normalizeUnderscore: false);
         return map.TryGetValue(name, out var prop) ? prop : null;
     }
 
-    [UnconditionalSuppressMessage("AOT", "IL2070",
-        Justification = "런타임 리플렉션. AOT 환경에서는 SG가 빌드타임 코드를 생성한다.")]
+    [RequiresUnreferencedCode(
+        "런타임 리플렉션 폴백. Source Generator 경로에서는 호출되지 않는다.")]
     public static Dictionary<string, PropertyInfo> GetOrBuild(
         Type type,
         bool normalizeUnderscore = false) {

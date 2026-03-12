@@ -70,6 +70,7 @@ public static class ParameterBinder {
         return new GenericDbParameter(name, value ?? DBNull.Value);
     }
 
+#pragma warning disable IL2026 // PropertyReflectionCache.GetProperty 런타임 폴백 — 런타임 전용 경로
     private static object? ResolvePropertyValue(object obj, string propertyPath) {
         var parts   = propertyPath.Split('.');
         var current = obj;
@@ -85,6 +86,7 @@ public static class ParameterBinder {
 
         return current;
     }
+#pragma warning restore IL2026
 
     /**
      * DbProviderFactory 없이 사용 가능한 범용 DbParameter.

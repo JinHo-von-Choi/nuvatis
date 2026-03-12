@@ -20,7 +20,7 @@ When I inherited a .NET statistics/metrics service, the previous developer's EF 
 
 Dapper is a proven solution to this problem, but mixing SQL directly into C# code didn't scale for managing hundreds of complex queries. Years of working with MyBatis on Java projects had taught me the value of XML-based SQL separation, and I decided to bring that pattern to .NET.
 
-A prototype conversion of the service's heaviest query delivered 2–3x faster execution and 82% lower memory usage. By leveraging Roslyn Source Generators to produce all mapping code at build time, NuVatis eliminates runtime reflection entirely — and works in Native AOT and WDAC (Windows Defender Application Control) environments where EF Core's runtime IL emission is blocked.
+A prototype conversion of the service's heaviest query delivered 2–3x faster execution and 82% lower memory usage. By leveraging Roslyn Source Generators to produce all mapping code at build time, NuVatis operates without runtime reflection on the Source Generator path — and works in Native AOT and WDAC (Windows Defender Application Control) environments where EF Core's runtime IL emission is blocked.
 
 ## Overview
 
@@ -28,7 +28,8 @@ NuVatis is a SQL Mapper framework that simultaneously addresses the performance 
 
 - SQL is managed separately via XML or C# Attributes
 - Roslyn Source Generator produces all mapping code at build time — no dynamic code generation at runtime
-- Zero runtime reflection, full Native AOT compatibility (.NET 8+) — the only MyBatis-style SQL mapper with AOT support in the .NET ecosystem
+- No runtime reflection on the Source Generator path, Native AOT compatible (.NET 8+, when using resultMap)
+- The `resultType` fallback path uses runtime reflection; migrating to resultMap is recommended before AOT publishing
 - Works under WDAC / code signing policies — EF Core's runtime IL Emit is blocked in these environments; NuVatis is unaffected
 - ADO.NET-based minimal abstraction, maximum performance
 - Multi-targeting: .NET 6 / 7 / 8 / 9 / 10 / 11
@@ -62,7 +63,7 @@ NuVatis is not the right fit for every situation. Use the table below to choose 
 | Managing hundreds of legacy SQL statements as-is | Separates SQL from code for version control |
 | Heavy dynamic SQL but type safety required | `<if>`/`<where>`/`<foreach>` + NV004 compile errors |
 | Complex JOIN + aggregate queries requiring full control | SQL changes are reflected immediately |
-| Native AOT environments (.NET 8+) | Source Generator produces all mapping code at build time. No runtime reflection means safe AOT trimming |
+| Native AOT environments (.NET 8+) | Using `<resultMap>` with the SG path is AOT-safe with no runtime reflection. The `resultType` fallback uses reflection; `resultMap` migration is required before AOT publishing |
 | Enterprise environments with WDAC / code signing policies | EF Core emits IL at runtime, which WDAC blocks. NuVatis uses build-time code generation only |
 
 > **TL;DR**: Use EF Core for dynamic query composition; use NuVatis for managing complex static SQL.

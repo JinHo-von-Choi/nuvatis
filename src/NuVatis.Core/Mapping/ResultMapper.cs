@@ -29,8 +29,12 @@ public sealed class ResultMapper {
     /// DbDataReader의 현재 행을 지정된 resultMapId 정의에 따라 T 인스턴스로 매핑한다.
     /// SG(Source Generator) 경로에서는 정적 생성 코드를 사용하며, 이 메서드는 런타임 폴백 경로이다.
     /// </summary>
-    [UnconditionalSuppressMessage("AOT", "IL2070",
-        Justification = "런타임 ResultMap 매핑은 reflection 사용이 불가피. SG 경로에서는 정적 매핑 코드 사용.")]
+    [RequiresUnreferencedCode(
+        "런타임 ResultMap 폴백 경로. Source Generator가 생성한 매핑 코드가 있으면 호출되지 않는다.")]
+#if NET7_0_OR_GREATER
+    [RequiresDynamicCode(
+        "Activator.CreateInstance(Type) 호출을 포함한다. Source Generator 경로에서는 호출되지 않는다.")]
+#endif
     public T MapRow<T>(DbDataReader reader, string resultMapId) where T : new() {
         if (!_resultMaps.TryGetValue(resultMapId, out var def))
             throw new KeyNotFoundException($"ResultMap '{resultMapId}'을 찾을 수 없습니다.");
@@ -42,6 +46,12 @@ public sealed class ResultMapper {
     /// DbDataReader의 모든 행을 resultMapId 정의에 따라 T 리스트로 매핑한다.
     /// ID 컬럼이 정의된 경우 1:N Collection 그룹핑을 수행한다.
     /// </summary>
+    [RequiresUnreferencedCode(
+        "런타임 ResultMap 폴백 경로. Source Generator가 생성한 매핑 코드가 있으면 호출되지 않는다.")]
+#if NET7_0_OR_GREATER
+    [RequiresDynamicCode(
+        "Activator.CreateInstance(Type) 호출을 포함한다. Source Generator 경로에서는 호출되지 않는다.")]
+#endif
     public IList<T> MapRows<T>(DbDataReader reader, string resultMapId) where T : new() {
         if (!_resultMaps.TryGetValue(resultMapId, out var def))
             throw new KeyNotFoundException($"ResultMap '{resultMapId}'을 찾을 수 없습니다.");
@@ -75,8 +85,7 @@ public sealed class ResultMapper {
         return results;
     }
 
-    [UnconditionalSuppressMessage("AOT", "IL2070", Justification = "런타임 매핑 경로")]
-    [UnconditionalSuppressMessage("AOT", "IL2067", Justification = "런타임 매핑 경로: Activator.CreateInstance")]
+#pragma warning disable IL2070, IL2067 // 호출자(MapRow<T>)가 RequiresUnreferencedCode 보장
     private object MapRowInternal(
         DbDataReader reader,
         ResultMapDefinition def,
@@ -116,9 +125,9 @@ public sealed class ResultMapper {
 
         return instance;
     }
+#pragma warning restore IL2070, IL2067
 
-    [UnconditionalSuppressMessage("AOT", "IL2070", Justification = "런타임 매핑 경로")]
-    [UnconditionalSuppressMessage("AOT", "IL2067", Justification = "런타임 매핑 경로: Activator.CreateInstance")]
+#pragma warning disable IL2070, IL2067 // 호출자(MapRow<T>)가 RequiresUnreferencedCode 보장
     private void ProcessCollection(
         DbDataReader reader,
         CollectionMapping mapping,
@@ -146,6 +155,7 @@ public sealed class ResultMapper {
         var child          = MapRowInternal(reader, def, mapping.ColumnPrefix, itemTypeInColl);
         collection.Add(child);
     }
+#pragma warning restore IL2070, IL2067
 
     private object? GetIdKey(DbDataReader reader, List<ResultMapping> idMappings, string? prefix) {
         if (idMappings.Count == 0) return null;

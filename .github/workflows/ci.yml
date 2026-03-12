@@ -76,6 +76,23 @@ jobs:
           --collect:"XPlat Code Coverage"
           --results-directory ./TestResults
 
+      - name: Unit Tests (QueryBuilder)
+        run: >-
+          dotnet test tests/NuVatis.QueryBuilder.Tests/
+          --configuration Release --no-build --verbosity normal
+          --logger "trx;LogFileName=querybuilder.trx"
+          --filter "Category!=Integration"
+          --collect:"XPlat Code Coverage"
+          --results-directory ./TestResults
+
+      - name: Unit Tests (QueryBuilder.Tools)
+        run: >-
+          dotnet test tests/NuVatis.QueryBuilder.Tools.Tests/
+          --configuration Release --no-build --verbosity normal
+          --logger "trx;LogFileName=querybuilder-tools.trx"
+          --collect:"XPlat Code Coverage"
+          --results-directory ./TestResults
+
       - name: Upload Test Results
         uses: actions/upload-artifact@v7
         if: always()
@@ -181,6 +198,53 @@ jobs:
         env:
           NUVATIS_TEST_MSSQL_CONNECTION: "Server=localhost,1433;Database=nuvatis_test;User Id=sa;Password=NuVatis_Test_Pass1!;TrustServerCertificate=True"
         run: dotnet test tests/NuVatis.Tests/ --configuration Release --no-build --verbosity normal --filter "Category=E2E&Provider=SqlServer"
+
+  querybuilder-integration:
+    name: QueryBuilder Integration Tests
+    runs-on: ubuntu-latest
+    needs: build-and-unit-test
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup .NET (stable SDKs)
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: |
+            6.0.x
+            7.0.x
+            8.0.x
+            9.0.x
+            10.0.x
+
+      - name: Setup .NET 11 (preview/prerelease)
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '11.0.x'
+          dotnet-quality: 'preview'
+
+      - name: Restore
+        run: dotnet restore NuVatis.sln
+
+      - name: Build
+        run: dotnet build NuVatis.sln --configuration Release --no-restore
+
+      - name: Integration Tests (QueryBuilder — Testcontainers)
+        run: >-
+          dotnet test tests/NuVatis.QueryBuilder.Tests/
+          --configuration Release --no-build --verbosity normal
+          --logger "trx;LogFileName=querybuilder-integration.trx"
+          --filter "Category=Integration"
+          --results-directory ./TestResults
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: test-results-querybuilder-integration
+          path: "**/TestResults/*.trx"
+          retention-days: 7
 
   pack-verify:
     name: NuGet Pack (Verify Only)

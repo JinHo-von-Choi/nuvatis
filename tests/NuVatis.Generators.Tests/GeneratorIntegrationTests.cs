@@ -593,6 +593,53 @@ namespace MyApp
         Assert.DoesNotContain("switch (__key)", code);
     }
 
+    [Fact]
+    public void ResultTypeOnlyStatement_EnumProperty_GeneratesIntCast() {
+        var enumSource = @"
+namespace TestApp {
+    public enum UserStatus { Active, Inactive }
+    public class UserWithStatus {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public UserStatus Status { get; set; }
+    }
+}";
+
+        var mapperXml = @"<?xml version=""1.0"" encoding=""UTF-8""?>
+<mapper namespace=""TestApp.IStatusMapper"">
+    <select id=""GetUser"" resultType=""TestApp.UserWithStatus"">
+        SELECT id, name, status FROM users WHERE id = #{id}
+    </select>
+</mapper>";
+
+        var mapperInterface = @"
+namespace TestApp {
+    [NuVatis.Attributes.NuVatisMapper]
+    public interface IStatusMapper {
+        TestApp.UserWithStatus GetUser(int id);
+    }
+}";
+
+        var (sources, diagnostics) = RunGenerator(
+            new[] { Stubs, enumSource, mapperInterface },
+            new[] { ("StatusMapper.xml", mapperXml) });
+
+        var sgErrors = diagnostics.Where(d =>
+            d.Severity == DiagnosticSeverity.Error &&
+            d.Id.StartsWith("NV")).ToArray();
+        Assert.Empty(sgErrors);
+
+        var implFile = sources.FirstOrDefault(f => f.HintName == "IStatusMapperImpl.g.cs");
+        Assert.False(implFile.Equals(default),
+            $"IStatusMapperImpl.g.cs not generated. Hints: [{string.Join(", ", sources.Select(s => s.HintName))}]");
+
+        var code = implFile.SourceText.ToString();
+
+        Assert.Contains("(TestApp.UserStatus)", code);
+        Assert.Contains("GetInt32", code);
+        Assert.DoesNotContain("GetFieldValue<TestApp.UserStatus>", code);
+    }
+
     /**
      * 정상 경로 확인: XML resultMap type이 실제 FQN과 일치하면 그대로 사용.
      */

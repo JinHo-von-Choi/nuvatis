@@ -74,6 +74,8 @@ public static class ColumnMapper {
         Justification = "런타임 자동 매핑. AOT 환경에서는 SG가 빌드타임에 매핑 코드를 생성한다.")]
     [UnconditionalSuppressMessage("AOT", "IL2091",
         Justification = "런타임 자동 매핑. AOT 환경에서는 SG가 빌드타임에 매핑 코드를 생성한다.")]
+    [UnconditionalSuppressMessage("AOT", "IL2026",
+        Justification = "PropertyReflectionCache 런타임 폴백 — SG 경로에서는 호출되지 않음.")]
     private static T MapComplex<T>(DbDataReader reader) {
         var type      = typeof(T);
         var columnMap = PropertyReflectionCache.GetOrBuild(type, normalizeUnderscore: true);

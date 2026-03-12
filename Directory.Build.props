@@ -46,4 +46,9 @@
     <NoWarn>$(NoWarn);RS0017</NoWarn>
   </PropertyGroup>
 
+  <!-- PublicAPI 경고를 오류로 승격: 새 public API는 Unshipped.txt 등록 후 릴리스 시 Shipped로 이관 -->
+  <PropertyGroup Condition="!$(MSBuildProjectName.Contains('Tests')) AND !$(MSBuildProjectName.Contains('Benchmarks')) AND !$(MSBuildProjectName.Contains('Sample'))">
+    <WarningsAsErrors>$(WarningsAsErrors);RS0016;RS0017</WarningsAsErrors>
+  </PropertyGroup>
+
 </Project>

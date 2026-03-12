@@ -624,6 +624,7 @@ public sealed class SqlSession : ISqlSession {
     /**
      * selectKey 보조 SELECT를 동기 실행하여 결과를 파라미터 객체의 키 프로퍼티에 주입한다.
      */
+#pragma warning disable IL2026 // PropertyReflectionCache.GetProperty 런타임 폴백 — 런타임 전용 경로
     private void ApplySelectKey(SelectKeyConfig selectKey, object? parameter) {
         if (parameter is null) return;
 
@@ -637,15 +638,16 @@ public sealed class SqlSession : ISqlSession {
         var value               = _executor.SelectOne(keyStmt, keySql, keyParams, reader => reader.GetValue(0));
         if (value is null or DBNull) return;
 
-        var prop = parameter.GetType().GetProperty(
-            selectKey.KeyProperty,
-            System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+        var prop = Internal.PropertyReflectionCache.GetProperty(
+            parameter.GetType(), selectKey.KeyProperty);
         prop?.SetValue(parameter, Convert.ChangeType(value, prop.PropertyType));
     }
+#pragma warning restore IL2026
 
     /**
      * selectKey 보조 SELECT를 비동기 실행하여 결과를 파라미터 객체의 키 프로퍼티에 주입한다.
      */
+#pragma warning disable IL2026 // PropertyReflectionCache.GetProperty 런타임 폴백 — 런타임 전용 경로
     private async Task ApplySelectKeyAsync(
         SelectKeyConfig selectKey, object? parameter, CancellationToken ct) {
         if (parameter is null) return;
@@ -661,11 +663,11 @@ public sealed class SqlSession : ISqlSession {
             keyStmt, keySql, keyParams, reader => reader.GetValue(0), ct).ConfigureAwait(false);
         if (value is null or DBNull) return;
 
-        var prop = parameter.GetType().GetProperty(
-            selectKey.KeyProperty,
-            System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+        var prop = Internal.PropertyReflectionCache.GetProperty(
+            parameter.GetType(), selectKey.KeyProperty);
         prop?.SetValue(parameter, Convert.ChangeType(value, prop.PropertyType));
     }
+#pragma warning restore IL2026
 
     /**
      * 2차 캐시에서 결과를 조회한다.

@@ -109,6 +109,45 @@ public static class MappingEmitter {
         return map;
     }
 
+    private static Dictionary<string, (bool IsEnum, bool IsNullable, string EnumFqn)>?
+        BuildEnumInfoMap(INamedTypeSymbol? typeSymbol) {
+
+        if (typeSymbol is null) return null;
+
+        var map     = new Dictionary<string, (bool, bool, string)>();
+        var current = typeSymbol;
+
+        while (current is not null) {
+            foreach (var member in current.GetMembers()) {
+                if (member is IPropertySymbol {
+                    DeclaredAccessibility: Accessibility.Public,
+                    IsStatic: false,
+                    SetMethod: not null } prop) {
+
+                    if (map.ContainsKey(prop.Name)) continue;
+
+                    var propType   = prop.Type;
+                    var isNullable = false;
+
+                    if (propType is INamedTypeSymbol {
+                        OriginalDefinition.SpecialType: SpecialType.System_Nullable_T } nullable
+                        && nullable.TypeArguments.Length == 1) {
+                        propType   = nullable.TypeArguments[0];
+                        isNullable = true;
+                    }
+
+                    if (propType.TypeKind == TypeKind.Enum) {
+                        var enumFqn = propType.ToDisplayString();
+                        map[prop.Name] = (true, isNullable, enumFqn);
+                    }
+                }
+            }
+            current = current.BaseType;
+        }
+
+        return map.Count > 0 ? map : null;
+    }
+
     private static bool IsScalarTypeSymbol(INamedTypeSymbol typeSymbol) {
         var actual = typeSymbol;
         if (actual.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T
@@ -187,8 +226,9 @@ public static class MappingEmitter {
 
         if (typeSymbol is not null && IsScalarTypeSymbol(typeSymbol)) return null;
 
-        var properties = GetWritableProperties(typeSymbol);
-        var sb         = new StringBuilder(512);
+        var properties  = GetWritableProperties(typeSymbol);
+        var enumInfoMap = BuildEnumInfoMap(typeSymbol);
+        var sb          = new StringBuilder(512);
 
         sb.AppendLine($"        static {targetTypeName} {methodName}(System.Data.Common.DbDataReader reader)");
         sb.AppendLine("        {");
@@ -202,11 +242,23 @@ public static class MappingEmitter {
 
         foreach (var (propName, typeFqn) in properties) {
             var switchKey = propName.ToLowerInvariant();
-            var readExpr  = typeFqn is not null && TypeToReaderMethod.TryGetValue(typeFqn, out var readerMethod)
-                ? $"reader.{readerMethod}(__i)"
-                : typeFqn is not null
-                    ? $"reader.GetFieldValue<{typeFqn}>(__i)"
-                    : $"reader.GetFieldValue<object>(__i)";
+            string readExpr;
+
+            if (enumInfoMap is not null
+                && enumInfoMap.TryGetValue(propName, out var enumInfo)
+                && enumInfo.IsEnum) {
+                var castType = enumInfo.IsNullable
+                    ? $"({enumInfo.EnumFqn}?)"
+                    : $"({enumInfo.EnumFqn})";
+                readExpr = $"{castType}reader.GetInt32(__i)";
+            } else if (typeFqn is not null && TypeToReaderMethod.TryGetValue(typeFqn, out var readerMethod)) {
+                readExpr = $"reader.{readerMethod}(__i)";
+            } else if (typeFqn is not null) {
+                readExpr = $"reader.GetFieldValue<{typeFqn}>(__i)";
+            } else {
+                readExpr = $"reader.GetFieldValue<object>(__i)";
+            }
+
             sb.AppendLine($"                    case \"{switchKey}\": obj.{propName} = {readExpr}; break;");
         }
 

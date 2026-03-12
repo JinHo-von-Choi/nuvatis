@@ -1,4 +1,6 @@
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using NuVatis.Generators.Emitters;
 using NuVatis.Generators.Models;
 using Xunit;
@@ -92,6 +94,75 @@ public class MappingEmitterTests {
     {
         var code = MappingEmitter.EmitMapMethodFromType("Map_T_X", "X", null);
         Assert.NotNull(code);
+    }
+
+    [Fact]
+    public void EmitMapMethodFromType_EnumProperty_GeneratesIntCast()
+    {
+        var source = @"
+namespace TestApp {
+    public enum UserStatus { Active, Inactive, Banned }
+    public class UserWithEnum {
+        public int Id { get; set; }
+        public UserStatus Status { get; set; }
+    }
+}";
+
+        var compilation = CreateCompilation(source);
+        var typeSymbol  = compilation.GetTypeByMetadataName("TestApp.UserWithEnum")!;
+
+        var code = MappingEmitter.EmitMapMethodFromType(
+            "Map_T_TestApp_UserWithEnum",
+            "TestApp.UserWithEnum",
+            typeSymbol);
+
+        Assert.NotNull(code);
+        Assert.DoesNotContain("GetFieldValue<TestApp.UserStatus>", code!);
+        Assert.Contains("(TestApp.UserStatus)", code!);
+        Assert.Contains("GetInt32", code!);
+    }
+
+    [Fact]
+    public void EmitMapMethodFromType_NullableEnumProperty_GeneratesNullableIntCast()
+    {
+        var source = @"
+namespace TestApp {
+    public enum Priority { Low, Medium, High }
+    public class TaskWithNullableEnum {
+        public int Id { get; set; }
+        public Priority? Priority { get; set; }
+    }
+}";
+
+        var compilation = CreateCompilation(source);
+        var typeSymbol  = compilation.GetTypeByMetadataName("TestApp.TaskWithNullableEnum")!;
+
+        var code = MappingEmitter.EmitMapMethodFromType(
+            "Map_T_TestApp_TaskWithNullableEnum",
+            "TestApp.TaskWithNullableEnum",
+            typeSymbol);
+
+        Assert.NotNull(code);
+        Assert.Contains("(TestApp.Priority?)", code!);
+        Assert.Contains("GetInt32", code!);
+    }
+
+    private static Compilation CreateCompilation(string source)
+    {
+        var syntaxTree = CSharpSyntaxTree.ParseText(source);
+        var references = new[] {
+            MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
+            MetadataReference.CreateFromFile(
+                System.IO.Path.Combine(
+                    System.IO.Path.GetDirectoryName(typeof(object).Assembly.Location)!,
+                    "System.Runtime.dll"))
+        };
+
+        return CSharpCompilation.Create(
+            "TestAssembly",
+            new[] { syntaxTree },
+            references,
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
     }
 
     private static ParsedResultMap CreateResultMap(

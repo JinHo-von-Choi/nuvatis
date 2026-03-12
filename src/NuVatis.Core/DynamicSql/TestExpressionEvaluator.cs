@@ -50,6 +50,8 @@ public static class TestExpressionEvaluator {
     /// <returns>해당 경로의 값. 객체가 <see langword="null"/>이거나 경로를 찾지 못하면 <see langword="null"/>.</returns>
     [UnconditionalSuppressMessage("AOT", "IL2070",
         Justification = "동적 SQL 런타임 평가는 reflection 사용이 불가피. SG 생성 코드 경로에서는 호출되지 않음.")]
+    [UnconditionalSuppressMessage("AOT", "IL2026",
+        Justification = "PropertyReflectionCache 런타임 폴백 — SG 경로에서는 호출되지 않음.")]
     public static object? GetPropertyValue(object? obj, string propertyPath) {
         if (obj is null) return null;
 
