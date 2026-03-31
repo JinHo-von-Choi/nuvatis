@@ -78,7 +78,7 @@ public sealed class ResultMapper {
             }
 
             foreach (var coll in def.Collections) {
-                ProcessCollection(reader, coll, root);
+                ProcessCollection(reader, coll, root!);
             }
         }
 

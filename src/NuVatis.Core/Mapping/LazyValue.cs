@@ -9,9 +9,9 @@ namespace NuVatis.Mapping;
  * @author 최진호
  * @date   2026-02-24
  */
+/// <summary>지연 로딩 래퍼. 첫 <see cref="Value"/> 접근 시 valueFactory를 실행하여 결과를 캐싱한다. Thread-safe.</summary>
 [UnconditionalSuppressMessage("AOT", "IL2091",
     Justification = "LazyValue<T>는 Func<T>로 값을 생성하므로 기본 생성자가 불필요하다.")]
-/// <summary>지연 로딩 래퍼. 첫 <see cref="Value"/> 접근 시 valueFactory를 실행하여 결과를 캐싱한다. Thread-safe.</summary>
 public sealed class LazyValue<T> {
     private readonly Lazy<T> _lazy;
 
