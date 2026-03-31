@@ -11,7 +11,7 @@
     <PackageTags>nuvatis;mybatis;orm;sql-mapper;source-generator;aot;dotnet</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>nuvatis_logo.png</PackageIcon>
-    <Version>2.5.0</Version>
+    <Version>2.6.0</Version>
     <LangVersion>latest</LangVersion>
 
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
