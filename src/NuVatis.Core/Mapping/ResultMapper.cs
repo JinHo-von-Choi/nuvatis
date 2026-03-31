@@ -99,7 +99,8 @@ public sealed class ResultMapper {
         foreach (var mapping in def.Mappings) {
             var colName = (columnPrefix ?? "") + mapping.Column;
             int ordinal;
-            try { ordinal = reader.GetOrdinal(colName); } catch { continue; }
+            // GetOrdinal은 컬럼 미존재 시 IndexOutOfRangeException — optional 매핑이므로 건너뜀
+            try { ordinal = reader.GetOrdinal(colName); } catch (IndexOutOfRangeException) { continue; }
 
             if (!reader.IsDBNull(ordinal)) {
                 var val  = reader.GetValue(ordinal);
@@ -162,15 +163,17 @@ public sealed class ResultMapper {
 
         if (idMappings.Count == 1) {
             int ord;
+            // ID 컬럼 미존재 시 null 반환 — resultMap에 정의된 컬럼이 SELECT에 없을 수 있음
             try { ord = reader.GetOrdinal((prefix ?? "") + idMappings[0].Column); }
-            catch { return null; }
+            catch (IndexOutOfRangeException) { return null; }
             return reader.IsDBNull(ord) ? null : reader.GetValue(ord);
         }
 
         return string.Join("|", idMappings.Select(m => {
             int ord;
+            // 복합 ID의 개별 컬럼 미존재 시 "MISSING" 마커 — 전체 키 구성에는 영향 없음
             try { ord = reader.GetOrdinal((prefix ?? "") + m.Column); }
-            catch { return "MISSING"; }
+            catch (IndexOutOfRangeException) { return "MISSING"; }
             return reader.IsDBNull(ord) ? "NULL" : reader.GetValue(ord).ToString();
         }));
     }
