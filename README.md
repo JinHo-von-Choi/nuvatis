@@ -30,6 +30,7 @@ NuVatis는 Entity Framework의 성능 오버헤드와 인라인 SQL의 유지보
 - Roslyn Source Generator가 빌드타임에 매핑 코드를 자동 생성 — 런타임에 동적 코드를 생성하지 않는다
 - Source Generator 경로에서 런타임 리플렉션 없음, Native AOT 호환 (.NET 8+, resultMap 사용 시)
 - `resultType` 폴백 경로는 런타임 리플렉션을 사용하며, AOT 게시 전 resultMap 마이그레이션을 권장한다
+- Enum 프로퍼티: `(EnumType)reader.GetInt32(ordinal)` 빌드타임 캐스트 생성 — `Convert.ToObject`나 리플렉션 미사용
 - WDAC / 코드 서명 정책 환경에서 동작 — EF Core는 런타임 동적 코드 생성(Emit)이 차단되어 실행 불가한 환경에서도 NuVatis는 정상 동작
 - ADO.NET 기반 최소 추상화, 최대 성능
 - .NET 6 / 7 / 8 / 9 / 10 / 11 동시 지원 (멀티 타겟)

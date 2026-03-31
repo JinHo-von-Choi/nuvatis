@@ -30,6 +30,7 @@ NuVatis is a SQL Mapper framework that simultaneously addresses the performance 
 - Roslyn Source Generator produces all mapping code at build time — no dynamic code generation at runtime
 - No runtime reflection on the Source Generator path, Native AOT compatible (.NET 8+, when using resultMap)
 - The `resultType` fallback path uses runtime reflection; migrating to resultMap is recommended before AOT publishing
+- Enum properties: build-time `(EnumType)reader.GetInt32(ordinal)` cast generation — no `Convert.ToObject` or reflection
 - Works under WDAC / code signing policies — EF Core's runtime IL Emit is blocked in these environments; NuVatis is unaffected
 - ADO.NET-based minimal abstraction, maximum performance
 - Multi-targeting: .NET 6 / 7 / 8 / 9 / 10 / 11
