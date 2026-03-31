@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.5.0] - Unreleased
+## [2.6.0] - Unreleased
 
 ### Added
 
@@ -22,6 +22,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **Generators.Tests 빌드 오류**: NuVatis.Generators(CodeAnalysis 5.3.0)와 Generators.Tests(CodeAnalysis 4.8.0) 버전 불일치로 인한 CS1705 오류 수정
+
+## [2.5.0] - 2026-03-12
+
+### Added
+
+- **Enum 프로퍼티 SG 캐스트 생성**: Source Generator가 `Enum` 타입 프로퍼티에 대해 `(EnumType)reader.GetInt32(ordinal)` 캐스트 코드를 빌드타임에 생성한다. 런타임 리플렉션 불필요.
+
+### Changed
+
+- **AOT/IL2026 정리**: `RequiresDynamicCode` 어트리뷰트를 `#if NET7_0_OR_GREATER` 조건부 컴파일로 분리. `CacheKey`에 `IEquatable<CacheKey>` 명시 구현으로 AOT 호환성 향상. `ColumnMapper`/`ResultMapper` `IL2026` suppress 정리.
+- **CI**: `.NET 11 SDK`를 모든 워크플로우 매트릭스에 추가.
+
+### Fixed
+
+- **PublicAPI.Unshipped.txt**: RS0025 중복 엔트리 제거.
 
 ## [2.4.0] - 2026-03-09
 
