@@ -46,6 +46,12 @@ public sealed class MappedStatement {
     public Func<object?, (string Sql, List<System.Data.Common.DbParameter> Parameters)>? DynamicSqlBuilder { get; init; }
 
     /**
+     * resultType 쿼리용 SG 생성 행 매퍼. null이면 ColumnMapper.MapRow&lt;T&gt; 리플렉션 폴백을 사용한다.
+     * Source Generator가 NuVatisTypeMappers 클래스에서 생성한 정적 메서드를 참조한다.
+     */
+    public Func<System.Data.Common.DbDataReader, object?>? RowMapper { get; init; }
+
+    /**
      * namespace.id 형태의 전체 식별자.
      */
     public string FullId                 => $"{Namespace}.{Id}";

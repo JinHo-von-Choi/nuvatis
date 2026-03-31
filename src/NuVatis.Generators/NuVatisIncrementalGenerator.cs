@@ -64,19 +64,22 @@ public sealed class NuVatisIncrementalGenerator : IIncrementalGenerator {
 
         if (interfaces.Length == 0) return;
 
+        var (typeMappersSource, typeToMethod) = TypeMappersEmitter.Emit(interfaces, mappers, compilation);
+        context.AddSource("NuVatisTypeMappers.g.cs", SourceText.From(typeMappersSource, Encoding.UTF8));
+
         foreach (var interfaceInfo in interfaces) {
             context.CancellationToken.ThrowIfCancellationRequested();
 
             var matchingMapper = mappers
                 .FirstOrDefault(m => m.Namespace == interfaceInfo.FullyQualifiedName);
 
-            var proxySource = ProxyEmitter.Emit(interfaceInfo, matchingMapper, compilation);
+            var proxySource = ProxyEmitter.Emit(interfaceInfo, matchingMapper, compilation, typeToMethod);
             var hintName    = $"{interfaceInfo.Name}Impl.g.cs";
 
             context.AddSource(hintName, SourceText.From(proxySource, Encoding.UTF8));
         }
 
-        var registrySource = RegistryEmitter.Emit(interfaces, mappers);
+        var registrySource = RegistryEmitter.Emit(interfaces, mappers, typeToMethod);
         context.AddSource("NuVatisMapperRegistry.g.cs", SourceText.From(registrySource, Encoding.UTF8));
     }
 

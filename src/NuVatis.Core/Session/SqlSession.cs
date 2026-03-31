@@ -64,9 +64,12 @@ public sealed class SqlSession : ISqlSession {
 
             var (sql, parameters) = BuildSql(statement, parameter);
             var ctx               = CreateInterceptorContext(statement, sql, parameters, parameter);
+            var rowMapper         = statement.RowMapper is { } rm
+                ? (Func<DbDataReader, T>)(reader => (T)rm(reader)!)
+                : ColumnMapper.MapRow<T>;
 
             var result = ExecuteTimed(ctx,
-                () => _executor.SelectOne(statement, ctx.Sql, ctx.Parameters, ColumnMapper.MapRow<T>));
+                () => _executor.SelectOne(statement, ctx.Sql, ctx.Parameters, rowMapper));
             PutCache(statement, parameter, result);
             return result;
         } finally {
@@ -84,9 +87,12 @@ public sealed class SqlSession : ISqlSession {
 
             var (sql, parameters) = BuildSql(statement, parameter);
             var ctx               = CreateInterceptorContext(statement, sql, parameters, parameter);
+            var rowMapper         = statement.RowMapper is { } rm
+                ? (Func<DbDataReader, T>)(reader => (T)rm(reader)!)
+                : ColumnMapper.MapRow<T>;
 
             var result = await ExecuteTimedAsync(ctx,
-                () => _executor.SelectOneAsync(statement, ctx.Sql, ctx.Parameters, ColumnMapper.MapRow<T>, ct), ct)
+                () => _executor.SelectOneAsync(statement, ctx.Sql, ctx.Parameters, rowMapper, ct), ct)
                 .ConfigureAwait(false);
             PutCache(statement, parameter, result);
             return result;
@@ -105,9 +111,12 @@ public sealed class SqlSession : ISqlSession {
 
             var (sql, parameters) = BuildSql(statement, parameter);
             var ctx               = CreateInterceptorContext(statement, sql, parameters, parameter);
+            var rowMapper         = statement.RowMapper is { } rm
+                ? (Func<DbDataReader, T>)(reader => (T)rm(reader)!)
+                : ColumnMapper.MapRow<T>;
 
             var result = ExecuteTimed(ctx,
-                () => _executor.SelectList(statement, ctx.Sql, ctx.Parameters, ColumnMapper.MapRow<T>));
+                () => _executor.SelectList(statement, ctx.Sql, ctx.Parameters, rowMapper));
             PutCache(statement, parameter, result);
             return result;
         } finally {
@@ -125,9 +134,12 @@ public sealed class SqlSession : ISqlSession {
 
             var (sql, parameters) = BuildSql(statement, parameter);
             var ctx               = CreateInterceptorContext(statement, sql, parameters, parameter);
+            var rowMapper         = statement.RowMapper is { } rm
+                ? (Func<DbDataReader, T>)(reader => (T)rm(reader)!)
+                : ColumnMapper.MapRow<T>;
 
             var result = await ExecuteTimedAsync(ctx,
-                () => _executor.SelectListAsync(statement, ctx.Sql, ctx.Parameters, ColumnMapper.MapRow<T>, ct), ct)
+                () => _executor.SelectListAsync(statement, ctx.Sql, ctx.Parameters, rowMapper, ct), ct)
                 .ConfigureAwait(false);
             PutCache(statement, parameter, result);
             return result;
@@ -153,13 +165,16 @@ public sealed class SqlSession : ISqlSession {
         var statement         = ResolveStatement(statementId);
         var (sql, parameters) = BuildSql(statement, parameter);
         var ctx               = CreateInterceptorContext(statement, sql, parameters, parameter);
+        var rowMapper         = statement.RowMapper is { } rm
+            ? (Func<DbDataReader, T>)(reader => (T)rm(reader)!)
+            : ColumnMapper.MapRow<T>;
 
         await RunBeforeAsync(ctx, ct).ConfigureAwait(false);
         var sw = Stopwatch.StartNew();
 
         try {
             await foreach (var item in _executor.SelectStream(
-                statement, ctx.Sql, ctx.Parameters, ColumnMapper.MapRow<T>, ct).ConfigureAwait(false)) {
+                statement, ctx.Sql, ctx.Parameters, rowMapper, ct).ConfigureAwait(false)) {
                 yield return item;
             }
         } finally {

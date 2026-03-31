@@ -20,7 +20,8 @@ public static class RegistryEmitter {
 
     public static string Emit(
         ImmutableArray<MapperInterfaceInfo> interfaces,
-        ImmutableArray<ParsedMapper> xmlMappers = default) {
+        ImmutableArray<ParsedMapper> xmlMappers = default,
+        System.Collections.Generic.Dictionary<string, string>? typeToMethod = null) {
 
         var sb = new StringBuilder(4096);
 
@@ -37,11 +38,11 @@ public static class RegistryEmitter {
 
         EmitRegisterAll(sb, interfaces);
         sb.AppendLine();
-        EmitRegisterStatements(sb, interfaces);
+        EmitRegisterStatements(sb, interfaces, typeToMethod);
 
         if (!xmlMappers.IsDefaultOrEmpty) {
             sb.AppendLine();
-            EmitRegisterXmlStatements(sb, xmlMappers);
+            EmitRegisterXmlStatements(sb, xmlMappers, typeToMethod);
         }
 
         sb.AppendLine("    }");
@@ -69,7 +70,11 @@ public static class RegistryEmitter {
      * Attribute SQL ([Select], [Insert] 등)이 있는 메서드를
      * MappedStatement으로 등록하는 코드 생성.
      */
-    private static void EmitRegisterStatements(StringBuilder sb, ImmutableArray<MapperInterfaceInfo> interfaces) {
+    private static void EmitRegisterStatements(
+        StringBuilder sb,
+        ImmutableArray<MapperInterfaceInfo> interfaces,
+        System.Collections.Generic.Dictionary<string, string>? typeToMethod) {
+
         var attrMethods = interfaces
             .SelectMany(i => i.Methods
                 .Where(m => m.SqlAttributeValue is not null)
@@ -85,12 +90,25 @@ public static class RegistryEmitter {
             var stmtType = method.SqlAttributeType ?? "Select";
             var escaped  = method.SqlAttributeValue!.Replace("\"", "\"\"");
 
+            var resultTypeFqn = method.ElementType ?? method.UnwrappedReturnType;
+            var hasRowMapper  = typeToMethod is not null
+                                && resultTypeFqn is not null
+                                && method.ResultMapAttributeValue is null
+                                && typeToMethod.TryGetValue(resultTypeFqn, out _);
+
             sb.AppendLine($"            statements[\"{fullId}\"] = new MappedStatement");
             sb.AppendLine("            {");
             sb.AppendLine($"                Id        = \"{method.Name}\",");
             sb.AppendLine($"                Namespace = \"{iface.FullyQualifiedName}\",");
             sb.AppendLine($"                Type      = StatementType.{stmtType},");
-            sb.AppendLine($"                SqlSource = @\"{escaped}\"");
+
+            if (hasRowMapper && typeToMethod!.TryGetValue(resultTypeFqn!, out var mapperMethod)) {
+                sb.AppendLine($"                SqlSource = @\"{escaped}\",");
+                sb.AppendLine($"                RowMapper = reader => global::NuVatis.NuVatisTypeMappers.{mapperMethod}(reader)");
+            } else {
+                sb.AppendLine($"                SqlSource = @\"{escaped}\"");
+            }
+
             sb.AppendLine("            };");
         }
 
@@ -105,7 +123,8 @@ public static class RegistryEmitter {
      */
     private static void EmitRegisterXmlStatements(
         StringBuilder sb,
-        ImmutableArray<ParsedMapper> xmlMappers) {
+        ImmutableArray<ParsedMapper> xmlMappers,
+        System.Collections.Generic.Dictionary<string, string>? typeToMethod = null) {
 
         sb.AppendLine("        public static void RegisterXmlStatements(");
         sb.AppendLine("            Dictionary<string, MappedStatement> statements)");
@@ -153,6 +172,13 @@ public static class RegistryEmitter {
                 } else {
                     var sqlSource = FlattenToSqlSource(stmt.RootNode).Replace("\"", "\"\"");
                     sb.AppendLine($"                SqlSource = @\"{sqlSource}\",");
+                }
+
+                if (stmt.ResultType is not null
+                    && stmt.ResultMapId is null
+                    && typeToMethod is not null
+                    && typeToMethod.TryGetValue(stmt.ResultType, out var xmlMapperMethod)) {
+                    sb.AppendLine($"                RowMapper = reader => global::NuVatis.NuVatisTypeMappers.{xmlMapperMethod}(reader),");
                 }
 
                 sb.AppendLine("            };");

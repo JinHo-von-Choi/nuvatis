@@ -1,1 +1,3 @@
 #nullable enable
+static NuVatis.Generators.Emitters.ProxyEmitter.Emit(NuVatis.Generators.Analysis.MapperInterfaceInfo! interfaceInfo, NuVatis.Generators.Models.ParsedMapper? mapper, Microsoft.CodeAnalysis.Compilation? compilation = null, System.Collections.Generic.Dictionary<string!, string!>? sharedTypeToMethod = null) -> string!
+static NuVatis.Generators.Emitters.RegistryEmitter.Emit(System.Collections.Immutable.ImmutableArray<NuVatis.Generators.Analysis.MapperInterfaceInfo!> interfaces, System.Collections.Immutable.ImmutableArray<NuVatis.Generators.Models.ParsedMapper!> xmlMappers = default(System.Collections.Immutable.ImmutableArray<NuVatis.Generators.Models.ParsedMapper!>), System.Collections.Generic.Dictionary<string!, string!>? typeToMethod = null) -> string!

@@ -23,7 +23,11 @@ namespace NuVatis.Generators.Emitters;
 public static class ProxyEmitter {
 
     public static string Emit(
-        MapperInterfaceInfo interfaceInfo, ParsedMapper? mapper, Compilation? compilation = null) {
+        MapperInterfaceInfo interfaceInfo,
+        ParsedMapper? mapper,
+        Compilation? compilation = null,
+        System.Collections.Generic.Dictionary<string, string>? sharedTypeToMethod = null) {
+
         var sb           = new StringBuilder(2048);
         var sqlNamespace = mapper?.Namespace ?? interfaceInfo.FullyQualifiedName;
         var implName     = GetImplementationName(interfaceInfo.Name);
@@ -50,7 +54,7 @@ public static class ProxyEmitter {
 
         Dictionary<string, string>? resultTypeMethodRefs = null;
         if (mapper is not null && compilation is not null) {
-            resultTypeMethodRefs = EmitMappingMethods(sb, interfaceInfo, mapper, compilation);
+            resultTypeMethodRefs = EmitMappingMethods(sb, interfaceInfo, mapper, compilation, sharedTypeToMethod);
         }
 
         // 각 statement마다 BuildSql_XXX 정적 메서드를 인라인으로 방출한다.
@@ -101,11 +105,15 @@ public static class ProxyEmitter {
      * GetTypeByMetadataName 실패 시 인터페이스 메서드의 Roslyn FQN으로 폴백한다.
      */
     private static Dictionary<string, string> EmitMappingMethods(
-        StringBuilder sb, MapperInterfaceInfo interfaceInfo, ParsedMapper mapper, Compilation compilation) {
+        StringBuilder sb,
+        MapperInterfaceInfo interfaceInfo,
+        ParsedMapper mapper,
+        Compilation compilation,
+        System.Collections.Generic.Dictionary<string, string>? sharedTypeToMethod = null) {
 
         var resultTypeMethodRefs = new Dictionary<string, string>(StringComparer.Ordinal);
 
-        // 기존: ResultMap 기반 매핑 메서드
+        // ResultMap 기반 매핑 메서드: 프록시 클래스 내부에 생성 (기존 동작 유지)
         var resultMapTypeOverrides = BuildResultMapTypeOverrides(interfaceInfo, mapper);
 
         foreach (var resultMap in mapper.ResultMaps) {
@@ -126,30 +134,14 @@ public static class ProxyEmitter {
             sb.Append(code);
         }
 
-        // 신규: resultType-only statement 매핑 메서드 (중복 타입은 한 번만 생성)
-        var generatedTypes = new HashSet<string>(StringComparer.Ordinal);
-
+        // resultType-only: sharedTypeToMethod에서 참조명 조회.
+        // TypeMappersEmitter가 공유 클래스에 이미 생성했으므로 직접 생성하지 않고 참조만 등록한다.
         foreach (var stmt in mapper.Statements) {
             if (stmt.ResultType is null || stmt.ResultMapId is not null) continue;
 
-            var typeSymbol = compilation.GetTypeByMetadataName(stmt.ResultType);
-            if (typeSymbol is null) continue;
-
-            var targetTypeName = TypeResolver.GetFullyQualifiedName(typeSymbol);
-            string? methodName = "Map_T_" + SanitizeTypeName(stmt.ResultType);
-
-            if (generatedTypes.Add(stmt.ResultType)) {
-                var code = MappingEmitter.EmitMapMethodFromType(methodName, targetTypeName, typeSymbol);
-                if (code is not null) {
-                    sb.AppendLine();
-                    sb.Append(code);
-                } else {
-                    methodName = null;
-                }
-            }
-
-            if (methodName is not null) {
-                resultTypeMethodRefs[stmt.Id] = methodName;
+            if (sharedTypeToMethod is not null
+                && sharedTypeToMethod.TryGetValue(stmt.ResultType, out var methodName)) {
+                resultTypeMethodRefs[stmt.Id] = $"global::NuVatis.NuVatisTypeMappers.{methodName}";
             }
         }
 
@@ -397,8 +389,4 @@ public static class ProxyEmitter {
             : interfaceName + "Impl";
     }
 
-    private static string SanitizeTypeName(string typeName) {
-        return typeName.Replace(".", "_").Replace("<", "_").Replace(">", "_")
-                       .Replace(",", "_").Replace(" ", "_");
-    }
 }

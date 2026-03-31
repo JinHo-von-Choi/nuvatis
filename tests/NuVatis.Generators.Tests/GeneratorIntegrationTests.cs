@@ -539,15 +539,23 @@ namespace MyApp
             d.Id.StartsWith("NV")).ToArray();
         Assert.Empty(sgErrors);
 
+        // Map_T_XXX 메서드는 이제 공유 NuVatisTypeMappers.g.cs에 생성된다.
+        var typeMappersFile = sources.FirstOrDefault(f => f.HintName == "NuVatisTypeMappers.g.cs");
+        Assert.False(typeMappersFile.Equals(default),
+            $"NuVatisTypeMappers.g.cs not generated. Hints: [{string.Join(", ", sources.Select(s => s.HintName))}]");
+
+        var typeMappersCode = typeMappersFile.SourceText.ToString();
+        Assert.Contains("Map_T_MyApp_UserDto", typeMappersCode);
+        Assert.Contains("reader.FieldCount", typeMappersCode);
+        Assert.Contains("switch (__key)", typeMappersCode);
+
+        // 프록시는 공유 클래스의 메서드를 참조해야 한다.
         var implFile = sources.FirstOrDefault(f => f.HintName == "IUserMapperImpl.g.cs");
         Assert.False(implFile.Equals(default),
             $"IUserMapperImpl.g.cs not generated. Hints: [{string.Join(", ", sources.Select(s => s.HintName))}]");
 
-        var code = implFile.SourceText.ToString();
-
-        Assert.Contains("Map_T_MyApp_UserDto", code);
-        Assert.Contains("reader.FieldCount", code);
-        Assert.Contains("switch (__key)", code);
+        var implCode = implFile.SourceText.ToString();
+        Assert.Contains("global::NuVatis.NuVatisTypeMappers.Map_T_MyApp_UserDto", implCode);
     }
 
     /**
@@ -629,15 +637,23 @@ namespace TestApp {
             d.Id.StartsWith("NV")).ToArray();
         Assert.Empty(sgErrors);
 
+        // Map_T_XXX 메서드는 이제 공유 NuVatisTypeMappers.g.cs에 생성된다.
+        var typeMappersFile = sources.FirstOrDefault(f => f.HintName == "NuVatisTypeMappers.g.cs");
+        Assert.False(typeMappersFile.Equals(default),
+            $"NuVatisTypeMappers.g.cs not generated. Hints: [{string.Join(", ", sources.Select(s => s.HintName))}]");
+
+        var typeMappersCode = typeMappersFile.SourceText.ToString();
+        Assert.Contains("(TestApp.UserStatus)", typeMappersCode);
+        Assert.Contains("GetInt32", typeMappersCode);
+        Assert.DoesNotContain("GetFieldValue<TestApp.UserStatus>", typeMappersCode);
+
+        // 프록시는 공유 클래스의 메서드를 참조해야 한다.
         var implFile = sources.FirstOrDefault(f => f.HintName == "IStatusMapperImpl.g.cs");
         Assert.False(implFile.Equals(default),
             $"IStatusMapperImpl.g.cs not generated. Hints: [{string.Join(", ", sources.Select(s => s.HintName))}]");
 
-        var code = implFile.SourceText.ToString();
-
-        Assert.Contains("(TestApp.UserStatus)", code);
-        Assert.Contains("GetInt32", code);
-        Assert.DoesNotContain("GetFieldValue<TestApp.UserStatus>", code);
+        var implCode = implFile.SourceText.ToString();
+        Assert.Contains("global::NuVatis.NuVatisTypeMappers.Map_T_TestApp_UserWithStatus", implCode);
     }
 
     /**
