@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.0] - Unreleased
+
+### Added
+
+- **.editorconfig**: .NET 표준 코딩 스타일 규칙 추가 (indent, var 사용, naming, 패턴 매칭 등)
+
+### Changed
+
+- **Central Package Management(CPM)**: `Directory.Packages.props` 도입으로 18개 프로젝트 패키지 버전 중앙 관리 전환. TF-조건부 패키지는 `VersionOverride`로 per-TF 버전 유지
+- **Microsoft.NET.Test.Sdk**: 17.6.0 → 17.13.0 통일 (4개 테스트 프로젝트 전체)
+- **Microsoft.CodeAnalysis.CSharp**: Generators.Tests 4.8.0 → 5.3.0 (Generators와 버전 일치)
+- **ResultMapper**: bare `catch {}` → `catch (IndexOutOfRangeException)` 한정 및 의도 주석 추가
+- **TestExpressionEvaluator**: 타입 변환 `catch` 블록 의도 주석 추가
+
+### Fixed
+
+- **Generators.Tests 빌드 오류**: NuVatis.Generators(CodeAnalysis 5.3.0)와 Generators.Tests(CodeAnalysis 4.8.0) 버전 불일치로 인한 CS1705 오류 수정
+
 ## [2.4.0] - 2026-03-09
 
 ### Added
