@@ -25,7 +25,7 @@
 | 항목 | 수치 |
 |------|------|
 | 소스 코드 | ~15,400줄 / 562파일 |
-| 테스트 코드 | 952개+ 테스트 (NuVatis.Tests 360 + Generators.Tests 144 + QueryBuilder 448) |
+| 테스트 코드 | 567개+ 테스트 (NuVatis.Tests 309 + Generators.Tests 147 + QueryBuilder.Tests 94 + QueryBuilder.Tools.Tests 17) |
 | NuGet 패키지 | 14개 |
 | 지원 .NET | 6.0 / 7.0 / 8.0 / 9.0 / 10.0 / 11.0 멀티 타겟 |
 | 지원 DB | PostgreSQL, MySQL, SQL Server, SQLite, Oracle |
