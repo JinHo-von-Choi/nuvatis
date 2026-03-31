@@ -1,1 +1,228 @@
 #nullable enable
+abstract NuVatis.QueryBuilder.Rendering.BaseDialect.Placeholder(int index) -> string!
+abstract NuVatis.QueryBuilder.Rendering.BaseDialect.QuoteIdentifier(string! name) -> string!
+NuVatis.QueryBuilder.Ast.Agg
+NuVatis.QueryBuilder.Ast.AggregateField<T>
+NuVatis.QueryBuilder.Ast.AggregateField<T>.AggregateField(string! functionName, string! columnExpr) -> void
+NuVatis.QueryBuilder.Ast.AggregateField<T>.Eq(T value) -> NuVatis.QueryBuilder.Ast.ConditionNode!
+NuVatis.QueryBuilder.Ast.AggregateField<T>.Ge(T value) -> NuVatis.QueryBuilder.Ast.ConditionNode!
+NuVatis.QueryBuilder.Ast.AggregateField<T>.Gt(T value) -> NuVatis.QueryBuilder.Ast.ConditionNode!
+NuVatis.QueryBuilder.Ast.AggregateField<T>.Le(T value) -> NuVatis.QueryBuilder.Ast.ConditionNode!
+NuVatis.QueryBuilder.Ast.AggregateField<T>.Lt(T value) -> NuVatis.QueryBuilder.Ast.ConditionNode!
+NuVatis.QueryBuilder.Ast.AggregateField<T>.Ne(T value) -> NuVatis.QueryBuilder.Ast.ConditionNode!
+NuVatis.QueryBuilder.Ast.AggregateFieldBase
+NuVatis.QueryBuilder.Ast.AggregateFieldBase.AggregateFieldBase(string! functionName, string! columnExpr) -> void
+NuVatis.QueryBuilder.Ast.AggregateFieldBase.FunctionName.get -> string!
+NuVatis.QueryBuilder.Ast.AndCondition
+NuVatis.QueryBuilder.Ast.AndCondition.Left.get -> NuVatis.QueryBuilder.Ast.ConditionNode!
+NuVatis.QueryBuilder.Ast.AndCondition.Right.get -> NuVatis.QueryBuilder.Ast.ConditionNode!
+NuVatis.QueryBuilder.Ast.BinaryCondition
+NuVatis.QueryBuilder.Ast.BinaryCondition.Field.get -> NuVatis.QueryBuilder.Ast.FieldNode!
+NuVatis.QueryBuilder.Ast.BinaryCondition.Operator.get -> string!
+NuVatis.QueryBuilder.Ast.BinaryCondition.Value.get -> object?
+NuVatis.QueryBuilder.Ast.ConditionNode
+NuVatis.QueryBuilder.Ast.ConditionNode.And(NuVatis.QueryBuilder.Ast.ConditionNode! other) -> NuVatis.QueryBuilder.Ast.ConditionNode!
+NuVatis.QueryBuilder.Ast.ConditionNode.ConditionNode() -> void
+NuVatis.QueryBuilder.Ast.ConditionNode.Not() -> NuVatis.QueryBuilder.Ast.ConditionNode!
+NuVatis.QueryBuilder.Ast.ConditionNode.Or(NuVatis.QueryBuilder.Ast.ConditionNode! other) -> NuVatis.QueryBuilder.Ast.ConditionNode!
+NuVatis.QueryBuilder.Ast.DeleteQuery
+NuVatis.QueryBuilder.Ast.DeleteQuery.DeleteQuery(NuVatis.QueryBuilder.Ast.TableNode! table) -> void
+NuVatis.QueryBuilder.Ast.DeleteQuery.Table.get -> NuVatis.QueryBuilder.Ast.TableNode!
+NuVatis.QueryBuilder.Ast.DeleteQuery.Where(NuVatis.QueryBuilder.Ast.ConditionNode! condition) -> NuVatis.QueryBuilder.Ast.DeleteQuery!
+NuVatis.QueryBuilder.Ast.DeleteQuery.WhereCondition.get -> NuVatis.QueryBuilder.Ast.ConditionNode?
+NuVatis.QueryBuilder.Ast.FieldNode
+NuVatis.QueryBuilder.Ast.FieldNode.Asc() -> NuVatis.QueryBuilder.Ast.SortField!
+NuVatis.QueryBuilder.Ast.FieldNode.ColumnName.get -> string!
+NuVatis.QueryBuilder.Ast.FieldNode.Desc() -> NuVatis.QueryBuilder.Ast.SortField!
+NuVatis.QueryBuilder.Ast.FieldNode.Eq(NuVatis.QueryBuilder.Ast.FieldNode! other) -> NuVatis.QueryBuilder.Ast.ConditionNode!
+NuVatis.QueryBuilder.Ast.FieldNode.FieldNode(NuVatis.QueryBuilder.Ast.TableNode? table, string! columnName) -> void
+NuVatis.QueryBuilder.Ast.FieldNode.IsNotNull() -> NuVatis.QueryBuilder.Ast.IsNullCondition!
+NuVatis.QueryBuilder.Ast.FieldNode.IsNull() -> NuVatis.QueryBuilder.Ast.IsNullCondition!
+NuVatis.QueryBuilder.Ast.FieldNode.Table.get -> NuVatis.QueryBuilder.Ast.TableNode?
+NuVatis.QueryBuilder.Ast.FieldNode<T>
+NuVatis.QueryBuilder.Ast.FieldNode<T>.Eq(T value) -> NuVatis.QueryBuilder.Ast.ConditionNode!
+NuVatis.QueryBuilder.Ast.FieldNode<T>.FieldNode(NuVatis.QueryBuilder.Ast.TableNode! table, string! columnName) -> void
+NuVatis.QueryBuilder.Ast.FieldNode<T>.Ge(T value) -> NuVatis.QueryBuilder.Ast.ConditionNode!
+NuVatis.QueryBuilder.Ast.FieldNode<T>.Gt(T value) -> NuVatis.QueryBuilder.Ast.ConditionNode!
+NuVatis.QueryBuilder.Ast.FieldNode<T>.In(System.Collections.Generic.IEnumerable<T>! values) -> NuVatis.QueryBuilder.Ast.ConditionNode!
+NuVatis.QueryBuilder.Ast.FieldNode<T>.Le(T value) -> NuVatis.QueryBuilder.Ast.ConditionNode!
+NuVatis.QueryBuilder.Ast.FieldNode<T>.Like(string! pattern) -> NuVatis.QueryBuilder.Ast.ConditionNode!
+NuVatis.QueryBuilder.Ast.FieldNode<T>.Lt(T value) -> NuVatis.QueryBuilder.Ast.ConditionNode!
+NuVatis.QueryBuilder.Ast.FieldNode<T>.Ne(T value) -> NuVatis.QueryBuilder.Ast.ConditionNode!
+NuVatis.QueryBuilder.Ast.InCondition
+NuVatis.QueryBuilder.Ast.InCondition.Field.get -> NuVatis.QueryBuilder.Ast.FieldNode!
+NuVatis.QueryBuilder.Ast.InCondition.Values.get -> System.Collections.Generic.IReadOnlyList<object?>!
+NuVatis.QueryBuilder.Ast.InsertQuery
+NuVatis.QueryBuilder.Ast.InsertQuery.AddRow(params object?[]! values) -> NuVatis.QueryBuilder.Ast.InsertQuery!
+NuVatis.QueryBuilder.Ast.InsertQuery.Columns.get -> System.Collections.Generic.IReadOnlyList<NuVatis.QueryBuilder.Ast.FieldNode!>!
+NuVatis.QueryBuilder.Ast.InsertQuery.InsertQuery(NuVatis.QueryBuilder.Ast.TableNode! table) -> void
+NuVatis.QueryBuilder.Ast.InsertQuery.Into(params NuVatis.QueryBuilder.Ast.FieldNode![]! columns) -> NuVatis.QueryBuilder.Ast.InsertQuery!
+NuVatis.QueryBuilder.Ast.InsertQuery.Rows.get -> System.Collections.Generic.IReadOnlyList<System.Collections.Generic.IReadOnlyList<object?>!>!
+NuVatis.QueryBuilder.Ast.InsertQuery.Table.get -> NuVatis.QueryBuilder.Ast.TableNode!
+NuVatis.QueryBuilder.Ast.InsertQuery.Values.get -> System.Collections.Generic.IReadOnlyList<object?>!
+NuVatis.QueryBuilder.Ast.InsertQuery.WithValues(params object?[]! values) -> NuVatis.QueryBuilder.Ast.InsertQuery!
+NuVatis.QueryBuilder.Ast.IsNullCondition
+NuVatis.QueryBuilder.Ast.IsNullCondition.Field.get -> NuVatis.QueryBuilder.Ast.FieldNode!
+NuVatis.QueryBuilder.Ast.IsNullCondition.Negated.get -> bool
+NuVatis.QueryBuilder.Ast.JoinClause
+NuVatis.QueryBuilder.Ast.JoinClause.On.get -> NuVatis.QueryBuilder.Ast.ConditionNode?
+NuVatis.QueryBuilder.Ast.JoinClause.Table.get -> NuVatis.QueryBuilder.Ast.TableNode!
+NuVatis.QueryBuilder.Ast.JoinClause.Type.get -> NuVatis.QueryBuilder.Ast.JoinType
+NuVatis.QueryBuilder.Ast.JoinStep
+NuVatis.QueryBuilder.Ast.JoinStep.On(NuVatis.QueryBuilder.Ast.ConditionNode! condition) -> NuVatis.QueryBuilder.Ast.SelectQuery!
+NuVatis.QueryBuilder.Ast.JoinType
+NuVatis.QueryBuilder.Ast.JoinType.Cross = 3 -> NuVatis.QueryBuilder.Ast.JoinType
+NuVatis.QueryBuilder.Ast.JoinType.Inner = 0 -> NuVatis.QueryBuilder.Ast.JoinType
+NuVatis.QueryBuilder.Ast.JoinType.Left = 1 -> NuVatis.QueryBuilder.Ast.JoinType
+NuVatis.QueryBuilder.Ast.JoinType.Right = 2 -> NuVatis.QueryBuilder.Ast.JoinType
+NuVatis.QueryBuilder.Ast.NotCondition
+NuVatis.QueryBuilder.Ast.NotCondition.Inner.get -> NuVatis.QueryBuilder.Ast.ConditionNode!
+NuVatis.QueryBuilder.Ast.OrCondition
+NuVatis.QueryBuilder.Ast.OrCondition.Left.get -> NuVatis.QueryBuilder.Ast.ConditionNode!
+NuVatis.QueryBuilder.Ast.OrCondition.Right.get -> NuVatis.QueryBuilder.Ast.ConditionNode!
+NuVatis.QueryBuilder.Ast.QueryNode
+NuVatis.QueryBuilder.Ast.QueryNode.QueryNode() -> void
+NuVatis.QueryBuilder.Ast.SelectQuery
+NuVatis.QueryBuilder.Ast.SelectQuery.Fields.get -> System.Collections.Generic.IReadOnlyList<NuVatis.QueryBuilder.Ast.FieldNode!>!
+NuVatis.QueryBuilder.Ast.SelectQuery.From(NuVatis.QueryBuilder.Ast.TableNode! table) -> NuVatis.QueryBuilder.Ast.SelectQuery!
+NuVatis.QueryBuilder.Ast.SelectQuery.FromTable.get -> NuVatis.QueryBuilder.Ast.TableNode?
+NuVatis.QueryBuilder.Ast.SelectQuery.GroupBy(params NuVatis.QueryBuilder.Ast.FieldNode![]! fields) -> NuVatis.QueryBuilder.Ast.SelectQuery!
+NuVatis.QueryBuilder.Ast.SelectQuery.GroupByFields.get -> System.Collections.Generic.IReadOnlyList<NuVatis.QueryBuilder.Ast.FieldNode!>!
+NuVatis.QueryBuilder.Ast.SelectQuery.Having(NuVatis.QueryBuilder.Ast.ConditionNode! condition) -> NuVatis.QueryBuilder.Ast.SelectQuery!
+NuVatis.QueryBuilder.Ast.SelectQuery.HavingCondition.get -> NuVatis.QueryBuilder.Ast.ConditionNode?
+NuVatis.QueryBuilder.Ast.SelectQuery.InnerJoin(NuVatis.QueryBuilder.Ast.TableNode! table) -> NuVatis.QueryBuilder.Ast.JoinStep!
+NuVatis.QueryBuilder.Ast.SelectQuery.Joins.get -> System.Collections.Generic.IReadOnlyList<NuVatis.QueryBuilder.Ast.JoinClause!>!
+NuVatis.QueryBuilder.Ast.SelectQuery.LeftJoin(NuVatis.QueryBuilder.Ast.TableNode! table) -> NuVatis.QueryBuilder.Ast.JoinStep!
+NuVatis.QueryBuilder.Ast.SelectQuery.Limit(int limit) -> NuVatis.QueryBuilder.Ast.SelectQuery!
+NuVatis.QueryBuilder.Ast.SelectQuery.LimitValue.get -> int?
+NuVatis.QueryBuilder.Ast.SelectQuery.Offset(int offset) -> NuVatis.QueryBuilder.Ast.SelectQuery!
+NuVatis.QueryBuilder.Ast.SelectQuery.OffsetValue.get -> int?
+NuVatis.QueryBuilder.Ast.SelectQuery.OrderBy(params NuVatis.QueryBuilder.Ast.SortField![]! fields) -> NuVatis.QueryBuilder.Ast.SelectQuery!
+NuVatis.QueryBuilder.Ast.SelectQuery.OrderByFields.get -> System.Collections.Generic.IReadOnlyList<NuVatis.QueryBuilder.Ast.SortField!>!
+NuVatis.QueryBuilder.Ast.SelectQuery.RightJoin(NuVatis.QueryBuilder.Ast.TableNode! table) -> NuVatis.QueryBuilder.Ast.JoinStep!
+NuVatis.QueryBuilder.Ast.SelectQuery.Select(params NuVatis.QueryBuilder.Ast.FieldNode![]! fields) -> NuVatis.QueryBuilder.Ast.SelectQuery!
+NuVatis.QueryBuilder.Ast.SelectQuery.SelectQuery() -> void
+NuVatis.QueryBuilder.Ast.SelectQuery.Where(NuVatis.QueryBuilder.Ast.ConditionNode! condition) -> NuVatis.QueryBuilder.Ast.SelectQuery!
+NuVatis.QueryBuilder.Ast.SelectQuery.WhereCondition.get -> NuVatis.QueryBuilder.Ast.ConditionNode?
+NuVatis.QueryBuilder.Ast.SortField
+NuVatis.QueryBuilder.Ast.SortField.Field.get -> NuVatis.QueryBuilder.Ast.FieldNode!
+NuVatis.QueryBuilder.Ast.SortField.Order.get -> NuVatis.QueryBuilder.Ast.SortOrder
+NuVatis.QueryBuilder.Ast.SortOrder
+NuVatis.QueryBuilder.Ast.SortOrder.Asc = 0 -> NuVatis.QueryBuilder.Ast.SortOrder
+NuVatis.QueryBuilder.Ast.SortOrder.Desc = 1 -> NuVatis.QueryBuilder.Ast.SortOrder
+NuVatis.QueryBuilder.Ast.TableNode
+NuVatis.QueryBuilder.Ast.TableNode.Alias.get -> string?
+NuVatis.QueryBuilder.Ast.TableNode.Alias.init -> void
+NuVatis.QueryBuilder.Ast.TableNode.As(string! alias) -> NuVatis.QueryBuilder.Ast.TableNode!
+NuVatis.QueryBuilder.Ast.TableNode.Name.get -> string!
+NuVatis.QueryBuilder.Ast.TableNode.Schema.get -> string!
+NuVatis.QueryBuilder.Ast.TableNode.TableNode(string! schema, string! name) -> void
+NuVatis.QueryBuilder.Ast.UpdateQuery
+NuVatis.QueryBuilder.Ast.UpdateQuery.Set<T>(NuVatis.QueryBuilder.Ast.FieldNode<T>! field, T value) -> NuVatis.QueryBuilder.Ast.UpdateQuery!
+NuVatis.QueryBuilder.Ast.UpdateQuery.Sets.get -> System.Collections.Generic.IReadOnlyList<(NuVatis.QueryBuilder.Ast.FieldNode! Field, object? Value)>!
+NuVatis.QueryBuilder.Ast.UpdateQuery.Table.get -> NuVatis.QueryBuilder.Ast.TableNode!
+NuVatis.QueryBuilder.Ast.UpdateQuery.UpdateQuery(NuVatis.QueryBuilder.Ast.TableNode! table) -> void
+NuVatis.QueryBuilder.Ast.UpdateQuery.Where(NuVatis.QueryBuilder.Ast.ConditionNode! condition) -> NuVatis.QueryBuilder.Ast.UpdateQuery!
+NuVatis.QueryBuilder.Ast.UpdateQuery.WhereCondition.get -> NuVatis.QueryBuilder.Ast.ConditionNode?
+NuVatis.QueryBuilder.Dsl.DeleteStep
+NuVatis.QueryBuilder.Dsl.DeleteStep.Execute() -> int
+NuVatis.QueryBuilder.Dsl.DeleteStep.ToSql() -> NuVatis.QueryBuilder.Rendering.RenderedSql!
+NuVatis.QueryBuilder.Dsl.DeleteStep.Where(NuVatis.QueryBuilder.Ast.ConditionNode! condition) -> NuVatis.QueryBuilder.Dsl.DeleteStep!
+NuVatis.QueryBuilder.Dsl.DslContext
+NuVatis.QueryBuilder.Dsl.DslContext.DeleteFrom(NuVatis.QueryBuilder.Ast.TableNode! table) -> NuVatis.QueryBuilder.Dsl.DeleteStep!
+NuVatis.QueryBuilder.Dsl.DslContext.DslContext(NuVatis.QueryBuilder.Rendering.ISqlDialect! dialect, System.Data.Common.DbConnection? connection = null) -> void
+NuVatis.QueryBuilder.Dsl.DslContext.InsertInto(NuVatis.QueryBuilder.Ast.TableNode! table) -> NuVatis.QueryBuilder.Dsl.InsertStep!
+NuVatis.QueryBuilder.Dsl.DslContext.Select(params NuVatis.QueryBuilder.Ast.FieldNode![]! fields) -> NuVatis.QueryBuilder.Dsl.SelectStep!
+NuVatis.QueryBuilder.Dsl.DslContext.Update(NuVatis.QueryBuilder.Ast.TableNode! table) -> NuVatis.QueryBuilder.Dsl.UpdateStep!
+NuVatis.QueryBuilder.Dsl.InsertStep
+NuVatis.QueryBuilder.Dsl.InsertStep.AddRow(params object?[]! values) -> NuVatis.QueryBuilder.Dsl.InsertStep!
+NuVatis.QueryBuilder.Dsl.InsertStep.Columns(params NuVatis.QueryBuilder.Ast.FieldNode![]! columns) -> NuVatis.QueryBuilder.Dsl.InsertStep!
+NuVatis.QueryBuilder.Dsl.InsertStep.Execute() -> int
+NuVatis.QueryBuilder.Dsl.InsertStep.ToSql() -> NuVatis.QueryBuilder.Rendering.RenderedSql!
+NuVatis.QueryBuilder.Dsl.InsertStep.Values(params object?[]! values) -> NuVatis.QueryBuilder.Dsl.InsertStep!
+NuVatis.QueryBuilder.Dsl.JoinStepWrapper
+NuVatis.QueryBuilder.Dsl.JoinStepWrapper.On(NuVatis.QueryBuilder.Ast.ConditionNode! condition) -> NuVatis.QueryBuilder.Dsl.SelectStep!
+NuVatis.QueryBuilder.Dsl.SelectStep
+NuVatis.QueryBuilder.Dsl.SelectStep.Fetch<T>() -> System.Collections.Generic.List<T>!
+NuVatis.QueryBuilder.Dsl.SelectStep.FetchAsync<T>(System.Threading.CancellationToken ct = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.List<T>!>!
+NuVatis.QueryBuilder.Dsl.SelectStep.FetchOne<T>() -> T?
+NuVatis.QueryBuilder.Dsl.SelectStep.From(NuVatis.QueryBuilder.Ast.TableNode! table) -> NuVatis.QueryBuilder.Dsl.SelectStep!
+NuVatis.QueryBuilder.Dsl.SelectStep.GroupBy(params NuVatis.QueryBuilder.Ast.FieldNode![]! fields) -> NuVatis.QueryBuilder.Dsl.SelectStep!
+NuVatis.QueryBuilder.Dsl.SelectStep.Having(NuVatis.QueryBuilder.Ast.ConditionNode! condition) -> NuVatis.QueryBuilder.Dsl.SelectStep!
+NuVatis.QueryBuilder.Dsl.SelectStep.InnerJoin(NuVatis.QueryBuilder.Ast.TableNode! table) -> NuVatis.QueryBuilder.Dsl.JoinStepWrapper!
+NuVatis.QueryBuilder.Dsl.SelectStep.LeftJoin(NuVatis.QueryBuilder.Ast.TableNode! table) -> NuVatis.QueryBuilder.Dsl.JoinStepWrapper!
+NuVatis.QueryBuilder.Dsl.SelectStep.Limit(int limit) -> NuVatis.QueryBuilder.Dsl.SelectStep!
+NuVatis.QueryBuilder.Dsl.SelectStep.Offset(int offset) -> NuVatis.QueryBuilder.Dsl.SelectStep!
+NuVatis.QueryBuilder.Dsl.SelectStep.OrderBy(params NuVatis.QueryBuilder.Ast.SortField![]! fields) -> NuVatis.QueryBuilder.Dsl.SelectStep!
+NuVatis.QueryBuilder.Dsl.SelectStep.RightJoin(NuVatis.QueryBuilder.Ast.TableNode! table) -> NuVatis.QueryBuilder.Dsl.JoinStepWrapper!
+NuVatis.QueryBuilder.Dsl.SelectStep.ToSql() -> NuVatis.QueryBuilder.Rendering.RenderedSql!
+NuVatis.QueryBuilder.Dsl.SelectStep.Where(NuVatis.QueryBuilder.Ast.ConditionNode! condition) -> NuVatis.QueryBuilder.Dsl.SelectStep!
+NuVatis.QueryBuilder.Dsl.UpdateStep
+NuVatis.QueryBuilder.Dsl.UpdateStep.Execute() -> int
+NuVatis.QueryBuilder.Dsl.UpdateStep.Set<T>(NuVatis.QueryBuilder.Ast.FieldNode<T>! field, T value) -> NuVatis.QueryBuilder.Dsl.UpdateStep!
+NuVatis.QueryBuilder.Dsl.UpdateStep.ToSql() -> NuVatis.QueryBuilder.Rendering.RenderedSql!
+NuVatis.QueryBuilder.Dsl.UpdateStep.Where(NuVatis.QueryBuilder.Ast.ConditionNode! condition) -> NuVatis.QueryBuilder.Dsl.UpdateStep!
+NuVatis.QueryBuilder.Exceptions.ExecutionException
+NuVatis.QueryBuilder.Exceptions.ExecutionException.ExecutionException(string! message, System.Exception! inner) -> void
+NuVatis.QueryBuilder.Exceptions.QueryBuilderException
+NuVatis.QueryBuilder.Exceptions.QueryBuilderException.QueryBuilderException(string! message) -> void
+NuVatis.QueryBuilder.Exceptions.QueryBuilderException.QueryBuilderException(string! message, System.Exception! inner) -> void
+NuVatis.QueryBuilder.Exceptions.SchemaValidationException
+NuVatis.QueryBuilder.Exceptions.SchemaValidationException.SchemaValidationException(string! message) -> void
+NuVatis.QueryBuilder.Exceptions.SqlRenderException
+NuVatis.QueryBuilder.Exceptions.SqlRenderException.SqlRenderException(string! message) -> void
+NuVatis.QueryBuilder.Exceptions.SqlRenderException.SqlRenderException(string! message, System.Exception! inner) -> void
+NuVatis.QueryBuilder.Execution.QueryExecutor
+NuVatis.QueryBuilder.Execution.RecordMapper
+NuVatis.QueryBuilder.Rendering.BaseDialect
+NuVatis.QueryBuilder.Rendering.BaseDialect.AppendCondition(System.Text.StringBuilder! sb, NuVatis.QueryBuilder.Ast.ConditionNode! cond, System.Collections.Generic.List<object?>! pars) -> void
+NuVatis.QueryBuilder.Rendering.BaseDialect.BaseDialect() -> void
+NuVatis.QueryBuilder.Rendering.BaseDialect.Render(NuVatis.QueryBuilder.Ast.DeleteQuery! q) -> NuVatis.QueryBuilder.Rendering.RenderedSql!
+NuVatis.QueryBuilder.Rendering.BaseDialect.Render(NuVatis.QueryBuilder.Ast.InsertQuery! q) -> NuVatis.QueryBuilder.Rendering.RenderedSql!
+NuVatis.QueryBuilder.Rendering.BaseDialect.Render(NuVatis.QueryBuilder.Ast.SelectQuery! q) -> NuVatis.QueryBuilder.Rendering.RenderedSql!
+NuVatis.QueryBuilder.Rendering.BaseDialect.Render(NuVatis.QueryBuilder.Ast.UpdateQuery! q) -> NuVatis.QueryBuilder.Rendering.RenderedSql!
+NuVatis.QueryBuilder.Rendering.ISqlDialect
+NuVatis.QueryBuilder.Rendering.ISqlDialect.ParameterName(int index) -> string!
+NuVatis.QueryBuilder.Rendering.ISqlDialect.Placeholder(int index) -> string!
+NuVatis.QueryBuilder.Rendering.ISqlDialect.QuoteIdentifier(string! name) -> string!
+NuVatis.QueryBuilder.Rendering.ISqlDialect.Render(NuVatis.QueryBuilder.Ast.DeleteQuery! query) -> NuVatis.QueryBuilder.Rendering.RenderedSql!
+NuVatis.QueryBuilder.Rendering.ISqlDialect.Render(NuVatis.QueryBuilder.Ast.InsertQuery! query) -> NuVatis.QueryBuilder.Rendering.RenderedSql!
+NuVatis.QueryBuilder.Rendering.ISqlDialect.Render(NuVatis.QueryBuilder.Ast.SelectQuery! query) -> NuVatis.QueryBuilder.Rendering.RenderedSql!
+NuVatis.QueryBuilder.Rendering.ISqlDialect.Render(NuVatis.QueryBuilder.Ast.UpdateQuery! query) -> NuVatis.QueryBuilder.Rendering.RenderedSql!
+NuVatis.QueryBuilder.Rendering.MySqlDialect
+NuVatis.QueryBuilder.Rendering.MySqlDialect.MySqlDialect() -> void
+NuVatis.QueryBuilder.Rendering.OracleDialect
+NuVatis.QueryBuilder.Rendering.OracleDialect.OracleDialect() -> void
+NuVatis.QueryBuilder.Rendering.PostgreSqlDialect
+NuVatis.QueryBuilder.Rendering.PostgreSqlDialect.PostgreSqlDialect() -> void
+NuVatis.QueryBuilder.Rendering.RenderedSql
+NuVatis.QueryBuilder.Rendering.RenderedSql.Parameters.get -> System.Collections.Generic.IReadOnlyList<object?>!
+NuVatis.QueryBuilder.Rendering.RenderedSql.Parameters.init -> void
+NuVatis.QueryBuilder.Rendering.RenderedSql.RenderedSql(string! Sql, System.Collections.Generic.IReadOnlyList<object?>! Parameters) -> void
+NuVatis.QueryBuilder.Rendering.RenderedSql.Sql.get -> string!
+NuVatis.QueryBuilder.Rendering.RenderedSql.Sql.init -> void
+NuVatis.QueryBuilder.Rendering.SqlServerDialect
+NuVatis.QueryBuilder.Rendering.SqlServerDialect.SqlServerDialect() -> void
+override NuVatis.QueryBuilder.Rendering.MySqlDialect.Placeholder(int index) -> string!
+override NuVatis.QueryBuilder.Rendering.MySqlDialect.QuoteIdentifier(string! name) -> string!
+override NuVatis.QueryBuilder.Rendering.OracleDialect.ParameterName(int index) -> string!
+override NuVatis.QueryBuilder.Rendering.OracleDialect.Placeholder(int index) -> string!
+override NuVatis.QueryBuilder.Rendering.OracleDialect.QuoteIdentifier(string! name) -> string!
+override NuVatis.QueryBuilder.Rendering.PostgreSqlDialect.ParameterName(int index) -> string!
+override NuVatis.QueryBuilder.Rendering.PostgreSqlDialect.Placeholder(int index) -> string!
+override NuVatis.QueryBuilder.Rendering.PostgreSqlDialect.QuoteIdentifier(string! name) -> string!
+override NuVatis.QueryBuilder.Rendering.SqlServerDialect.Placeholder(int index) -> string!
+override NuVatis.QueryBuilder.Rendering.SqlServerDialect.QuoteIdentifier(string! name) -> string!
+static NuVatis.QueryBuilder.Ast.Agg.Avg(string! col) -> NuVatis.QueryBuilder.Ast.AggregateField<double>!
+static NuVatis.QueryBuilder.Ast.Agg.Count(string! col = "*") -> NuVatis.QueryBuilder.Ast.AggregateField<int>!
+static NuVatis.QueryBuilder.Ast.Agg.CountL(string! col = "*") -> NuVatis.QueryBuilder.Ast.AggregateField<long>!
+static NuVatis.QueryBuilder.Ast.Agg.Max<T>(string! col) -> NuVatis.QueryBuilder.Ast.AggregateField<T>!
+static NuVatis.QueryBuilder.Ast.Agg.Min<T>(string! col) -> NuVatis.QueryBuilder.Ast.AggregateField<T>!
+static NuVatis.QueryBuilder.Ast.Agg.Sum(string! col) -> NuVatis.QueryBuilder.Ast.AggregateField<decimal>!
+static NuVatis.QueryBuilder.Execution.QueryExecutor.Execute(object! query, System.Data.Common.DbConnection! conn, NuVatis.QueryBuilder.Rendering.ISqlDialect! dialect) -> int
+static NuVatis.QueryBuilder.Execution.QueryExecutor.Fetch<T>(NuVatis.QueryBuilder.Ast.SelectQuery! query, System.Data.Common.DbConnection! conn, NuVatis.QueryBuilder.Rendering.ISqlDialect! dialect) -> System.Collections.Generic.List<T>!
+static NuVatis.QueryBuilder.Execution.QueryExecutor.FetchAsync<T>(NuVatis.QueryBuilder.Ast.SelectQuery! query, System.Data.Common.DbConnection! conn, NuVatis.QueryBuilder.Rendering.ISqlDialect! dialect, System.Threading.CancellationToken ct) -> System.Threading.Tasks.Task<System.Collections.Generic.List<T>!>!
+static NuVatis.QueryBuilder.Execution.QueryExecutor.FetchOne<T>(NuVatis.QueryBuilder.Ast.SelectQuery! query, System.Data.Common.DbConnection! conn, NuVatis.QueryBuilder.Rendering.ISqlDialect! dialect) -> T?
+static NuVatis.QueryBuilder.Execution.RecordMapper.MapRow<T>(System.Data.Common.DbDataReader! reader) -> T
+virtual NuVatis.QueryBuilder.Rendering.BaseDialect.AppendPagination(System.Text.StringBuilder! sb, NuVatis.QueryBuilder.Ast.SelectQuery! q) -> void
+virtual NuVatis.QueryBuilder.Rendering.BaseDialect.ParameterName(int index) -> string!
