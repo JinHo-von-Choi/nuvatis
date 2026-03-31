@@ -76,7 +76,7 @@ internal static class TypeMappersEmitter {
         HashSet<string> generated,
         Dictionary<string, string> typeToMethod) {
 
-        if (typeToMethod.ContainsKey(resultTypeFqn)) return;
+        if (generated.Contains(resultTypeFqn)) return;
 
         var typeSymbol = compilation.GetTypeByMetadataName(resultTypeFqn);
         if (typeSymbol is null) return;
@@ -84,15 +84,15 @@ internal static class TypeMappersEmitter {
         var methodName = "Map_T_" + MappingEmitter.SanitizeIdPublic(resultTypeFqn);
         var targetFqn  = TypeResolver.GetFullyQualifiedName(typeSymbol);
 
-        if (!generated.Contains(resultTypeFqn)) {
-            var code = MappingEmitter.EmitMapMethodFromType(methodName, targetFqn, typeSymbol);
-            if (code is null) return;
+        var code = MappingEmitter.EmitMapMethodFromType(methodName, targetFqn, typeSymbol);
 
-            sb.Append(code);
-            sb.AppendLine();
-            generated.Add(resultTypeFqn);
-        }
+        // 스칼라 타입 등 매핑 불가 타입은 generated에 등록하여 이후 중복 호출을 차단한다.
+        generated.Add(resultTypeFqn);
 
+        if (code is null) return;
+
+        sb.Append(code);
+        sb.AppendLine();
         typeToMethod[resultTypeFqn] = methodName;
     }
 }

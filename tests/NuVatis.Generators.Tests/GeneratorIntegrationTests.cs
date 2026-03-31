@@ -657,6 +657,62 @@ namespace TestApp {
     }
 
     /**
+     * XML resultType 스테이트먼트에 대해 레지스트리 코드가 RowMapper 람다를
+     * global::NuVatis.NuVatisTypeMappers 를 참조하여 emit하는지 검증한다.
+     */
+    [Fact]
+    public void SG_Registry_EmitsRowMapper_ForResultTypeStatement() {
+        // Given: resultType이 지정된 select 스테이트먼트와 복합 DTO 타입
+        var dtoSource = @"
+namespace RegistryTest
+{
+    public class OrderDto
+    {
+        public int    Id     { get; set; }
+        public string Status { get; set; }
+    }
+}";
+
+        var mapperXml = @"<?xml version=""1.0"" encoding=""UTF-8""?>
+<mapper namespace=""RegistryTest.IOrderMapper"">
+    <select id=""GetOrder"" resultType=""RegistryTest.OrderDto"">
+        SELECT id, status FROM orders WHERE id = #{id}
+    </select>
+</mapper>";
+
+        var mapperInterface = @"
+namespace RegistryTest
+{
+    [NuVatis.Attributes.NuVatisMapper]
+    public interface IOrderMapper
+    {
+        RegistryTest.OrderDto GetOrder(int id);
+    }
+}";
+
+        // When: SG 실행
+        var (sources, diagnostics) = RunGenerator(
+            new[] { Stubs, dtoSource, mapperInterface },
+            new[] { ("OrderMapper.xml", mapperXml) });
+
+        var sgErrors = diagnostics.Where(d =>
+            d.Severity == DiagnosticSeverity.Error &&
+            d.Id.StartsWith("NV")).ToArray();
+        Assert.Empty(sgErrors);
+
+        // Then: 레지스트리 코드가 RowMapper 속성을 포함해야 한다
+        var registry = sources.FirstOrDefault(s => s.HintName.Contains("Registry"));
+        Assert.False(registry.Equals(default),
+            $"Registry not generated. Hints: [{string.Join(", ", sources.Select(s => s.HintName))}]");
+
+        var registryCode = registry.SourceText.ToString();
+
+        Assert.Contains("RowMapper", registryCode);
+        Assert.Contains("global::NuVatis.NuVatisTypeMappers.", registryCode);
+        Assert.Contains("Map_T_RegistryTest_OrderDto", registryCode);
+    }
+
+    /**
      * 정상 경로 확인: XML resultMap type이 실제 FQN과 일치하면 그대로 사용.
      */
     [Fact]
