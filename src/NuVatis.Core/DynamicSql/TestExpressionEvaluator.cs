@@ -135,6 +135,7 @@ public static class TestExpressionEvaluator {
                     "<=" => result <= 0,
                     _    => false
                 };
+            // Convert.ChangeType 실패 시 비교 불가 → false 반환 (타입 불일치는 정상 흐름)
             } catch {
                 return false;
             }
@@ -149,10 +150,12 @@ public static class TestExpressionEvaluator {
         try {
             var convertedRight = Convert.ChangeType(right, left.GetType(), CultureInfo.InvariantCulture);
             return left.Equals(convertedRight);
+        // 양방향 타입 변환 시도 — 실패 시 역방향 변환 폴백
         } catch {
             try {
                 var convertedLeft = Convert.ChangeType(left, right.GetType(), CultureInfo.InvariantCulture);
                 return right.Equals(convertedLeft);
+            // 역방향 변환도 실패 시 문자열 비교로 최종 폴백
             } catch {
                 return string.Equals(left.ToString(), right.ToString(), StringComparison.Ordinal);
             }
