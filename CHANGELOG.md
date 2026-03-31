@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.7.0] - Unreleased
+
+### Added
+
+- **`MappedStatement.RowMapper`**: `resultType` 쿼리용 SG 생성 행 매퍼 델리게이트 프로퍼티 추가. `SqlSession.SelectOne/SelectList` 및 Async/Stream 변형 5개에서 null이 아니면 리플렉션 없이 SG 매퍼를 직접 호출한다.
+- **`NuVatisTypeMappers` 공유 정적 클래스 SG 생성**: Source Generator가 `resultType`-only 스테이트먼트의 행 매핑 메서드를 프록시 내부가 아닌 `NuVatisTypeMappers.g.cs` 공유 클래스에 생성한다. 프록시와 레지스트리 양쪽에서 참조 가능하다.
+
+### Changed
+
+- **`ProxyEmitter`**: `resultType`-only 스테이트먼트의 매핑 메서드를 인라인 생성에서 `global::NuVatis.NuVatisTypeMappers.Map_T_XXX` 공유 클래스 참조로 전환.
+- **`RegistryEmitter`**: `resultType` 스테이트먼트 등록 시 `RowMapper = reader => global::NuVatis.NuVatisTypeMappers.Map_T_XXX(reader)` 람다를 emit하도록 확장.
+
+### Fixed
+
+- **`PropertyReflectionCache.Build()` IL2070**: `[RequiresUnreferencedCode]` 어노테이션 추가로 AOT 어노테이션 체인 완성.
+- **`ResultMapper.ProcessCollection()` IL3050**: `#pragma warning disable` 목록에 IL3050 추가 (`MakeGenericType` 호출 정적 분석 경고 해소).
+
+---
+
 ## [2.6.0] - Unreleased
 
 ### Added
@@ -18,10 +37,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Microsoft.CodeAnalysis.CSharp**: Generators.Tests 4.8.0 → 5.3.0 (Generators와 버전 일치)
 - **ResultMapper**: bare `catch {}` → `catch (IndexOutOfRangeException)` 한정 및 의도 주석 추가
 - **TestExpressionEvaluator**: 타입 변환 `catch` 블록 의도 주석 추가
+- **`NuVatis.QueryBuilder` PublicAPI**: `PublicAPI.Unshipped.txt` 228개 엔트리를 `PublicAPI.Shipped.txt`로 이관. v2.4.0에서 추가된 QB API가 처음으로 공식 Shipped API로 등록됨.
 
 ### Fixed
 
 - **Generators.Tests 빌드 오류**: NuVatis.Generators(CodeAnalysis 5.3.0)와 Generators.Tests(CodeAnalysis 4.8.0) 버전 불일치로 인한 CS1705 오류 수정
+- **Microsoft.SourceLink.GitHub**: 버전 `10.0.0` → `10.0.102` (NU1603 × 19 해소)
+- **`LazyValue<T>` CS1587**: XML 문서 주석을 `[UnconditionalSuppressMessage]` 속성 앞으로 이동
+- **`ResultMapper` CS8604**: `ProcessCollection` 호출 시 non-null 보장 변수에 null-forgiving 연산자 추가
 
 ## [2.5.0] - 2026-03-12
 
