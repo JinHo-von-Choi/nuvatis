@@ -118,6 +118,33 @@ public static class NuVatisMapperRegistry {
 }
 ```
 
+## MappingEmitter — 지원 타입
+
+`MappingEmitter`는 `<resultMap>`에 선언된 각 프로퍼티의 CLR 타입을 분석하여 타입별 최적 reader 호출 코드를 생성한다.
+
+| CLR 타입 | 생성 코드 |
+|----------|----------|
+| `int` / `int?` | `reader.GetInt32(ordinal)` |
+| `long` / `long?` | `reader.GetInt64(ordinal)` |
+| `string` | `reader.GetString(ordinal)` |
+| `bool` / `bool?` | `reader.GetBoolean(ordinal)` |
+| `DateTime` / `DateTime?` | `reader.GetDateTime(ordinal)` |
+| `decimal` / `decimal?` | `reader.GetDecimal(ordinal)` |
+| `double` / `double?` | `reader.GetDouble(ordinal)` |
+| `Enum` 파생 타입 | `(EnumType)reader.GetInt32(ordinal)` |
+
+### Enum 프로퍼티 처리
+
+`Enum` 타입 프로퍼티는 `(EnumType)reader.GetInt32(ordinal)` 형식의 명시적 캐스트 코드를 생성한다.
+`Convert.ToObject`나 리플렉션을 사용하지 않아 AOT 환경에서도 안전하다.
+
+```csharp
+// 생성된 코드 예시
+result.Status = (OrderStatus)reader.GetInt32(2);
+```
+
+---
+
 ## 진단 코드
 
 | Code | Severity | Description |
