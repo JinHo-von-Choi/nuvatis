@@ -54,7 +54,8 @@ public class TestcontainersPostgreSqlE2ETests : IAsyncLifetime {
             return;
         }
 
-        _container = new PostgreSqlBuilder("postgres:16-alpine")
+        _container = new PostgreSqlBuilder()
+            .WithImage("postgres:16-alpine")
             .WithDatabase("nuvatis_test")
             .WithUsername("test")
             .WithPassword("test")

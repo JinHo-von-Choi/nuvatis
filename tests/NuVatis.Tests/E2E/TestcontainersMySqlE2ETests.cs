@@ -36,7 +36,8 @@ public class TestcontainersMySqlE2ETests : IAsyncLifetime {
             return;
         }
 
-        _container = new MySqlBuilder("mysql:8.0")
+        _container = new MySqlBuilder()
+            .WithImage("mysql:8.0")
             .WithDatabase("nuvatis_test")
             .WithUsername("test")
             .WithPassword("test1234")

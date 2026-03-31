@@ -1,0 +1,74 @@
+<Project>
+
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <!-- 전이적 패키지 자동 고정 비활성화 — 명시적으로 선언된 직접 참조만 관리 -->
+    <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+
+  <ItemGroup Label="Build Tools">
+    <PackageVersion Include="Microsoft.SourceLink.GitHub"               Version="10.0.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.PublicApiAnalyzers"  Version="3.3.4" />
+  </ItemGroup>
+
+  <ItemGroup Label="Roslyn / Source Generators">
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp"             Version="5.3.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces"  Version="5.3.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers"          Version="5.3.0" />
+    <PackageVersion Include="System.Collections.Immutable"              Version="10.0.5" />
+  </ItemGroup>
+
+  <!--
+    TF-conditional packages: 각 csproj에서 VersionOverride로 TF별 버전을 지정한다.
+    여기에 선언된 Version은 CPM 규정 준수를 위한 기본값(최신 TF 기준 정확한 버전)이며,
+    TF-conditional 참조에서는 VersionOverride로 덮어쓰므로 실제로는 사용되지 않는다.
+    CPM은 PackageVersion에 부동 버전(x.*)을 허용하지 않으므로 정확한 버전을 지정한다.
+  -->
+  <ItemGroup Label="Microsoft.Extensions (TF-conditional — VersionOverride per TF in each csproj)">
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions"        Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Binder"              Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection"               Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions"  Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks"          Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions"              Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions"              Version="10.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Label="EF Core (TF-conditional — VersionOverride per TF in each csproj)">
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Label="DB Providers">
+    <!--
+      Npgsql, Microsoft.Data.Sqlite: TF-conditional (net6→6.*, net7→7.*, net8→8.*, net9+→9.*).
+      VersionOverride per TF in csproj. PackageVersion은 CPM 등록용 플레이스홀더.
+    -->
+    <PackageVersion Include="Npgsql"                         Version="9.0.4" />
+    <PackageVersion Include="Microsoft.Data.Sqlite"          Version="9.0.4" />
+    <!-- Single-version DB providers -->
+    <PackageVersion Include="MySqlConnector"                  Version="2.4.0" />
+    <PackageVersion Include="Microsoft.Data.SqlClient"        Version="6.0.1" />
+    <PackageVersion Include="Oracle.ManagedDataAccess.Core"   Version="23.7.0" />
+  </ItemGroup>
+
+  <ItemGroup Label="CLI Tools">
+    <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+  </ItemGroup>
+
+  <ItemGroup Label="Testing">
+    <PackageVersion Include="Microsoft.NET.Test.Sdk"          Version="17.13.0" />
+    <PackageVersion Include="xunit"                           Version="2.4.2" />
+    <PackageVersion Include="xunit.runner.visualstudio"       Version="2.4.5" />
+    <PackageVersion Include="coverlet.collector"              Version="6.0.0" />
+    <PackageVersion Include="Xunit.SkippableFact"             Version="1.5.61" />
+    <PackageVersion Include="Testcontainers.PostgreSql"       Version="4.2.0" />
+    <PackageVersion Include="Testcontainers.MySql"            Version="4.2.0" />
+    <PackageVersion Include="Testcontainers.MsSql"            Version="4.10.0" />
+  </ItemGroup>
+
+  <ItemGroup Label="Benchmarks">
+    <PackageVersion Include="BenchmarkDotNet" Version="0.15.0" />
+    <PackageVersion Include="Dapper"          Version="2.1.44" />
+  </ItemGroup>
+
+</Project>

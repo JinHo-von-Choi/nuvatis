@@ -15,9 +15,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Npgsql"                  Version="9.*" />
-    <PackageReference Include="MySqlConnector"           Version="2.*" />
-    <PackageReference Include="System.CommandLine"       Version="2.0.0-beta4.22272.1" />
+    <PackageReference Include="Npgsql" />
+    <PackageReference Include="MySqlConnector" />
+    <PackageReference Include="System.CommandLine" />
   </ItemGroup>
 
   <!-- dotnet tool(Exe)은 공개 API 추적 불필요 — Directory.Build.props 자동 적용 무효화 -->

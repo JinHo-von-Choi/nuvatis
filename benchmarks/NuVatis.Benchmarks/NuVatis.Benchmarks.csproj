@@ -14,9 +14,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.15.*" />
-    <PackageReference Include="Dapper" Version="2.*" />
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.*" />
+    <PackageReference Include="BenchmarkDotNet" />
+    <PackageReference Include="Dapper" />
+    <!-- net8.0 전용 프로젝트 — 기본값(9.0.4)보다 낮은 버전 고정 -->
+    <PackageReference Include="Microsoft.Data.Sqlite" VersionOverride="8.*" />
   </ItemGroup>
 
 </Project>
