@@ -5,46 +5,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.7.0] - Unreleased
+## [2.6.0] - 2026-03-31
 
 ### Added
 
 - **`MappedStatement.RowMapper`**: `resultType` 쿼리용 SG 생성 행 매퍼 델리게이트 프로퍼티 추가. `SqlSession.SelectOne/SelectList` 및 Async/Stream 변형 5개에서 null이 아니면 리플렉션 없이 SG 매퍼를 직접 호출한다.
 - **`NuVatisTypeMappers` 공유 정적 클래스 SG 생성**: Source Generator가 `resultType`-only 스테이트먼트의 행 매핑 메서드를 프록시 내부가 아닌 `NuVatisTypeMappers.g.cs` 공유 클래스에 생성한다. 프록시와 레지스트리 양쪽에서 참조 가능하다.
+- **.editorconfig**: .NET 표준 코딩 스타일 규칙 추가 (indent, var 사용, naming, 패턴 매칭 등)
 
 ### Changed
 
 - **`ProxyEmitter`**: `resultType`-only 스테이트먼트의 매핑 메서드를 인라인 생성에서 `global::NuVatis.NuVatisTypeMappers.Map_T_XXX` 공유 클래스 참조로 전환.
 - **`RegistryEmitter`**: `resultType` 스테이트먼트 등록 시 `RowMapper = reader => global::NuVatis.NuVatisTypeMappers.Map_T_XXX(reader)` 람다를 emit하도록 확장.
-
-### Fixed
-
-- **`PropertyReflectionCache.Build()` IL2070**: `[RequiresUnreferencedCode]` 어노테이션 추가로 AOT 어노테이션 체인 완성.
-- **`ResultMapper.ProcessCollection()` IL3050**: `#pragma warning disable` 목록에 IL3050 추가 (`MakeGenericType` 호출 정적 분석 경고 해소).
-
----
-
-## [2.6.0] - Unreleased
-
-### Added
-
-- **.editorconfig**: .NET 표준 코딩 스타일 규칙 추가 (indent, var 사용, naming, 패턴 매칭 등)
-
-### Changed
-
 - **Central Package Management(CPM)**: `Directory.Packages.props` 도입으로 18개 프로젝트 패키지 버전 중앙 관리 전환. TF-조건부 패키지는 `VersionOverride`로 per-TF 버전 유지
 - **Microsoft.NET.Test.Sdk**: 17.6.0 → 17.13.0 통일 (4개 테스트 프로젝트 전체)
 - **Microsoft.CodeAnalysis.CSharp**: Generators.Tests 4.8.0 → 5.3.0 (Generators와 버전 일치)
 - **ResultMapper**: bare `catch {}` → `catch (IndexOutOfRangeException)` 한정 및 의도 주석 추가
 - **TestExpressionEvaluator**: 타입 변환 `catch` 블록 의도 주석 추가
 - **`NuVatis.QueryBuilder` PublicAPI**: `PublicAPI.Unshipped.txt` 228개 엔트리를 `PublicAPI.Shipped.txt`로 이관. v2.4.0에서 추가된 QB API가 처음으로 공식 Shipped API로 등록됨.
+- **Microsoft.Data.SqlClient**: 6.0.1 → 7.0.0 (Azure 의존성 분리, 패키지 경량화)
+- **Testcontainers**: PostgreSql/MySql 4.2.0 → 4.10.0 (MsSql 4.10.0과 버전 통일)
 
 ### Fixed
 
+- **`PropertyReflectionCache.Build()` IL2070**: `[RequiresUnreferencedCode]` 어노테이션 추가로 AOT 어노테이션 체인 완성.
+- **`ResultMapper.ProcessCollection()` IL3050**: `#pragma warning disable` 목록에 IL3050 추가 (`MakeGenericType` 호출 정적 분석 경고 해소).
 - **Generators.Tests 빌드 오류**: NuVatis.Generators(CodeAnalysis 5.3.0)와 Generators.Tests(CodeAnalysis 4.8.0) 버전 불일치로 인한 CS1705 오류 수정
 - **Microsoft.SourceLink.GitHub**: 버전 `10.0.0` → `10.0.102` (NU1603 × 19 해소)
 - **`LazyValue<T>` CS1587**: XML 문서 주석을 `[UnconditionalSuppressMessage]` 속성 앞으로 이동
 - **`ResultMapper` CS8604**: `ProcessCollection` 호출 시 non-null 보장 변수에 null-forgiving 연산자 추가
+- **CI Testcontainers 버전 불일치**: PostgreSql/MySql(4.2.0)과 MsSql(4.10.0) 간 `ContainerConfiguration` 생성자 시그니처 불일치로 `MissingMethodException` 발생하던 문제 해결
+- **CI SqlServerProvider 테스트 실패**: Microsoft.Data.SqlClient 6.0.1의 `System.Data.SqlClient` 레거시 어셈블리 참조로 `FileNotFoundException` 발생하던 문제 해결
 
 ## [2.5.0] - 2026-03-12
 
@@ -451,14 +442,16 @@ public static class TableRef {
 
 | Package | Version |
 |---------|---------|
-| NuVatis.Core | 2.3.0 |
-| NuVatis.Generators | 2.3.0 |
-| NuVatis.PostgreSql | 2.3.0 |
-| NuVatis.MySql | 2.3.0 |
-| NuVatis.SqlServer | 2.3.0 |
-| NuVatis.Sqlite | 2.3.0 |
-| NuVatis.Extensions.DependencyInjection | 2.3.0 |
-| NuVatis.Extensions.OpenTelemetry | 2.3.0 |
-| NuVatis.Extensions.EntityFrameworkCore | 2.3.0 |
-| NuVatis.Extensions.Aspire | 2.3.0 |
-| NuVatis.Testing | 2.3.0 |
+| NuVatis.Core | 2.6.0 |
+| NuVatis.Generators | 2.6.0 |
+| NuVatis.PostgreSql | 2.6.0 |
+| NuVatis.MySql | 2.6.0 |
+| NuVatis.SqlServer | 2.6.0 |
+| NuVatis.Sqlite | 2.6.0 |
+| NuVatis.Oracle | 2.6.0 |
+| NuVatis.QueryBuilder | 2.6.0 |
+| NuVatis.Extensions.DependencyInjection | 2.6.0 |
+| NuVatis.Extensions.OpenTelemetry | 2.6.0 |
+| NuVatis.Extensions.EntityFrameworkCore | 2.6.0 |
+| NuVatis.Extensions.Aspire | 2.6.0 |
+| NuVatis.Testing | 2.6.0 |
