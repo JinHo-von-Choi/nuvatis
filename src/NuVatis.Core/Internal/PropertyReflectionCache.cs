@@ -55,6 +55,8 @@ internal static class PropertyReflectionCache {
         return cache.GetOrAdd(type, t => Build(t, normalizeUnderscore));
     }
 
+    [RequiresUnreferencedCode(
+        "런타임 리플렉션 폴백. Source Generator 경로에서는 호출되지 않는다.")]
     private static Dictionary<string, PropertyInfo> Build(Type type, bool normalizeUnderscore) {
         var map   = new Dictionary<string, PropertyInfo>(StringComparer.OrdinalIgnoreCase);
         var props = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);

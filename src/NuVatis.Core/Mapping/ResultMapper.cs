@@ -128,7 +128,7 @@ public sealed class ResultMapper {
     }
 #pragma warning restore IL2070, IL2067
 
-#pragma warning disable IL2070, IL2067 // 호출자(MapRow<T>)가 RequiresUnreferencedCode 보장
+#pragma warning disable IL2070, IL2067, IL3050 // 호출자(MapRow<T>)가 RequiresUnreferencedCode/RequiresDynamicCode 보장
     private void ProcessCollection(
         DbDataReader reader,
         CollectionMapping mapping,
