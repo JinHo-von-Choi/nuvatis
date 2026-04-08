@@ -103,7 +103,7 @@ jobs:
 
       - name: Upload Coverage to Codecov
         if: matrix.os == 'ubuntu-latest' && matrix.dotnet == '10.0.x'
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           directory: ./TestResults
           flags: unittests
