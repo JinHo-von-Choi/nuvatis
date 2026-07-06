@@ -7,12 +7,26 @@ using NuVatis.QueryBuilder.Dsl;
 using NuVatis.QueryBuilder.Rendering;
 
 // ---------------------------------------------------------------------------
-// Base — 공통 컨테이너 수명주기, 스키마/시드, 노드 정의
+// 컨테이너를 컬렉션 수명으로 공유 — 클래스당 기동을 제거한다.
 // ---------------------------------------------------------------------------
-public abstract class MySqlTestBase : IAsyncLifetime {
-    protected readonly MySqlContainer Container = new MySqlBuilder()
+public sealed class MySqlContainerFixture : IAsyncLifetime {
+    public MySqlContainer Container { get; } = new MySqlBuilder()
         .WithImage("mysql:8.0")
         .Build();
+
+    public Task InitializeAsync() => Container.StartAsync();
+    public Task DisposeAsync()    => Container.DisposeAsync().AsTask();
+}
+
+[CollectionDefinition("mysql-integration")]
+public sealed class MySqlIntegrationCollection
+    : ICollectionFixture<MySqlContainerFixture> { }
+
+// ---------------------------------------------------------------------------
+// Base — 공통 스키마/시드, 노드 정의
+// ---------------------------------------------------------------------------
+public abstract class MySqlTestBase : IAsyncLifetime {
+    private readonly MySqlContainerFixture _fixture;
 
     protected MySqlConnection? Conn;
     protected DslContext?      Ctx;
@@ -23,21 +37,27 @@ public abstract class MySqlTestBase : IAsyncLifetime {
     protected static readonly FieldNode<string> U_STATUS = new(U, "status");
     protected static readonly FieldNode<int>    U_AGE    = new(U, "age");
 
+    protected MySqlTestBase(MySqlContainerFixture fixture) {
+        _fixture = fixture;
+    }
+
     public virtual async Task InitializeAsync() {
-        await Container.StartAsync();
-        Conn = new MySqlConnection(Container.GetConnectionString());
+        Conn = new MySqlConnection(_fixture.Container.GetConnectionString());
         await Conn.OpenAsync();
         Ctx  = new DslContext(new MySqlDialect(), Conn);
-        await CreateSchemaAsync();
+        await ResetSchemaAsync();
         await SeedDataAsync();
     }
 
     public virtual async Task DisposeAsync() {
         if (Conn != null) await Conn.DisposeAsync();
-        await Container.DisposeAsync();
     }
 
-    private async Task CreateSchemaAsync() {
+    private async Task ResetSchemaAsync() {
+        await using var drop = Conn!.CreateCommand();
+        drop.CommandText = "DROP TABLE IF EXISTS users";
+        await drop.ExecuteNonQueryAsync();
+
         await using var cmd = Conn!.CreateCommand();
         cmd.CommandText = """
             CREATE TABLE users (
@@ -73,7 +93,10 @@ public abstract class MySqlTestBase : IAsyncLifetime {
 // Read — 조회 전용 테스트
 // ---------------------------------------------------------------------------
 [Trait("Category", "Integration")]
+[Collection("mysql-integration")]
 public sealed class MySqlReadTests : MySqlTestBase {
+    public MySqlReadTests(MySqlContainerFixture fixture) : base(fixture) { }
+
     [Fact]
     public void Fetch_ActiveAdultUsers_ReturnsOneRow() {
         var users = Ctx!.Select(U_ID, U_NAME, U_STATUS, U_AGE)
@@ -99,7 +122,10 @@ public sealed class MySqlReadTests : MySqlTestBase {
 // Insert — 독립 컨테이너 (상태 오염 없음)
 // ---------------------------------------------------------------------------
 [Trait("Category", "Integration")]
+[Collection("mysql-integration")]
 public sealed class MySqlInsertTests : MySqlTestBase {
+    public MySqlInsertTests(MySqlContainerFixture fixture) : base(fixture) { }
+
     [Fact]
     public void Execute_Insert_AddsRow() {
         Ctx!.InsertInto(U)
@@ -115,7 +141,10 @@ public sealed class MySqlInsertTests : MySqlTestBase {
 // Update — 독립 컨테이너 (상태 오염 없음)
 // ---------------------------------------------------------------------------
 [Trait("Category", "Integration")]
+[Collection("mysql-integration")]
 public sealed class MySqlUpdateTests : MySqlTestBase {
+    public MySqlUpdateTests(MySqlContainerFixture fixture) : base(fixture) { }
+
     [Fact]
     public void Execute_Update_ChangesStatus() {
         Ctx!.Update(U)
@@ -134,7 +163,10 @@ public sealed class MySqlUpdateTests : MySqlTestBase {
 // Delete — 독립 컨테이너 (상태 오염 없음)
 // ---------------------------------------------------------------------------
 [Trait("Category", "Integration")]
+[Collection("mysql-integration")]
 public sealed class MySqlDeleteTests : MySqlTestBase {
+    public MySqlDeleteTests(MySqlContainerFixture fixture) : base(fixture) { }
+
     [Fact]
     public void Execute_Delete_RemovesRow() {
         Ctx!.DeleteFrom(U).Where(U_NAME.Eq("Bob")).Execute();

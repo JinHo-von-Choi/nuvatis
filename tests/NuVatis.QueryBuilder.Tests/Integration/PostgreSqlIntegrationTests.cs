@@ -7,12 +7,26 @@ using NuVatis.QueryBuilder.Dsl;
 using NuVatis.QueryBuilder.Rendering;
 
 // ---------------------------------------------------------------------------
-// Base — 공통 컨테이너 수명주기, 스키마/시드, 노드 정의
+// 컨테이너를 컬렉션 수명으로 공유 — 클래스당 기동을 제거한다.
 // ---------------------------------------------------------------------------
-public abstract class PostgreSqlTestBase : IAsyncLifetime {
-    protected readonly PostgreSqlContainer Container = new PostgreSqlBuilder()
+public sealed class PostgreSqlContainerFixture : IAsyncLifetime {
+    public PostgreSqlContainer Container { get; } = new PostgreSqlBuilder()
         .WithImage("postgres:16-alpine")
         .Build();
+
+    public Task InitializeAsync() => Container.StartAsync();
+    public Task DisposeAsync()    => Container.DisposeAsync().AsTask();
+}
+
+[CollectionDefinition("postgresql-integration")]
+public sealed class PostgreSqlIntegrationCollection
+    : ICollectionFixture<PostgreSqlContainerFixture> { }
+
+// ---------------------------------------------------------------------------
+// Base — 공통 스키마/시드, 노드 정의
+// ---------------------------------------------------------------------------
+public abstract class PostgreSqlTestBase : IAsyncLifetime {
+    private readonly PostgreSqlContainerFixture _fixture;
 
     protected NpgsqlConnection? Conn;
     protected DslContext?       Ctx;
@@ -23,21 +37,27 @@ public abstract class PostgreSqlTestBase : IAsyncLifetime {
     protected static readonly FieldNode<string>     U_STATUS = new(U, "status");
     protected static readonly FieldNode<int>        U_AGE    = new(U, "age");
 
+    protected PostgreSqlTestBase(PostgreSqlContainerFixture fixture) {
+        _fixture = fixture;
+    }
+
     public virtual async Task InitializeAsync() {
-        await Container.StartAsync();
-        Conn = new NpgsqlConnection(Container.GetConnectionString());
+        Conn = new NpgsqlConnection(_fixture.Container.GetConnectionString());
         await Conn.OpenAsync();
         Ctx  = new DslContext(new PostgreSqlDialect(), Conn);
-        await CreateSchemaAsync();
+        await ResetSchemaAsync();
         await SeedDataAsync();
     }
 
     public virtual async Task DisposeAsync() {
         if (Conn != null) await Conn.DisposeAsync();
-        await Container.DisposeAsync();
     }
 
-    private async Task CreateSchemaAsync() {
+    private async Task ResetSchemaAsync() {
+        await using var drop = Conn!.CreateCommand();
+        drop.CommandText = "DROP TABLE IF EXISTS users";
+        await drop.ExecuteNonQueryAsync();
+
         await using var cmd = Conn!.CreateCommand();
         cmd.CommandText = """
             CREATE TABLE users (
@@ -74,7 +94,10 @@ public abstract class PostgreSqlTestBase : IAsyncLifetime {
 // Read — 조회 전용 테스트 (공유 시드 데이터 불변)
 // ---------------------------------------------------------------------------
 [Trait("Category", "Integration")]
+[Collection("postgresql-integration")]
 public sealed class PostgreSqlReadTests : PostgreSqlTestBase {
+    public PostgreSqlReadTests(PostgreSqlContainerFixture fixture) : base(fixture) { }
+
     [Fact]
     public void Fetch_ActiveAdultUsers_ReturnsOneRow() {
         var users = Ctx!.Select(U_ID, U_NAME, U_STATUS, U_AGE)
@@ -125,7 +148,10 @@ public sealed class PostgreSqlReadTests : PostgreSqlTestBase {
 // Insert — 독립 컨테이너 (상태 오염 없음)
 // ---------------------------------------------------------------------------
 [Trait("Category", "Integration")]
+[Collection("postgresql-integration")]
 public sealed class PostgreSqlInsertTests : PostgreSqlTestBase {
+    public PostgreSqlInsertTests(PostgreSqlContainerFixture fixture) : base(fixture) { }
+
     [Fact]
     public void Execute_Insert_AddsRow() {
         Ctx!.InsertInto(U)
@@ -142,7 +168,10 @@ public sealed class PostgreSqlInsertTests : PostgreSqlTestBase {
 // Update — 독립 컨테이너 (상태 오염 없음)
 // ---------------------------------------------------------------------------
 [Trait("Category", "Integration")]
+[Collection("postgresql-integration")]
 public sealed class PostgreSqlUpdateTests : PostgreSqlTestBase {
+    public PostgreSqlUpdateTests(PostgreSqlContainerFixture fixture) : base(fixture) { }
+
     [Fact]
     public void Execute_Update_ChangesStatus() {
         Ctx!.Update(U)
@@ -163,7 +192,10 @@ public sealed class PostgreSqlUpdateTests : PostgreSqlTestBase {
 // Delete — 독립 컨테이너 (상태 오염 없음)
 // ---------------------------------------------------------------------------
 [Trait("Category", "Integration")]
+[Collection("postgresql-integration")]
 public sealed class PostgreSqlDeleteTests : PostgreSqlTestBase {
+    public PostgreSqlDeleteTests(PostgreSqlContainerFixture fixture) : base(fixture) { }
+
     [Fact]
     public void Execute_Delete_RemovesRow() {
         Ctx!.DeleteFrom(U)
