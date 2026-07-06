@@ -104,7 +104,11 @@ public class MemoryCacheProviderTests : IDisposable {
         _cache.Put("ns1", "k1", "v1");
         Assert.Equal("v1", _cache.Get("ns1", "k1"));
 
-        Thread.Sleep(200);
+        // 타이머 스케줄링 지연에 대비해 고정 대기 대신 마감시한 폴링으로 플러시를 관찰한다.
+        var deadline = DateTime.UtcNow.AddSeconds(5);
+        while (_cache.Get("ns1", "k1") is not null && DateTime.UtcNow < deadline) {
+            Thread.Sleep(25);
+        }
         Assert.Null(_cache.Get("ns1", "k1"));
     }
 
