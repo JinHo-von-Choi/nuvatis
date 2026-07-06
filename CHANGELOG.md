@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Deprecated
+
+- **`SqlSessionFactoryBuilder.AddXmlConfiguration(string)` / `Build(string)`**: `[Obsolete]` 처리. 호출 시 `NotSupportedException`을 발생시킨다. XML 매퍼는 빌드타임 Source Generator가 처리하므로 런타임 로드 경로가 없으며, 설정 경로를 저장만 하고 사용하지 않던 종전 동작을 명시적 예외로 대체했다. v3.0에서 제거 예정.
+
 ## [2.6.0] - 2026-03-31
 
 ### Added

@@ -50,24 +50,25 @@ public class SqlSessionFactoryBuilderTests {
     }
 
     [Fact]
-    public void Build_WithXmlConfig_Success() {
-        var factory = new SqlSessionFactoryBuilder()
+    public void AddXmlConfiguration_Throws_NotSupported() {
+        var builder = new SqlSessionFactoryBuilder()
             .UseProvider(new TestProvider())
-            .ConnectionString("Data Source=:memory:")
-            .AddXmlConfiguration("dummy.xml")
-            .Build();
+            .ConnectionString("Data Source=:memory:");
 
-        Assert.NotNull(factory);
+#pragma warning disable CS0618 // 의도적 obsolete 멤버 호출 검증
+        Assert.Throws<NotSupportedException>(() => builder.AddXmlConfiguration("dummy.xml"));
+#pragma warning restore CS0618
     }
 
     [Fact]
-    public void Build_Overload_WithPath() {
-        var factory = new SqlSessionFactoryBuilder()
+    public void Build_Overload_WithXmlPath_Throws_NotSupported() {
+        var builder = new SqlSessionFactoryBuilder()
             .UseProvider(new TestProvider())
-            .ConnectionString("Data Source=:memory:")
-            .Build("dummy.xml");
+            .ConnectionString("Data Source=:memory:");
 
-        Assert.NotNull(factory);
+#pragma warning disable CS0618
+        Assert.Throws<NotSupportedException>(() => builder.Build("dummy.xml"));
+#pragma warning restore CS0618
     }
 
     [Fact]
