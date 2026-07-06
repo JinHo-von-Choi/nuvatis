@@ -1,3 +1,1 @@
 #nullable enable
-NuVatis.Statement.MappedStatement.RowMapper.get -> System.Func<System.Data.Common.DbDataReader!, object?>?
-NuVatis.Statement.MappedStatement.RowMapper.init -> void
