@@ -234,6 +234,7 @@ jobs:
         run: >-
           dotnet test tests/NuVatis.QueryBuilder.Tests/
           --configuration Release --no-build --verbosity normal
+          -f net8.0
           --logger "trx;LogFileName=querybuilder-integration.trx"
           --filter "Category=Integration"
           --results-directory ./TestResults
