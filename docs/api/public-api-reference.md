@@ -792,7 +792,7 @@ public IList<User> GetSorted(string userInput) {
 
 ### SqlIdentifier.JoinTyped\<T\>
 
-`struct` 타입 컬렉션을 `WHERE IN` 절에 안전하게 인라인할 수 있는 쉼표 구분 문자열로 변환한다. `struct` 제약으로 컴파일 타임에 임의 문자열 입력을 차단하므로 SQL Injection이 불가능하다.
+허용된 값 타입 컬렉션을 `WHERE IN` 절에 안전하게 인라인할 수 있는 쉼표 구분 문자열로 변환한다. 지원 타입 화이트리스트 외의 `struct`는 `ArgumentException`을 발생시키며, 모든 값은 `InvariantCulture` 고정 포맷으로 렌더링된다.
 
 ```csharp
 public static string JoinTyped<T>(IEnumerable<T> values) where T : struct
@@ -806,14 +806,18 @@ public static string JoinTyped<T>(IEnumerable<T> values) where T : struct
 
 | 타입 | 출력 예시 | 따옴표 |
 |------|-----------|--------|
-| `int`, `long`, `decimal`, 기타 숫자형 | `1,2,3` | 없음 |
+| `int`, `long`, `decimal` 등 숫자형 11종 | `1,2,3` | 없음 |
+| `enum` | `0,2` (underlying 정수값) | 없음 |
 | `Guid` | `'550e8400-e29b-41d4-a716-446655440000'` | 있음 |
-| `DateTime`, `DateTimeOffset` | `'2026-03-01T00:00:00'` | 있음 |
-| `DateOnly`, `TimeOnly` | `'2026-03-01'` | 있음 |
+| `DateTime` | `'2026-03-01 09:30:00.0000000'` | 있음 |
+| `DateTimeOffset` | `'2026-03-01 09:30:00.0000000 +09:00'` | 있음 |
+| `DateOnly` | `'2026-03-01'` | 있음 |
+| `TimeOnly` | `'09:30:00.0000000'` | 있음 |
+| 그 외 struct (`bool`, `char`, 사용자 정의 등) | — | `ArgumentException` |
 
 **예외**
 - `ArgumentNullException` — `values`가 `null`
-- `ArgumentException` — `values`가 빈 컬렉션
+- `ArgumentException` — `values`가 빈 컬렉션이거나 지원되지 않는 타입
 
 **사용 예제**
 

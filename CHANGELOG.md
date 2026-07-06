@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **`SqlIdentifier.JoinTyped<T>`**: 리터럴 렌더링을 `InvariantCulture` 고정 포맷으로 전환 (숫자형 소수점, 날짜·시간 포맷이 실행 문화권과 무관하게 일정). `DateTime` 리터럴 출력 포맷이 `'yyyy-MM-dd HH:mm:ss.fffffff'`로 변경된다 (종전: 문화권 의존 기본 `ToString()`). 지원 타입을 숫자형 11종·enum·Guid·DateTime·DateTimeOffset·DateOnly·TimeOnly로 한정하고, 종전에 수용되던 `bool`·`char`·사용자 정의 struct는 `ArgumentException`을 발생시킨다 (breaking behavior change). enum은 underlying 정수값으로 인라인된다.
+
 ### Deprecated
 
 - **`SqlSessionFactoryBuilder.AddXmlConfiguration(string)` / `Build(string)`**: `[Obsolete]` 처리. 호출 시 `NotSupportedException`을 발생시킨다. XML 매퍼는 빌드타임 Source Generator가 처리하므로 런타임 로드 경로가 없으며, 설정 경로를 저장만 하고 사용하지 않던 종전 동작을 명시적 예외로 대체했다. v3.0에서 제거 예정.

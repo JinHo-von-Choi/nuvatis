@@ -1,4 +1,5 @@
 using NuVatis.Core.Sql;
+using System.Globalization;
 using Xunit;
 
 namespace NuVatis.Tests;
@@ -152,6 +153,107 @@ public class SqlIdentifierTests
     {
         var result = SqlIdentifier.JoinTyped(new List<long> { 42L });
         Assert.Equal("42", result);
+    }
+
+    [Fact]
+    public void JoinTyped_Doubles_Use_InvariantCulture()
+    {
+        var original = CultureInfo.CurrentCulture;
+        try
+        {
+            CultureInfo.CurrentCulture = new CultureInfo("de-DE");
+            var result = SqlIdentifier.JoinTyped(new List<double> { 1.5, 2.25 });
+            Assert.Equal("1.5,2.25", result);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = original;
+        }
+    }
+
+    [Fact]
+    public void JoinTyped_Decimals_Use_InvariantCulture()
+    {
+        var original = CultureInfo.CurrentCulture;
+        try
+        {
+            CultureInfo.CurrentCulture = new CultureInfo("de-DE");
+            var result = SqlIdentifier.JoinTyped(new List<decimal> { 10.75m });
+            Assert.Equal("10.75", result);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = original;
+        }
+    }
+
+    [Fact]
+    public void JoinTyped_DateTime_Uses_Invariant_Fixed_Format()
+    {
+        var dt     = new DateTime(2026, 3, 1, 9, 30, 0);
+        var result = SqlIdentifier.JoinTyped(new[] { dt });
+        Assert.Equal("'2026-03-01 09:30:00.0000000'", result);
+    }
+
+    [Fact]
+    public void JoinTyped_DateOnly_Uses_Invariant_Fixed_Format()
+    {
+        var d      = new DateOnly(2026, 3, 1);
+        var result = SqlIdentifier.JoinTyped(new[] { d });
+        Assert.Equal("'2026-03-01'", result);
+    }
+
+    [Fact]
+    public void JoinTyped_DateTimeOffset_Uses_Invariant_Fixed_Format()
+    {
+        var o      = new DateTimeOffset(2026, 3, 1, 9, 30, 0, TimeSpan.FromHours(9));
+        var result = SqlIdentifier.JoinTyped(new[] { o });
+        Assert.Equal("'2026-03-01 09:30:00.0000000 +09:00'", result);
+    }
+
+    [Fact]
+    public void JoinTyped_TimeOnly_Uses_Invariant_Fixed_Format()
+    {
+        var t      = new TimeOnly(9, 30, 0);
+        var result = SqlIdentifier.JoinTyped(new[] { t });
+        Assert.Equal("'09:30:00.0000000'", result);
+    }
+
+    [Fact]
+    public void JoinTyped_Null_Collection_Throws()
+    {
+        Assert.Throws<ArgumentNullException>(() => SqlIdentifier.JoinTyped<int>(null!));
+    }
+
+    [Fact]
+    public void JoinTyped_Enum_Inlines_Underlying_Value()
+    {
+        var result = SqlIdentifier.JoinTyped(new[] { TableName.Users, TableName.Products });
+        Assert.Equal("0,2", result);
+    }
+
+    [Fact]
+    public void JoinTyped_UserDefinedStruct_Throws()
+    {
+        var values = new[] { new ArbitraryStruct() };
+        Assert.Throws<ArgumentException>(() => SqlIdentifier.JoinTyped(values));
+    }
+
+    [Fact]
+    public void JoinTyped_Bool_Throws()
+    {
+        Assert.Throws<ArgumentException>(() => SqlIdentifier.JoinTyped(new[] { true }));
+    }
+
+    [Fact]
+    public void JoinTyped_Char_Throws()
+    {
+        Assert.Throws<ArgumentException>(() => SqlIdentifier.JoinTyped(new[] { 'a' }));
+    }
+
+    private struct ArbitraryStruct
+    {
+        public override string ToString() => "임의 문자열";
     }
 
     // --- 테스트용 enum ---

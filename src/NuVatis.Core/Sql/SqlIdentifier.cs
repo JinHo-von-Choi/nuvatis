@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace NuVatis.Core.Sql;
 
 /// <summary>
@@ -108,23 +110,24 @@ public sealed class SqlIdentifier
     public override string ToString() => _value;
 
     /// <summary>
-    /// struct 제약 타입 컬렉션을 SQL WHERE IN 절에 안전하게 인라인할 수 있는
+    /// 허용된 값 타입 컬렉션을 SQL WHERE IN 절에 안전하게 인라인할 수 있는
     /// 쉼표 구분 문자열로 변환한다.
     /// </summary>
     /// <remarks>
-    /// struct 제약으로 컴파일타임에 임의 문자열 입력이 차단되므로
-    /// SQL Injection 위험이 없다.
+    /// 지원 타입: 숫자형(byte, sbyte, short, ushort, int, uint, long, ulong, float, double, decimal),
+    /// enum(underlying 정수값으로 인라인), Guid, DateTime, DateTimeOffset, DateOnly, TimeOnly.
+    /// 그 외 struct 타입은 <see cref="ArgumentException"/>을 발생시킨다.
     ///
-    /// Guid, DateTime, DateTimeOffset, DateOnly, TimeOnly는 따옴표로 감싸고,
-    /// 숫자형(int, long, decimal 등)은 그대로 출력한다.
+    /// 모든 값은 <see cref="CultureInfo.InvariantCulture"/> 고정 포맷으로 렌더링된다.
+    /// Guid와 날짜·시간 타입은 따옴표로 감싸고, 숫자형과 enum은 그대로 출력한다.
     ///
     /// 빈 컬렉션은 SQL 오류를 유발하므로 <see cref="ArgumentException"/>을 발생시킨다.
     /// </remarks>
-    /// <param name="values">WHERE IN 절에 인라인할 struct 타입 컬렉션.</param>
-    /// <typeparam name="T">struct 제약 타입. 문자열은 사용 불가.</typeparam>
+    /// <param name="values">WHERE IN 절에 인라인할 값 컬렉션.</param>
+    /// <typeparam name="T">지원 목록에 포함된 struct 타입.</typeparam>
     /// <returns>쉼표로 구분된 SQL 리터럴 문자열.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="values"/>가 null인 경우.</exception>
-    /// <exception cref="ArgumentException"><paramref name="values"/>가 비어 있는 경우.</exception>
+    /// <exception cref="ArgumentException"><paramref name="values"/>가 비어 있거나 지원되지 않는 타입인 경우.</exception>
     /// <example>
     /// <code>
     /// var clause = SqlIdentifier.JoinTyped(new List&lt;int&gt; { 1, 2, 3 });
@@ -143,14 +146,41 @@ public sealed class SqlIdentifier
                 "호출 전 컬렉션이 비어 있는지 확인하세요.",
                 nameof(values));
 
-        var needsQuotes = typeof(T) == typeof(Guid)
-                       || typeof(T) == typeof(DateTime)
-                       || typeof(T) == typeof(DateTimeOffset)
-                       || typeof(T) == typeof(DateOnly)
-                       || typeof(T) == typeof(TimeOnly);
+        return string.Join(",", list.Select(v => FormatSqlLiteral(v)));
+    }
 
-        return needsQuotes
-            ? string.Join(",", list.Select(v => $"'{v}'"))
-            : string.Join(",", list);
+    private static readonly HashSet<Type> _numericTypes = new()
+    {
+        typeof(byte), typeof(sbyte), typeof(short), typeof(ushort),
+        typeof(int), typeof(uint), typeof(long), typeof(ulong),
+        typeof(float), typeof(double), typeof(decimal)
+    };
+
+    private static string FormatSqlLiteral<T>(T value) where T : struct
+    {
+        var type = typeof(T);
+
+        if (type.IsEnum)
+        {
+            var underlying = Convert.ChangeType(
+                value, Enum.GetUnderlyingType(type), CultureInfo.InvariantCulture);
+            return ((IFormattable)underlying).ToString(null, CultureInfo.InvariantCulture);
+        }
+
+        if (_numericTypes.Contains(type))
+            return ((IFormattable)value).ToString(null, CultureInfo.InvariantCulture);
+
+        return value switch
+        {
+            Guid g           => $"'{g:D}'",
+            DateTime dt      => $"'{dt.ToString("yyyy-MM-dd HH:mm:ss.fffffff", CultureInfo.InvariantCulture)}'",
+            DateTimeOffset o => $"'{o.ToString("yyyy-MM-dd HH:mm:ss.fffffff zzz", CultureInfo.InvariantCulture)}'",
+            DateOnly d       => $"'{d.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}'",
+            TimeOnly t       => $"'{t.ToString("HH:mm:ss.fffffff", CultureInfo.InvariantCulture)}'",
+            _ => throw new ArgumentException(
+                $"JoinTyped가 지원하지 않는 타입입니다: {type.FullName}. " +
+                "지원 타입: 숫자형(byte~decimal), enum, Guid, DateTime, DateTimeOffset, DateOnly, TimeOnly. " +
+                "그 외 값은 파라미터 바인딩(#{})을 사용하세요.", "values")
+        };
     }
 }
