@@ -91,6 +91,48 @@ public class SqlIdentifierTests
         Assert.Equal(identifier, id.ToString());
     }
 
+    // --- 식별자 패턴 화이트리스트 검증 ---
+
+    [Theory]
+    [InlineData("name ASC")]     // 공백
+    [InlineData("col=1")]        // 등호
+    [InlineData("[Order]")]      // MSSQL 대괄호 인용
+    [InlineData("`users`")]      // MySQL 백틱 인용
+    [InlineData("users()")]      // 괄호
+    [InlineData("1users")]       // 숫자 시작
+    [InlineData("users.")]       // 후행 점
+    [InlineData(".users")]       // 선행 점
+    public void From_NonIdentifier_Pattern_Throws(string invalid)
+    {
+        Assert.Throws<ArgumentException>(() => SqlIdentifier.From(invalid));
+    }
+
+    [Theory]
+    [InlineData("_private_col")]
+    [InlineData("ora$table")]
+    [InlineData("temp#col")]
+    [InlineData("a.b.c")]        // 3단계 다단계 식별자
+    [InlineData("주문테이블")]     // 유니코드 식별자
+    [InlineData("주문테이블.금액")]
+    public void From_IdentifierPattern_Variants_Allowed(string identifier)
+    {
+        var id = SqlIdentifier.From(identifier);
+        Assert.Equal(identifier, id.ToString());
+    }
+
+    [Fact]
+    public void From_Bare_Keyword_Still_Throws()
+    {
+        Assert.Throws<ArgumentException>(() => SqlIdentifier.From("union"));
+    }
+
+    [Fact]
+    public void From_Keyword_After_Dot_Still_Allowed()
+    {
+        var id = SqlIdentifier.From("schema.union");
+        Assert.Equal("schema.union", id.ToString());
+    }
+
     // --- T2-C: AllowedValues 화이트리스트 팩토리 ---
 
     [Fact]

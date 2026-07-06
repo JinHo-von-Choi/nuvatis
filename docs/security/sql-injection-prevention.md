@@ -125,10 +125,10 @@ using NuVatis.Core.Sql;
 | `SqlIdentifier.FromAllowed(string, params string[])` | 화이트리스트 검증 | 높음 |
 | `SqlIdentifier.From(string)` | 패턴 검사만 수행 | 보통 (리터럴 전용) |
 
-`SqlIdentifier.From`이 차단하는 패턴:
-- 금지 문자: `;` `'` `"` `\n` `\r` `\0`
-- 금지 시퀀스: `--` `/*` `*/`
-- SQL 키워드 (단어 경계): `union`, `select`, `drop`, `insert`, `or`, `and`
+`SqlIdentifier.From`의 검증 규칙:
+- 식별자 형식 화이트리스트: 문자(유니코드)/밑줄로 시작, 문자·숫자·밑줄·`$`·`#` 구성, 점(.)으로 구분된 다단계 허용
+- SQL 키워드 차단 (단독 세그먼트): `union`, `select`, `drop`, `insert`, `or`, `and`
+- 인용 식별자(대괄호·백틱·따옴표)는 허용하지 않음
 
 ## Best Practices
 

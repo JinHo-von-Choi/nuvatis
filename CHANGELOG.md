@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **`SqlIdentifier.JoinTyped<T>`**: 리터럴 렌더링을 `InvariantCulture` 고정 포맷으로 전환 (숫자형 소수점, 날짜·시간 포맷이 실행 문화권과 무관하게 일정). `DateTime` 리터럴 출력 포맷이 `'yyyy-MM-dd HH:mm:ss.fffffff'`로 변경된다 (종전: 문화권 의존 기본 `ToString()`). 지원 타입을 숫자형 11종·enum·Guid·DateTime·DateTimeOffset·DateOnly·TimeOnly로 한정하고, 종전에 수용되던 `bool`·`char`·사용자 정의 struct는 `ArgumentException`을 발생시킨다 (breaking behavior change). enum은 underlying 정수값으로 인라인된다.
+- **`SqlIdentifier.From`**: 검증 방식을 식별자 형식 화이트리스트(문자(유니코드)/밑줄 시작, 문자·숫자·밑줄·`$`·`#`, 점 구분 다단계)로 전환. 공백·등호·괄호·대괄호·백틱 등 식별자 형식을 벗어나는 입력은 `ArgumentException`을 발생시킨다 (breaking behavior change — 종전 블랙리스트에서는 이 중 일부가 통과했다). SQL 키워드 거부는 종전과 동일하게 유지된다.
 
 ### Deprecated
 

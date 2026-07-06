@@ -17,10 +17,12 @@ namespace NuVatis.Core.Sql;
 /// </summary>
 public sealed class SqlIdentifier
 {
-    private static readonly char[] _forbidden =
-        new char[] { ';', '\'', '"', '\n', '\r', '\0' };
-
-    private static readonly string[] _forbiddenSequences = new string[] { "--", "/*", "*/" };
+    // 식별자 형태 화이트리스트: 문자(유니코드 \p{L})/밑줄 시작, 문자·숫자·밑줄·$·# 구성,
+    // 점(.)으로 구분된 다단계(schema.table.column) 허용.
+    // $, #은 Oracle 스타일 식별자, \p{L}·\p{N}은 한글 등 비ASCII 식별자 지원.
+    private static readonly System.Text.RegularExpressions.Regex _identifierPattern =
+        new(@"^[\p{L}_][\p{L}\p{N}_$#]*(\.[\p{L}_][\p{L}\p{N}_$#]*)*$",
+            System.Text.RegularExpressions.RegexOptions.Compiled);
 
     // \b triggers at '.' boundaries (schema.or would false-positive with \b).
     // Use negative lookbehind/ahead that includes '.' so dot-qualified identifiers
@@ -36,12 +38,14 @@ public sealed class SqlIdentifier
 
     /// <summary>
     /// 문자열로부터 <see cref="SqlIdentifier"/>를 생성한다.
-    /// SQL Injection 패턴이 감지되면 <see cref="ArgumentException"/>을 발생시킨다.
+    /// 식별자 형식(문자/밑줄 시작, 문자·숫자·밑줄·$·# 구성, 점 구분 다단계 — 유니코드 문자 허용)을 벗어나거나
+    /// SQL 키워드(union, select, drop, insert, or, and)인 경우 <see cref="ArgumentException"/>을 발생시킨다.
+    /// 인용 식별자(대괄호, 백틱, 따옴표)는 지원하지 않는다 — <c>IDbProvider.WrapIdentifier</c>를 사용하라.
     /// </summary>
     /// <param name="value">SQL 식별자로 사용할 문자열. 빈 문자열 불가.</param>
     /// <returns>검증된 <see cref="SqlIdentifier"/> 인스턴스.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="value"/>가 null인 경우.</exception>
-    /// <exception cref="ArgumentException">빈 문자열이거나 SQL Injection 패턴이 감지된 경우.</exception>
+    /// <exception cref="ArgumentException">빈 문자열이거나 식별자 형식이 아니거나 SQL 키워드인 경우.</exception>
     public static SqlIdentifier From(string value)
     {
         ArgumentNullException.ThrowIfNull(value);
@@ -49,22 +53,15 @@ public sealed class SqlIdentifier
         if (value.Length == 0)
             throw new ArgumentException("SQL 식별자는 빈 문자열일 수 없습니다.", nameof(value));
 
-        // Check forbidden characters
-        foreach (var ch in _forbidden)
-            if (value.Contains(ch))
-                throw new ArgumentException(
-                    $"SQL Injection 패턴이 감지되었습니다: '{value}'", nameof(value));
+        if (!_identifierPattern.IsMatch(value))
+            throw new ArgumentException(
+                $"유효한 SQL 식별자 형식이 아닙니다: '{value}'. " +
+                "허용 형식: 문자/밑줄로 시작하는 문자·숫자·밑줄·$·# 조합, 점(.)으로 구분된 다단계 식별자.",
+                nameof(value));
 
-        // Check forbidden sequences (comments)
-        foreach (var seq in _forbiddenSequences)
-            if (value.Contains(seq, StringComparison.OrdinalIgnoreCase))
-                throw new ArgumentException(
-                    $"SQL Injection 패턴이 감지되었습니다: '{value}'", nameof(value));
-
-        // Check forbidden SQL keywords (word-boundary aware)
         if (_forbiddenKeywords.IsMatch(value))
             throw new ArgumentException(
-                $"SQL Injection 패턴이 감지되었습니다: '{value}'", nameof(value));
+                $"SQL 키워드는 식별자로 사용할 수 없습니다: '{value}'", nameof(value));
 
         return new SqlIdentifier(value);
     }

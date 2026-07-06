@@ -714,15 +714,13 @@ public static SqlIdentifier From(string value)
 
 **예외**
 - `ArgumentNullException` — `value`가 `null`
-- `ArgumentException` — 빈 문자열이거나 SQL Injection 패턴 감지
+- `ArgumentException` — 빈 문자열이거나 식별자 형식이 아니거나 SQL 키워드인 경우
 
-**차단하는 패턴**
+식별자 형식 검증: 문자(유니코드)/밑줄로 시작, 문자·숫자·밑줄·`$`·`#` 구성, 점(.)으로 구분된 다단계(`schema.table.column`) 허용.
 
-| 종류 | 패턴 |
-|------|------|
-| 금지 문자 | `;` `'` `"` `\n` `\r` `\0` |
-| 금지 시퀀스 | `--` `/*` `*/` |
-| 금지 키워드 | `union` `select` `drop` `insert` `or` `and` (단어 경계 기준) |
+SQL 키워드(`union`, `select`, `drop`, `insert`, `or`, `and`)는 단독 세그먼트로 사용할 수 없다.
+
+대괄호·백틱·따옴표 인용 식별자는 지원하지 않는다. 인용이 필요하면 `IDbProvider.WrapIdentifier`를 사용한다.
 
 **주의**: 리터럴 상수에만 사용한다. 사용자 입력에는 `FromAllowed`를 사용한다.
 
