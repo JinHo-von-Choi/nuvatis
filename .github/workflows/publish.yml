@@ -251,7 +251,7 @@ jobs:
           echo "All packages pushed successfully."
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: v${{ needs.pack.outputs.version }}
           name: NuVatis v${{ needs.pack.outputs.version }}
