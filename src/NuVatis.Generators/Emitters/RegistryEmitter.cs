@@ -1,4 +1,5 @@
 #nullable enable
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
@@ -22,6 +23,18 @@ public static class RegistryEmitter {
         ImmutableArray<MapperInterfaceInfo> interfaces,
         ImmutableArray<ParsedMapper> xmlMappers = default,
         System.Collections.Generic.Dictionary<string, string>? typeToMethod = null) {
+        return Emit(interfaces, xmlMappers, typeToMethod, null);
+    }
+
+    /**
+     * 파라미터 정적 타입이 해석되는 statement에 대해 직접 접근 방출을 켠 내부 오버로드.
+     * Compilation은 TypedPropertyAccessResolver 심볼 조회에만 쓰인다.
+     */
+    internal static string Emit(
+        ImmutableArray<MapperInterfaceInfo> interfaces,
+        ImmutableArray<ParsedMapper> xmlMappers,
+        System.Collections.Generic.Dictionary<string, string>? typeToMethod,
+        Microsoft.CodeAnalysis.Compilation? compilation) {
 
         var sb = new StringBuilder(4096);
 
@@ -42,7 +55,7 @@ public static class RegistryEmitter {
 
         if (!xmlMappers.IsDefaultOrEmpty) {
             sb.AppendLine();
-            EmitRegisterXmlStatements(sb, xmlMappers, typeToMethod);
+            EmitRegisterXmlStatements(sb, xmlMappers, typeToMethod, interfaces, compilation);
         }
 
         sb.AppendLine("    }");
@@ -121,10 +134,32 @@ public static class RegistryEmitter {
      * 정적 SQL (동적 태그 없음): SqlSource에 평탄화된 SQL 문자열 직접 삽입
      * 동적 SQL (foreach, if, where 등 포함): DynamicSqlBuilder 람다 생성
      */
+    /**
+     * XML statement에 대응하는 매퍼 메서드의 데이터 파라미터 타입 FQN을 찾는다.
+     * ProxyEmitter.FindDataParam과 같은 규칙(CancellationToken 제외)을 쓴다.
+     */
+    private static string? FindDataParamType(
+        ImmutableArray<MapperInterfaceInfo> interfaces,
+        string mapperNamespace,
+        string statementId) {
+
+        foreach (var iface in interfaces) {
+            if (!string.Equals(iface.FullyQualifiedName, mapperNamespace, StringComparison.Ordinal)) continue;
+
+            var method = iface.Methods.FirstOrDefault(m => m.Name == statementId);
+            if (method is null) continue;
+
+            return method.Parameters.FirstOrDefault(p => !p.IsCancellationToken)?.Type;
+        }
+        return null;
+    }
+
     private static void EmitRegisterXmlStatements(
         StringBuilder sb,
         ImmutableArray<ParsedMapper> xmlMappers,
-        System.Collections.Generic.Dictionary<string, string>? typeToMethod = null) {
+        System.Collections.Generic.Dictionary<string, string>? typeToMethod,
+        ImmutableArray<MapperInterfaceInfo> interfaces,
+        Microsoft.CodeAnalysis.Compilation? compilation) {
 
         sb.AppendLine("        public static void RegisterXmlStatements(");
         sb.AppendLine("            Dictionary<string, MappedStatement> statements)");
@@ -166,7 +201,9 @@ public static class RegistryEmitter {
                 if (isDynamic) {
                     sb.AppendLine("                SqlSource = \"\",");
                     sb.Append("                DynamicSqlBuilder = ");
-                    var lambda = ParameterEmitter.EmitDynamicBuilderLambda(stmt.RootNode, "@");
+                    var typedAccess = TypedPropertyAccessResolver.Resolve(
+                        compilation, FindDataParamType(interfaces, mapper.Namespace, stmt.Id), stmt.RootNode);
+                    var lambda = ParameterEmitter.EmitDynamicBuilderLambda(stmt.RootNode, "@", typedAccess);
                     sb.Append(lambda);
                     sb.AppendLine(",");
                 } else {

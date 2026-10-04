@@ -17,6 +17,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- 내부 구현(TypedPropertyAccess 등)을 회귀 테스트에서 직접 검증한다.
+         public API 로 승격시키지 않고 테스트 가능성을 유지하기 위한 장치다. -->
+    <InternalsVisibleTo Include="NuVatis.Generators.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

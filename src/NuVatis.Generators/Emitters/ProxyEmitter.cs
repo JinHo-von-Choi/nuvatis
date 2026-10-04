@@ -61,7 +61,10 @@ public static class ProxyEmitter {
         if (mapper is not null) {
             foreach (var stmt in mapper.Statements) {
                 var paramTypeMap = BuildParamTypeMap(interfaceInfo, stmt);
-                var buildSqlCode = ParameterEmitter.EmitBuildSqlStaticMethod(stmt, "@", paramTypeMap);
+                var typedAccess   = TypedPropertyAccessResolver.Resolve(
+                    compilation, FindDataParam(interfaceInfo, stmt)?.Type, stmt.RootNode);
+                var buildSqlCode = ParameterEmitter.EmitBuildSqlStaticMethod(
+                    stmt, "@", paramTypeMap, typedAccess);
                 sb.AppendLine();
                 sb.Append(buildSqlCode);
             }
@@ -86,15 +89,26 @@ public static class ProxyEmitter {
         MapperInterfaceInfo interfaceInfo,
         ParsedStatement stmt) {
 
-        var method = interfaceInfo.Methods.FirstOrDefault(m => m.Name == stmt.Id);
-        if (method is null) return null;
-
-        var dataParam = method.Parameters.FirstOrDefault(p => !p.IsCancellationToken);
+        var dataParam = FindDataParam(interfaceInfo, stmt);
         if (dataParam is null) return null;
 
         return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) {
             [dataParam.Name] = dataParam.Type
         };
+    }
+
+    /**
+     * statement에 대응하는 매퍼 메서드의 데이터 파라미터(CancellationToken 제외)를 찾는다.
+     * BuildParamTypeMap과 TypedPropertyAccessResolver가 같은 대상을 바라보도록 한다.
+     */
+    private static MapperParameterInfo? FindDataParam(
+        MapperInterfaceInfo interfaceInfo,
+        ParsedStatement stmt) {
+
+        var method = interfaceInfo.Methods.FirstOrDefault(m => m.Name == stmt.Id);
+        if (method is null) return null;
+
+        return method.Parameters.FirstOrDefault(p => !p.IsCancellationToken);
     }
 
     /**

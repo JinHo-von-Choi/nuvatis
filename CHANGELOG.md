@@ -5,6 +5,105 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **`<where>`가 2개 이상 조건에서 파싱 불가한 SQL을 생성**: `<where>` 안의 `<if>`가 2개 이상 동시에 참이면 두 번째 이후의 `AND`/`OR` 접두사가 앞 조건 끝에 공백 없이 붙어 `WHERE name = @p0AND age >= @p1` 형태의 **문법 오류 SQL**이 만들어졌다. 접두사 제거가 누적 문자열의 맨 앞에서 한 번만 일어나는 반면 조건 사이 구분자가 없기 때문이다. MyBatis의 `TextSqlNode`와 동일하게 각 동적 조각 앞에 구분 공백을 삽입하도록 고쳤다 — `ParameterEmitter.EmitWhereNode`(정적 경로)와 `EmitLambdaNode`의 `__wc_` 블록(레지스트리 람다 경로)의 2개 제품 경로가 대상이다.
+  - 조건이 0개 또는 1개인 경우의 출력은 **바이트 단위로 동일**하다(앞 접두사를 제거한 뒤 같은 문자열이 남으므로). 변경되는 것은 현재 파싱 실패하는 2개 이상 조건 케이스뿐이다.
+  - 수정 전후 생성 출력 전체를 diff로 대조해 **추가 10줄 / 삭제 0줄**이며 전부 `<where>` 블록 안의 `__sb_.Append(' ');` 임을 확인했다. 골든 스냅샷 기준선도 이에 맞춰 갱신했다.
+  - `WhereTagPrefixTests` 6종을 추가했다. 방출된 코드를 Roslyn으로 **실제로 컴파일·실행**해 최종 SQL 문자열을 검증한다 — 기존 테스트처럼 방출 문자열에 `StartsWith("AND "` 가 있는지만 보는 방식으로는 이 버그를 잡을 수 없다. 2·3개 조건, `OR` 접두사, 접두사 없는 조건, 0·1개 조건(기존 동작 보존)을 정적 경로와 람다 경로 양쪽에서 검증한다.
+  - **기존 테스트가 왜 이 버그를 놓쳤는지**: (1) E2E 프로젝트는 소스 제너레이터를 analyzer로 참조하지 않아 Core 런타임 경로만 실행하며, Core의 `ParameterBinder.Bind`는 `<where>`를 조립하지 않으므로 이 코드를 애초에 지나지 않는다. (2) 기존 단위 테스트는 방출 문자열의 **부분 문자열**만 검사했다. 두 경로 모두 실제 실행 결과로 검증하는 테스트가 없었다.
+- **생성 코드 회귀 스냅샷 부재**: `GeneratorIntegrationTests`는 `Assert.Contains(부분 문자열)`로만 검증해 공백·변수명·SQL 조립 순서가 바뀌어도 통과했다. 4개 코퍼스(속성 매퍼 / if·where·set·choose / 중첩 foreach / ${} 치환)의 **전체 생성 출력을 SHA-256으로 고정**하는 `GeneratorGoldenSnapshotTests`를 추가했다. 방출 경로가 실제로 태워지는지도 별도 테스트로 보장한다 — XML이 깨져 생성기가 아무것도 내지 않아도 해시는 통과하기 때문이다.
+- **`TestExpressionEvaluator` 파싱 결함 4건**: `test` 표현식 평가가 문자열 분할(`Split(" or ")`) 기반이라 다음이 깨졌다. (1) 문자열 리터럴 안에 ` or ` / ` and ` 가 있으면 리터럴이 잘려 오동작 (`Name == 'a or b'` → 항상 false), (2) `And` / `Or` 혼합 대소문자를 인식하지 못함, (3) 괄호를 지원하지 않아 `and`가 `or`보다 우선하는 MyBatis 의미와 어긋남, (4) 리터럴 안의 `!=` / `==` 가 비교 연산자로 오인됨. 괄호 → `or` → `and` 순으로 분리하는 재귀 하강 평가로 교체했다. 조회는 문자열 리터럴과 괄호 깊이를 존중하고 `and`/`or` 는 대소문자를 구분하지 않는다.
+  - 이 평가기는 프로젝트 내부에서 호출되지 않고 `PublicAPI.Shipped.txt`에 등록된 public API이므로 **기존 내부 동작에는 영향이 없다.** 기존 `TestExpressionEvaluatorTests` 37개는 무수정으로 통과하며, 구/신 구현을 동일 입력에 대조하는 differential test로 정상 범위 26개 표현식의 결과가 동일함을 확인했다.
+  - 구분자 단어 경계를 추가해 `Order` 같은 프로퍼티명이 ` or ` 로 잘리지 않는다. 빈 조각 처리는 종전 `Split(RemoveEmptyEntries)`와 동일하게 유지했다.
+- **`StringBuilderCache` 제거**: 제품 코드 참조 0건인 thread-local 캐시(42줄)였다. `internal`이며 PublicAPI에 등록돼 있지 않아 계약 변경 없이 삭제했다. 이 클래스를 검증하던 `InternalPoolTests.StringBuilderCache_AcquireAndRelease` 테스트도 함께 제거했다 — 제품에서 쓰이지 않는 코드를 스스로 테스트하는 구조는 미사용 상태를 정상으로 보이게 만든다.
+
+### Added
+
+- **제품 방출 경로의 `${}` 가드 동작 테스트 7종**(`ParameterEmitterLambdaPathTests`): SQL Injection 방어 로직이 실제로 실행되는 경로에는 집중 검증이 없었다 — 기존 13개 테스트가 전부 폐기 예정 경로만 검증했다. 정적 메서드 경로와 람다 경로의 가드 계약, `dbFactory` 비의존, `__sb_`/`__params_`/`__idx_` 로컬 변수 사용을 고정한다.
+- **`TestExpressionEvaluator` 경계 사례 테스트 18종**: 리터럴 내 논리 연산자·비교 연산자, 혼합 대소문자, 괄호(중첩 포함), 식별자 경계, 빈 조각 처리를 검증한다.
+- **직접 접근 방출 회귀 테스트 10종**(`TypedPropertyAccessTests`): 방출된 코드를 Roslyn으로 **실제로 컴파일·실행**해 SQL과 바인딩된 파라미터 값을 확인한다. 정상 경로(직접 접근으로 올바른 값 바인딩), `(object?)` 캐스트 방출, 대소문자 무시 매칭의 선언 대소문자 방출, 그리고 폴백 계약 4종(미해석 프로퍼티 → 리플렉션으로 `DBNull`, 타입 미해결/`object`/null 타입명 → 해석 없음, 파라미터 null → null 의미 유지, typed 미제공 시 기존 리플렉션 경로 동작)을 고정한다. 문자열 검사만으로는 "직접 접근이 나간 코드가 컴파일되는지"를 확인할 수 없다 — 실제로 `int?` 캐스트가 빠져 컴파일이 깨지는 결함을 이 하네스로 잡을 수 있었다.
+- **골든 스냅샷의 경로 공존 보장 테스트 2종**: 코퍼스가 한쪽으로 쏠리면 어느 경로의 회귀를 놓친다. 직접 접근(`__typed_`)과 리플렉션(`__getprop_`)이 **둘 다** 등장하는지, 그리고 직접 접근이 발동한 statement에는 같은 프로퍼티에 대한 잔여 리플렉션 호출이 없는지 검사한다. `object` 파라미터 코퍼스가 폴백을 계속 태우는지도 별도로 고정한다.
+
+### Changed
+
+- **생성 코드의 `__getprop_` 리플렉션을 정적 타입 직접 접근으로 대체**(`TypedPropertyAccess`): 매핑 파라미터의 정적 타입이 Roslyn 심볼로 해석되면, 해당 타입에 실제로 존재하고 읽을 수 있는 프로퍼티에 대해 `GetType().GetProperty(...)` 대신 컴파일된 직접 접근을 방출한다. 심볼 해석·선언 접근자·상속 탐색을 Roslyn으로 수행하고, 테스트 구문을 파라미터 타입에 대조해 **집합에 없는 프로퍼티는 기존 리플렉션 경로로 되돌린다.** 따라서 오타 프로퍼티가 컴파일 에러로 바뀌는 등 기존 동작 변화가 없다.
+  - 방출 형태: `__getprop_(__param_, "Name")` → `__typed_?.Name`, 접두로 `var __typed_ = __param_ is global::X ? (global::X)__param_ : (global::X?)null;` 한 줄. 타입이 맞지 않거나 null이면 `__typed_` 가 null 이라 종전의 "없으면 null" 의미가 그대로 보존된다.
+  - **폴백이 그대로 남는 경우**: 중첩 경로(`#{user.Address.City}` — 세그먼트 타입 잇기 미구현), foreach 아이템 프로퍼티(`#{it.Name}` — 엘먼트 타입 해석 미구현), 파라미터 타입이 `object`/`dynamic`/미해결, 읽기 전용이 아닌 비공개 프로퍼티, 쓰기 전용 프로퍼티.
+  - 값 대입 시 `(object?)` 캐스트를 넣었다. `__typed_?.MinAge` 는 `int?` 라 `?? DBNull.Value` 가 성립하지 않고 컴파일이 깨진다.
+  - 프로퍼티 조회는 `OrdinalIgnoreCase` 다. `__getprop_` 의 `BindingFlags.IgnoreCase` 와 의미를 맞추기 위함이며, 방출에는 **선언된 정확한 대소문자**를 쓴다.
+  - 두 제품 경로(프록시 `BuildSql_XXX` 정적 메서드, 레지스트리 `DynamicSqlBuilder` 람다) 모두 적용된다. 방출 접합점은 `BuildLambdaNestedAccess` 하나라 두 경로의 동작이 갈라지지 않는다.
+  - public API 표면은 넓히지 않았다. `TypedPropertyAccess` 는 `internal` 이라 `EmitBuildSqlStaticMethod` / `EmitDynamicBuilderLambda` / `RegistryEmitter.Emit` 에 **internal 오버로드**를 추가해 기존 public 시그니처를 그대로 남겼다. 테스트에서 직접 검증하기 위해 `InternalsVisibleTo("NuVatis.Generators.Tests")` 를 추가했다.
+  - **성능에 대한 정직한 범위**: SQL 조립 단독으로는 1,536.3ns → 706.8ns(2.17배)이지만, 실제 쿼리까지 포함하면 28,152.3ns → 26,753.1ns 로 **약 5%** 이다. 조립 절감폭(829ns)이 전체 쿼리의 약 3% 에 불과하기 때문이다. 네트워크 DB에서는 상대 이득이 1% 미만으로 내려간다. 상세 실측은 아래 Known Limitations 참고.
+- `.editorconfig` 규칙 빌드 강제: `EnforceCodeStyleInBuild`가 설정되지 않아 IDE 규칙이 CI에서 advisory 상태였다. `src`에 활성화하고 불필요한 `using` 12건을 제거했다. 패키지에 XML 문서가 포함되어 소비자 IntelliSense가 제공된다. `NuVatis.Generators`는 netstandard2.0 소스 제너레이터로 제외했다.
+- `e2e-testcontainers.yml` 잡을 `Provider` 트레이트로 분리했다.
+- `NuVatis.QueryBuilder.Tools`의 `IsPackable` 정책이 `publish.yml` 배포 목록과 어긋나던 점에 주석으로 명시했다.
+- `coverlet.collector` 6.0.0 → 10.1.0 (CI의 `XPlat Code Coverage` 수집 경로 동작 확인).
+- `benchmark.yml`의 "성능 회귀 감지"는 실제로 현재 결과만 출력하는 요약 스텝이었다. `Performance Summary`로 이름을 정정하고 기준선 비교 미구현 사실을 주석에 명시했다.
+- `PostgreSqlE2ETests` 기본 연결 문자열을 Docker PostgreSQL 표준값으로 변경했다.
+- 지원 TF 정책: .NET 6.0 / 7.0은 EOL이므로 해당 타겟이 EOL 패키지를 참조하며 보안 패치가 제공되지 않는 사실을 README에 명시했다.
+- `System.CommandLine`이 RC 전 상태라는 사실과 배포 대상이 아니라는 근거를 주석으로 남겼다.
+- **CI 최소 테스트 개수 검증**을 추가했다. 유닛 4개 스위트와 E2E 3개 DB 단계가 최소 통과 개수를 만족하지 않으면 실패한다 — `Provider` 트레이트 누락으로 0건이 매칭되어도 green으로 통과하던 결함을 구조적으로 차단한다.
+- **xunit 러너 상향**: `xunit 2.4.2 → 2.9.3`, `xunit.runner.visualstudio 2.4.5 → 3.1.5`. 구 버전에서는 `IAsyncLifetime` 구현 클래스가 VSTest에 등록되지 않아 Testcontainers 계열 9개가 미실행되고 PostgreSQL E2E 7개가 집계되지 않았다. 전체 테스트 387 → 410 (구조 개선 후 423).
+- **테스트 트레이트 재분류**: SQLite 인메모리 E2E 49개를 `Category=E2E` → `Category=SqliteE2E`로 옮겨 CI 유닛 잡에서 실행되도록 했다(338 → 422).
+- **Testcontainers 이미지 환경변수화**: `TC_PG_IMAGE` / `TC_MYSQL_IMAGE` / `TC_MSSQL_IMAGE`을 코드에서 읽도록 해, 주간 잡의 버전 매트릭스가 실제로 해당 DB 버전을 검증한다. 종전에는 6회 실행이 모두 동일 이미지를 사용했다.
+- **deprecated Testcontainers 생성자 제거**: `PostgreSqlBuilder()` / `MySqlBuilder()` / `MsSqlBuilder()` 파라미터 없는 생성자(CS0618)를 이미지 문자열을 받는 생성자로 교체했다(5곳).
+- **잘못된 XML 주석 3곳 수정**: `<AppDbContext>`, `<TContext>`, `<bind>`가 닫히지 않아 CS1570이 발생했다.
+- **`FastTest` 프로필 전파**: src 멀티타겟까지 net8.0으로 축소해, .NET 8 SDK 단일 설치 환경에서 sln 빌드가 NETSDK1045로 실패하던 문제를 해결했다.
+- `SecondLevelCacheTests`의 `Task.WaitAll` 교착 가능성(xUnit1031)을 `Task.WhenAll`로 교체했다.
+- `QueryBuilderTests`의 `Assert.Equal(1, count)`를 `Assert.Single`로 교체했다.
+
+### Known Limitations (미해결)
+
+- `NuVatis.Generators`의 `ParameterEmitter.EmitBuildSqlMethod`와 그 하위 `EmitNode` 계열(합계 약 384줄)은 **제품 코드에서 호출 지점이 0건**이나 `PublicAPI.Shipped.txt`에 public API로 등록돼 있어 제거할 수 없다. `[Obsolete]`로 표시해 v3.0에서 제거할 수 있게 했다(SqlSessionFactoryBuilder.AddXmlConfiguration과 동일한 패턴). 제거 시 해당 경로를 검증하는 테스트 2개 파일도 함께 삭제해야 한다.
+- **`${}` 컴파일 타임 최적화는 발동 조건이 거의 없어 배선하지 않았다**: `paramTypeMap`을 통해 SqlIdentifier 타입을 빌드타임에 판별해 런타임 가드를 생략하는 로직은 **폐기 예정 경로에만** 남아 있고, 제품 경로(`EmitBuildSqlStaticMethod` / `EmitDynamicBuilderLambda`)는 `paramTypeMap`을 받지 않아 항상 런타임 타입 가드를 방출한다. 배선을 검토했으나 다음 두 이유로 하지 않았다. (1) `paramTypeMap`의 키는 **메서드 파라미터 이름**인 반면 조회 대상은 `${}`의 **프로퍼티 이름**이라, 일반적인 `Search(SearchParam param)` + `${SortColumn}` 패턴에서는 키가 맞지 않아 최적화가 전혀 발동하지 않는다(실측). (2) 실측 비용에서 가드는 회당 1.08ns로, 생성 코드가 매번 수행하는 `GetType().GetProperty(BindingFlags)` 리플렉션(회당 약 368ns)의 0.3%에 불과하다. 가드를 없애도 성능 개선이 0.3% 미만이며, 실질 개선하려면 생성 코드의 프로퍼티 접근 캐시화가 필요하다.
+- **`DynamicSqlEmitter.EmitSqlBuilder`는 파이프라인에 연결돼 있지 않으며, 자체 결함도 갖고 있다**: `RegistryEmitter`는 같은 클래스의 `HasDynamicNodes`만 호출하고 `EmitSqlBuilder`는 `src` 어디에서도 호출되지 않는다(`PublicAPI.Shipped.txt`에는 public API로 등록). 게다가 이 메서드의 `<where>` 블록은 `__whereBuilder`를 생성만 하고 `__sql`에 연결하지 않아 조건 내용을 전혀 수집하지 못하고, 자식 노드가 `__sql`에 직접 append되므로 `<where>`가 항상 빈 문자열을 내보낸다. `<where>` 수정 대상에서 **의도적으로 제외**했다 — 죽은 경로의 결함을 고치는 것은 배선/제거 판단 없이는 의미가 없기 때문이다. `docs/architecture/source-generator.md`가 이 클래스를 파이프라인 상에 그려둔 것은 낡은 문서다.
+- **생성 코드의 `__getprop_` 리플렉션 제거 — 실측 근거와 미구현 범위**: `DynamicSqlBuildBenchmark`로 실제 생성 출력(`BuildSql_Search`)을 그대로 옮겨 측정한 결과다.
+  - **SQL 조립 단독**: 1,536.3 ns → 706.8 ns (2.17배, 절감 829 ns), 할당 1.99KB → 1.75KB.
+  - **실제 쿼리까지 포함(SQLite 인메모리)**: 28,152.3 ns → 26,753.1 ns, **약 5%** 수준이다. 조립 비용 절감폭(829 ns)이 전체 쿼리 비용의 약 3%에 불과하다.
+  - 따라서 **"2배 개선"이라는 조립 단독 수치를 그대로 신뢰하면 안 된다.** 실제 DB 왕복(네트워크 DB는 통상 0.5~5 ms)이 지배적인 환경에서는 상대 이득이 1% 미만으로 내려간다. `SqlSession.BuildSql`은 SQL 문자열을 캐시하지 않아(`SqlSession.cs:737-743`) 매 실행마다 이 비용을 내지만, 결과 캐시 히트 시에는 건너뛴다.
+  - **직접 접근 최적화는 구현 완료** — 위 Changed 항목 참조. 다만 중첩 경로와 foreach 아이템 프로퍼티는 여전히 리플렉션에 남아 있다. 세그먼트별 타입을 잇는 심볼 해석이 추가로 필요하며, 이를 넣으면 폴백 면적이 줄어 실제 절감폭이 늘어난다.
+  - `DynamicSqlBuildBenchmark` 는 생성 코드에서 옮긴 미러라, 생성 출력이 바뀌면(where 수정, 직접 접근 도입 등) 함께 갱신해야 한다. 기준선 해시를 파일 주석에 적어 두었다.
+- `TypeResolver.IsNullableType`도 public API로 등록돼 있어 유지한다.
+- .NET 6.0 / 7.0 타겟은 EOL이며 유지 여부는 제품 결정 사항이다.
+- XML 주석 누락(CS1591)은 다수 존재해 `NoWarn`으로 두고 별도 과제로 남긴다.
+
+
+- **CI E2E 3단계가 테스트를 0개 실행**: `ci.yml` e2e-test 잡이 `Category=E2E&Provider=PostgreSql` 필터를 사용했으나 `Provider` 트레이트가 소스에 전혀 정의돼 있지 않아 3개 단계(PDB 서비스 컨테이너를 기동하면서)가 모두 0건 매칭으로 green 통과했다. PostgreSQL/MySQL/SQL Server 통합 경로에 대한 CI 검증이 사실상 부재했던 상태다. 관련 클래스에 `Provider` 트레이트를 부여해 각 단계를 실제 테스트와 연결했다.
+- **Testcontainers 9개 + PostgreSQL E2E 7개 미실행**: `xunit.runner.visualstudio 2.4.5`에서 `IAsyncLifetime` 구현 테스트 클래스가 VSTest에 등록되지 않았다. Testcontainers 계열 3개 클래스는 아예 발견되지 않았고, `PostgreSqlE2ETests` 7개는 실행되나 "Result reported for unknown test case"로 보고되어 집계에 반영되지 않았다. `xunit 2.4.2 → 2.9.3`, `xunit.runner.visualstudio 2.4.5 → 3.1.5`로 상향해 해결했다. 전체 테스트 수 387 → 410.
+- **Testcontainers 다중 버전 매트릭스 무효화**: `e2e-testcontainers.yml`이 `TC_PG_IMAGE`/`TC_MYSQL_IMAGE`/`TC_MSSQL_IMAGE` 환경변수를 주입했으나 테스트 코드가 이를 읽지 않고 `WithImage("postgres:16-alpine")` 등으로 하드코딩하고 있었다. PG 13/14/15/16 매트릭스 4회와 MySQL 8.0/8.4 매트릭스 2회가 모두 동일 이미지를 실행해 DB 버전 호환성이 검증되지 않았다. 이미지 문자열을 생성자에 전달하는 패턴으로 전환해 환경변수를 존중하도록 변경했다.
+- **SQLite E2E 49개가 CI에서 미실행**: `Category=E2E`인 SQLite 인메모리 테스트 49개가 유닛 잡의 `Category!=E2E` 필터로 제외되고 e2e 잡에서는 0건 매칭이 되어 어느 곳에서도 실행되지 않았다. `Category=SqliteE2E`로 재분류해 유닛 잡에서 실행되도록 변경했다(유닛 실행 수 338 → 394).
+- **패키지 검증 게이트 취약**: `ci.yml` pack-verify가 `COUNT -lt 9` 개수 기준이라 14개 중 5개가 누락돼도 통과했다. `publish.yml`과 동일한 13개 패키지명 개별 검증으로 변경했다.
+- **`FastTest` 프로필 미작동**: `FastTest=true`가 테스트 프로젝트에만 적용되고 `src` 멀티타겟에는 전파되지 않아, .NET 8 SDK 단일 설치 환경에서 `dotnet build NuVatis.sln /p:FastTest=true`가 `NETSDK1045`로 실패했다. README가 "속도 대폭 단축(권장)"이라 안내하고 있었으나 실제로는 동작하지 않았다. `Directory.Build.targets`에 FastTest TFM 오버라이드를 추가했다(`NuVatis.Generators`는 netstandard2.0 고정이라 제외).
+- **잘못된 형식의 XML 주석 3곳**: `NuVatisEfCoreExtensions.cs`(`<AppDbContext>`), `NuVatisEfCoreOptions.cs`(`<TContext>`), `ParsedSqlNode.cs`(`<bind>`)의 XML 문서에 닫는 태그가 없어 CS1570이 발생했다. 이스케이프 처리했다.
+- **Testcontainers deprecated 생성자**: `PostgreSqlBuilder()`/`MySqlBuilder()`/`MsSqlBuilder()` 파라미터 없는 생성자가 폐기 예정(`CS0618`)으로 경고와 함께 다음 Testcontainers 메이저 업그레이드 시 컴파일 오류로 전환될 상태였다. 이미지 문자열을 생성자에 전달하도록 변경했다(`NuVatis.Tests` 2곳, `NuVatis.QueryBuilder.Tests` 3곳).
+- **차단형 태스크 대기**: `SecondLevelCacheTests.MemoryCacheProvider_ConcurrentAccess_ThreadSafe`가 `Task.WaitAll`을 사용해 교착 가능성이 있었다(`xUnit1031`). `Task.WhenAll` + `async Task`로 변경했다.
+
+### Added
+
+- **CI 최소 테스트 개수 검증**: 유닛 4개 스위트와 E2E 3개 DB 단계를 최소 통과 개수로 검증해, 0건 매칭의 green 통과가 재발하지 않도록 했다. `Provider` 트레이트 누락이 다시 발생하면 즉시 잡이 실패한다.
+- **테스트 트레이트 규약 문서화**: README에 Category/Provider 트레이트와 실행 환경 대응표를 추가했다.
+- **Testing Cookbook에 CI 실행 구성 명시**: 단계별 필터와 최소 통과 개수, 외부 DB 환경변수(`NUVATIS_TEST_PG_CONNECTION`, `TC_PG_IMAGE`, `TC_MYSQL_IMAGE`, `TC_MSSQL_IMAGE`)를 문서화했다. `xunit.runner.visualstudio`가 3.x 미만이면 `IAsyncLifetime` 클래스가 조용히 미실행된다는 점을 경고로 남겼다.
+
+### Changed
+
+- **`.editorconfig` 규칙 빌드 강제**: `EnforceCodeStyleInBuild`가 설정되지 않아 `.editorconfig`의 IDE 규칙이 CI에서 advisory 상태였다. `src`에 `EnforceCodeStyleInBuild`와 `GenerateDocumentationFile`을 활성화했다(IDE0005 검사는 문서 파일 생성이 전제 조건 — roslyn#41640). 불필요한 `using` 12건을 제거했다. 패키지에 XML 문서가 포함되어 소비자 IntelliSense가 제공된다. `NuVatis.Generators`는 netstandard2.0 소스 제너레이터로 이식성 유지를 위해 제외했다.
+- **`e2e-testcontainers.yml` 잡 분리**: PG/MySQL 잡이 모두 `Category=Testcontainers` 단독 필터를 사용해 3개 DB 클래스를 전부 실행했다. `Provider`로 분리해 매트릭스가 해당 DB 버전만 검증하도록 변경했다.
+- `NuVatis.QueryBuilder.Tools`의 `IsPackable` 정책이 `publish.yml` 배포 목록과 어긋나던 점에 주석으로 명시했다.
+- **`coverlet.collector` 6.0.0 → 10.1.0**: CI의 `XPlat Code Coverage` 수집 경로가 그대로 동작함을 Cobertura 리포트 생성으로 확인했다.
+- **`benchmark.yml` 정정**: 헤더와 스텝명이 "성능 회귀 감지"를 암시했으나 실제로는 현재 결과만 출력하는 요약 스텝이었다. `Performance Summary`로 이름을 바꾸고 기준선 비교 미구현 사실을 주석에 명시했다.
+- **`PostgreSqlE2ETests` 기본 연결 문자열 표준화**: 개인 개발 설정으로 보이는 `localhost:35432` / `bee` 폴백을 Docker PostgreSQL 표준 기본값(`localhost:5432` / `postgres`)으로 변경했다. CI는 `NUVATIS_TEST_PG_CONNECTION`으로 덮어쓴다.
+- **지원 TF 정책 문서화**: .NET 6.0 / 7.0은 EOL이므로 해당 타겟이 `Microsoft.Extensions.* 6.*/7.*` 등 EOL 패키지를 참조하며 보안 패치가 제공되지 않는 사실을 README에 명시했다. 타겟 제거는 별도 결정 사항이다.
+- `System.CommandLine`이 2.0 RC 전 상태라는 사실과, `NuVatis.QueryBuilder.Tools`가 배포 대상이 아니므로 영향 범위가 제한적이라는 근거를 주석으로 남겼다.
+
+### Added
+
+- **`JsonTypeHandler<T>` 단위 테스트 8종**: `RegisterTypeHandler<T>`로 등록되는 public API였으나 커버리지가 0%였다. 직렬화/역직렬화, `DBNull`/빈 문자열 처리, 커스텀 `JsonSerializerOptions`(네이밍 정책) 반영, 컬렉션 왕복(DB 저장 후 재조회)을 검증한다.
+- **`TimeOnlyTypeHandler.GetValue` 타입 분기 테스트 3종**: `TimeSpan` / `DateTime` 변환과 미지원 타입 예외 경로가 미검증 상태였다. 컬럼 타입을 직접 제어할 수 있는 `DataTableReader`로 검증한다(SQLite TEXT 컬럼은 `GetValue`가 `string`을 반환해 분기를 재현할 수 없다).
+- **CI 최소 테스트 개수 검증**: 유닛 4개 스위트와 E2E 3개 DB 단계를 최소 통과 개수로 검증해, 0건 매칭의 green 통과가 재발하지 않도록 했다. `Provider` 트레이트 누락이 다시 발생하면 즉시 잡이 실패한다.
+
 ## [2.7.0] - 2026-07-07
 
 ### Changed

@@ -2,7 +2,6 @@
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using NuVatis.Generators.Analysis;
@@ -79,7 +78,7 @@ public sealed class NuVatisIncrementalGenerator : IIncrementalGenerator {
             context.AddSource(hintName, SourceText.From(proxySource, Encoding.UTF8));
         }
 
-        var registrySource = RegistryEmitter.Emit(interfaces, mappers, typeToMethod);
+        var registrySource = RegistryEmitter.Emit(interfaces, mappers, typeToMethod, compilation);
         context.AddSource("NuVatisMapperRegistry.g.cs", SourceText.From(registrySource, Encoding.UTF8));
     }
 

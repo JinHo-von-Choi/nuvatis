@@ -1,7 +1,9 @@
 #nullable enable
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
+using NuVatis.Generators.Analysis;
 using NuVatis.Generators.Models;
 
 namespace NuVatis.Generators.Emitters;
@@ -29,12 +31,19 @@ public static class ParameterEmitter {
     private const string SqlIdentifierFqn = "NuVatis.Core.Sql.SqlIdentifier";
 
     /**
-     * BuildSql_{id} 로컬 함수 소스를 생성한다.
+     * BuildSql_{id} 인스턴스 로컬 함수 소스를 생성한다.
+     *
+     * @deprecated 내부 호출 지점이 없고 이 경로로 생성된 코드는 더 이상 사용되지 않는다.
+     * v2.7.0에서 ProxyEmitter가 인라인 정적 메서드 방출
+     * (EmitBuildSqlStaticMethod)로 전환하면서 잔재로 남은 경로다.
+     * 새 코드에서는 EmitBuildSqlStaticMethod를 사용하라. v3.0에서 제거 예정.
      *
      * @param statement              파싱된 SQL 구문 정보
      * @param providerParameterPrefix DB 파라미터 접두사 (@, :, ? 등)
      * @param paramTypeMap           파라미터명 → CLR FQN 타입명 매핑 (null이면 보수적 가드 삽입)
      */
+    [Obsolete("이 경로는 v2.7.0의 인라인 정적 메서드 전환으로 교체되었습니다. " +
+              "EmitBuildSqlStaticMethod를 사용하세요. v3.0에서 제거됩니다.")]
     public static string EmitBuildSqlMethod(
         ParsedStatement statement,
         string providerParameterPrefix,
@@ -82,6 +91,19 @@ public static class ParameterEmitter {
         ParsedStatement statement,
         string providerParameterPrefix,
         IReadOnlyDictionary<string, string>? paramTypeMap = null) {
+        return EmitBuildSqlStaticMethod(statement, providerParameterPrefix, paramTypeMap, null);
+    }
+
+    /**
+     * 정적 타입이 해석된 파라미터에 대해 리플렉션 대신 직접 접근을 방출하는 내부 오버로드.
+     * TypedPropertyAccess는 internal 타입이므로 public 시그니처에 노출하지 않는다 —
+     * public API 표면을 넓히지 않기 위한 intentional 제약이다.
+     */
+    internal static string EmitBuildSqlStaticMethod(
+        ParsedStatement statement,
+        string providerParameterPrefix,
+        IReadOnlyDictionary<string, string>? paramTypeMap,
+        TypedPropertyAccess? typedAccess) {
 
         var sb = new StringBuilder(2048);
 
@@ -99,8 +121,10 @@ public static class ParameterEmitter {
         sb.AppendLine("                    System.Reflection.BindingFlags.IgnoreCase);");
         sb.AppendLine("                return p_?.GetValue(o_);");
         sb.AppendLine("            }");
+        if (typedAccess is not null)
+            sb.AppendLine("            " + typedAccess.BuildLocalDeclaration("__param_"));
 
-        EmitLambdaNode(sb, statement.RootNode, "__param_", providerParameterPrefix, 3);
+        EmitLambdaNode(sb, statement.RootNode, "__param_", providerParameterPrefix, 3, typedAccess);
 
         sb.AppendLine("            return (__sb_.ToString(), __params_);");
         sb.AppendLine("        }");
@@ -284,6 +308,11 @@ public static class ParameterEmitter {
         sb.AppendLine($"{sp}    sb = whereSb;");
 
         foreach (var child in whereNode.Children) {
+            // 조건 사이에 구분 공백을 넣는다. 이것이 없으면 두 번째 조건부터 접두사가
+            // 앞 조건 끝에 붙어 "name = @p0AND age >= @p1" 처럼 파싱 불가한 SQL이 된다.
+            // 맨 앞 접두사는 아래에서 한 번만 제거하므로, 이 공백이 유일한 구분자다.
+            // MyBatis TextSqlNode가 동적 조각마다 선행 공백을 붙이는 것과 동일하다.
+            sb.AppendLine($"{sp}    sb.Append(' ');");
             EmitNode(sb, child, prefix, indent + 1, paramTypeMap);
         }
 
@@ -450,6 +479,17 @@ public static class ParameterEmitter {
      * @param paramPrefix  파라미터 접두사 (예: "@")
      */
     public static string EmitDynamicBuilderLambda(ParsedSqlNode rootNode, string paramPrefix = "@") {
+        return EmitDynamicBuilderLambda(rootNode, paramPrefix, null);
+    }
+
+    /**
+     * 정적 타입이 해석된 파라미터에 대해 리플렉션 대신 직접 접근을 방출하는 내부 오버로드.
+     * EmitBuildSqlStaticMethod의 내부 오버로드와 같은 이유로 public 표면을 넓히지 않는다.
+     */
+    internal static string EmitDynamicBuilderLambda(
+        ParsedSqlNode rootNode,
+        string paramPrefix,
+        TypedPropertyAccess? typedAccess) {
         var sb = new StringBuilder(2048);
         sb.AppendLine("static (__param_) =>");
         sb.AppendLine("        {");
@@ -465,7 +505,10 @@ public static class ParameterEmitter {
         sb.AppendLine("                    System.Reflection.BindingFlags.IgnoreCase);");
         sb.AppendLine("                return p_?.GetValue(o_);");
         sb.AppendLine("            }");
-        EmitLambdaNode(sb, rootNode, "__param_", paramPrefix, 3);
+        if (typedAccess is not null)
+            sb.AppendLine("            " + typedAccess.BuildLocalDeclaration("__param_"));
+
+        EmitLambdaNode(sb, rootNode, "__param_", paramPrefix, 3, typedAccess);
         sb.AppendLine("            return (__sb_.ToString(), __params_);");
         sb.Append("        }");
         return sb.ToString();
@@ -476,7 +519,8 @@ public static class ParameterEmitter {
         ParsedSqlNode node,
         string paramVar,
         string prefix,
-        int indent) {
+        int indent,
+        TypedPropertyAccess? typed = null) {
 
         var sp = new string(' ', indent * 4);
 
@@ -489,18 +533,19 @@ public static class ParameterEmitter {
                 break;
 
             case ParameterNode param when !param.IsStringSubstitution: {
-                var propAccess = BuildLambdaNestedAccess(paramVar, param.Name);
+                var propAccess = BuildLambdaNestedAccess(paramVar, param.Name, typed);
                 sb.AppendLine($"{sp}{{");
                 sb.AppendLine($"{sp}    var __pn_ = \"{prefix}p\" + __idx_++;");
                 sb.AppendLine($"{sp}    __sb_.Append(__pn_);");
                 sb.AppendLine($"{sp}    __params_.Add(NuVatis.Binding.ParameterBinder.CreateParameter(");
-                sb.AppendLine($"{sp}        __pn_, {propAccess} ?? System.DBNull.Value));");
+                // 정적 접근은 string?/int? 로 좁혀지므로 object? 로 넓혀야 ?? DBNull.Value 가 성립한다
+                sb.AppendLine($"{sp}        __pn_, (object?){propAccess} ?? System.DBNull.Value));");
                 sb.AppendLine($"{sp}}}");
                 break;
             }
 
             case ForEachNode forEach: {
-                var collAccess = BuildLambdaNestedAccess(paramVar, forEach.Collection);
+                var collAccess = BuildLambdaNestedAccess(paramVar, forEach.Collection, typed);
                 var collVar    = $"__coll_{SanitizeId(forEach.Collection)}_";
                 var itemVar    = $"{SanitizeId(forEach.Item)}_";
                 var firstVar   = $"__first_{SanitizeId(forEach.Collection)}_";
@@ -533,7 +578,7 @@ public static class ParameterEmitter {
             case ParameterNode strSub when strSub.IsStringSubstitution:
                 // ${}는 SqlIdentifier 타입만 허용한다.
                 sb.AppendLine($"{sp}{{");
-                sb.AppendLine($"{sp}    var __sv_ = {BuildLambdaNestedAccess(paramVar, strSub.Name)};");
+                sb.AppendLine($"{sp}    var __sv_ = {BuildLambdaNestedAccess(paramVar, strSub.Name, typed)};");
                 sb.AppendLine($"{sp}    if (__sv_ is not NuVatis.Core.Sql.SqlIdentifier)");
                 sb.AppendLine($"{sp}        throw new System.InvalidOperationException(");
                 sb.AppendLine($"{sp}            \"${{{strSub.Name}}} 치환에는 SqlIdentifier 타입이 필요합니다.\");");
@@ -543,11 +588,11 @@ public static class ParameterEmitter {
 
             case IfNode ifNode: {
                 var propName   = ExtractPropertyName(ifNode.Test);
-                var propAccess = BuildLambdaNestedAccess(paramVar, propName);
+                var propAccess = BuildLambdaNestedAccess(paramVar, propName, typed);
                 sb.AppendLine($"{sp}if ({propAccess} != null)");
                 sb.AppendLine($"{sp}{{");
                 foreach (var child in ifNode.Children) {
-                    EmitLambdaNode(sb, child, paramVar, prefix, indent + 1);
+                    EmitLambdaNode(sb, child, paramVar, prefix, indent + 1, typed);
                 }
                 sb.AppendLine($"{sp}}}");
                 break;
@@ -558,11 +603,11 @@ public static class ParameterEmitter {
                 foreach (var when in choose.Whens) {
                     var keyword    = first ? "if" : "else if";
                     var propName   = ExtractPropertyName(when.Test);
-                    var propAccess = BuildLambdaNestedAccess(paramVar, propName);
+                    var propAccess = BuildLambdaNestedAccess(paramVar, propName, typed);
                     sb.AppendLine($"{sp}{keyword} ({propAccess} != null)");
                     sb.AppendLine($"{sp}{{");
                     foreach (var child in when.Children) {
-                        EmitLambdaNode(sb, child, paramVar, prefix, indent + 1);
+                        EmitLambdaNode(sb, child, paramVar, prefix, indent + 1, typed);
                     }
                     sb.AppendLine($"{sp}}}");
                     first = false;
@@ -571,7 +616,7 @@ public static class ParameterEmitter {
                     sb.AppendLine($"{sp}else");
                     sb.AppendLine($"{sp}{{");
                     foreach (var child in otherwise) {
-                        EmitLambdaNode(sb, child, paramVar, prefix, indent + 1);
+                        EmitLambdaNode(sb, child, paramVar, prefix, indent + 1, typed);
                     }
                     sb.AppendLine($"{sp}}}");
                 }
@@ -583,7 +628,9 @@ public static class ParameterEmitter {
                 sb.AppendLine($"{sp}    var __wSb_ = new System.Text.StringBuilder();");
                 sb.AppendLine($"{sp}    var __outerSb_ = __sb_; __sb_ = __wSb_;");
                 foreach (var child in where.Children) {
-                    EmitLambdaNode(sb, child, paramVar, prefix, indent + 1);
+                    // EmitWhereNode와 동일 — 조건 사이 구분 공백
+                    sb.AppendLine($"{sp}    __sb_.Append(' ');");
+                    EmitLambdaNode(sb, child, paramVar, prefix, indent + 1, typed);
                 }
                 sb.AppendLine($"{sp}    __sb_ = __outerSb_;");
                 sb.AppendLine($"{sp}    var __wc_ = __wSb_.ToString().Trim();");
@@ -604,7 +651,7 @@ public static class ParameterEmitter {
                 sb.AppendLine($"{sp}    var __sSb_ = new System.Text.StringBuilder();");
                 sb.AppendLine($"{sp}    var __outerSb_ = __sb_; __sb_ = __sSb_;");
                 foreach (var child in set.Children) {
-                    EmitLambdaNode(sb, child, paramVar, prefix, indent + 1);
+                    EmitLambdaNode(sb, child, paramVar, prefix, indent + 1, typed);
                 }
                 sb.AppendLine($"{sp}    __sb_ = __outerSb_;");
                 sb.AppendLine($"{sp}    var __sc_ = __sSb_.ToString().Trim();");
@@ -619,7 +666,7 @@ public static class ParameterEmitter {
 
             case MixedNode mixed:
                 foreach (var child in mixed.Children) {
-                    EmitLambdaNode(sb, child, paramVar, prefix, indent);
+                    EmitLambdaNode(sb, child, paramVar, prefix, indent, typed);
                 }
                 break;
         }
@@ -687,7 +734,18 @@ public static class ParameterEmitter {
      * "users"       → "__getprop_(__param_, \"users\")"
      * "user.Name"   → "__getprop_(__getprop_(__param_, \"user\"), \"Name\")"
      */
-    private static string BuildLambdaNestedAccess(string paramVar, string propertyPath) {
+    private static string BuildLambdaNestedAccess(
+        string paramVar,
+        string propertyPath,
+        TypedPropertyAccess? typed = null) {
+
+        // 심볼이 해석된 단일 세그먼트 프로퍼티는 리플렉션 대신 정적 접근을 방출한다.
+        // 경로에 점이 있으면 세그먼트 타입을 잇는 심볼 해석이 필요하므로 리플렉션에 남는다.
+        if (typed is not null && propertyPath.IndexOf('.') < 0
+            && typed.TryGetDeclaredName(propertyPath, out var declaredName)) {
+            return typed.BuildAccess(declaredName);
+        }
+
         var parts   = propertyPath.Split('.');
         var current = paramVar;
         foreach (var part in parts) {
