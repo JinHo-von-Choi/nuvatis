@@ -147,7 +147,10 @@ jobs:
               FAILED=1
               continue
             fi
-            PASSED=$(grep -oE 'passed="[0-9]+"' "${TRX}" | head -1 | grep -oE '[0-9]+')
+            # grep 은 미일치 시 exit 1 이고 GitHub Actions 의 bash 는 -e 로 돌아
+            # 루프 중간에 죽어 어떤 키도 보고하지 않는다. TRX 루트 속성명은
+            # skipped 가 아니라 notExecuted 다.
+            PASSED=$(grep -oE 'passed="[0-9]+"' "${TRX}" | head -1 | grep -oE '[0-9]+' || true)
             if [[ -z "${PASSED}" ]] || [[ ${PASSED} -lt ${MINIMUM[$KEY]} ]]; then
               echo "::error::${KEY}: passed=${PASSED:-0} < required ${MINIMUM[$KEY]} — 테스트가 누락됐거나 필터가 0건을 매칭함"
               FAILED=1
@@ -294,8 +297,14 @@ jobs:
               FAILED=1
               continue
             fi
-            PASSED=$(grep -oE 'passed="[0-9]+"' "${TRX}" | head -1 | grep -oE '[0-9]+')
-            SKIPPED=$(grep -oE 'skipped="[0-9]+"' "${TRX}" | head -1 | grep -oE '[0-9]+')
+            # grep 은 미일치 시 exit 1 이고 GitHub Actions 의 bash 는 -e 로 돌아
+            # 루프 중간에 죽어 어떤 키도 보고하지 않는다. TRX 루트 속성명은
+            # skipped 가 아니라 notExecuted 다.
+            PASSED=$(grep -oE 'passed="[0-9]+"' "${TRX}" | head -1 | grep -oE '[0-9]+' || true)
+            # grep 은 미일치 시 exit 1 이고 GitHub Actions 의 bash 는 -e 로 돌아
+            # 루프 중간에 죽어 어떤 키도 보고하지 않는다. TRX 루트 속성명은
+            # skipped 가 아니라 notExecuted 다.
+            SKIPPED=$(grep -oE 'notExecuted="[0-9]+"' "${TRX}" | head -1 | grep -oE '[0-9]+' || true)
             if [[ -z "${PASSED}" ]] || [[ ${PASSED} -lt ${MINIMUM[$KEY]} ]]; then
               echo "::error::${KEY}: passed=${PASSED:-0} (skipped=${SKIPPED:-0}) < required ${MINIMUM[$KEY]}"
               FAILED=1

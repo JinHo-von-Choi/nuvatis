@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
      → 매트릭스에 `tfm` 을 추가해 잡마다 TFM 하나만 실행하도록 고쳤고(`--framework ${{ matrix.tfm }}`), 부수적으로 결과 디렉터리도 스위트별로 분리했다. 잡당 6회 실행이 1회로 줄면서 CI 시간도 크게 준다.
      - 결과적으로 **매트릭스 7개 잡이 모두 동일한 작업을 반복하고 있었고, SDK 버전 차이는 아무것도 검증하지 못했다.** 이제 각 잡이 해당 TFM 을 실제로 검증한다.
   - 함께 임계값을 Release 실측 기준선으로 갱신했다(기존 150 / 390 / 70 / 15 → 165 / 415 / 72 / 14).
+  - 5. **검증 스텝의 `grep` 가 `set -e` 에 걸림**: GitHub Actions 의 bash 는 `-e` 로 돌아서, `PASSED=$(grep -oE 'passed="[0-9]+"' ...)` 가 미일치하면 exit 1 인 grep 이 루프 중간에 스크립트를 죽인다. E2E 검증 스텝은 `skipped="..."` 를 찾는데 TRX 루트에 그 속성이 없어(실제 이름은 `notExecuted`) **항상 죽었다.** 트리플이 조용히 죽어 어떤 키도 보고하지 않아, PostgreSQL 7 / MySQL 2 / SQL Server 5가 전부 통과했는데 잡이 실패했다. → 세 `grep` 에 `|| true` 를 붙이고 `notExecuted` 로 정정했다.
   - **미해결 (windows 최소 개수 검증)**: windows 는 TRX 파일 잠금으로 통과 개수를 신뢰할 수 없어 `Verify test counts` 를 ubuntu 잡에서만 실행하도록 했다. 검증 목적이 OS 무관하므로 기능 손실은 없으나 windows 는 경고만 남긴다. 매트릭스에서 TFM 을 고정해 해결을 시도했지만 net6/7/9/10/11 잡이 테스트 호스트 부재로 깨져 되돌렸다. 정확한 원인은 미특정이다.
 
 ## [2.8.0] - 2026-10-04
