@@ -11,7 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **CI `Verify test counts` 스텝이 windows 러너에서 실패 — 서로 다른 원인 2개**: 두 번에 걸쳐 고쳤고, 둘 다 ubuntu 러너에서는 드러나지 않아 태그 push 뒤에야 발견됐다. **테스트는 매번 전부 통과한 상태였다.**
   1. **셸 미지정**: 스텝이 `declare -A` / `[[ ]]` 등 bash 문법을 쓰는데 `shell:` 이 없어 windows-latest 의 기본 셸인 pwsh 에서 실행됐다. → `shell: bash` 명시. 같은 결함이 있던 `Verify E2E test counts` 와 `Verify package count` 도 ubuntu 전용이라 잠복해 있었으므로 선점 고쳤다.
-  2. **TRX 파일 경합**: 스위트 7개가 모두 같은 `./TestResults` 에 TRX 를 쓰면서 테스트 호스트와 coverlet 이 파일 핸들을 경쟁했다. 로그에 `Failed to write the results file ... being used by another process` 가 남아 `core.trx` 가 재생성됐고, 그 여파로 `querybuilder.trx` 의 `passed` 속성을 읽지 못해 **실제 76개가 전부 통과했는데 `passed=0 < required 72` 로 오판**해 잡이 실패했다. → 스위트마다 `--results-directory` 를 분리해 경합을 원천 차단했다.
+  2. **근본 원인 — 매 잡이 6개 TFM 을 전부 실행**: 매트릭스는 `dotnet`(설치할 SDK)만 바꿨고 실행할 **TFM 은 고정하지 않았다.** 멀티타겟 프로젝트에 `-f` 가 없으면 `dotnet test` 가 6개 TFM 을 전부 실행하고, 각 실행이 같은 TRX 를 덮어쓴다(로그에 `Total tests: 422` 가 4회 반복되는 것이 증거다). ubuntu 는 덮어쓰기가 성공하지만 windows 는 테스트 호스트가 파일 핸들을 놓지 않아 `Failed to write the results file ... being used by another process` 가 발생한다. 그 결과 **76개·422개가 전부 통과한 스위트가 `passed=0` 으로 오판**되어 잡이 실패했다.
+     → 매트릭스에 `tfm` 을 추가해 잡마다 TFM 하나만 실행하도록 고쳤고(`--framework ${{ matrix.tfm }}`), 부수적으로 결과 디렉터리도 스위트별로 분리했다. 잡당 6회 실행이 1회로 줄면서 CI 시간도 크게 준다.
+     - 결과적으로 **매트릭스 7개 잡이 모두 동일한 작업을 반복하고 있었고, SDK 버전 차이는 아무것도 검증하지 못했다.** 이제 각 잡이 해당 TFM 을 실제로 검증한다.
   - 함께 임계값을 Release 실측 기준선으로 갱신했다(기존 150 / 390 / 70 / 15 → 165 / 415 / 72 / 14).
 
 ## [2.8.0] - 2026-10-04

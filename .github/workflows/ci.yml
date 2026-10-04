@@ -22,17 +22,27 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest]
         dotnet: ['8.0.x']
+        # dotnet 은 설치할 SDK, tfm 은 그 SDK 로 실행할 대상 프레임워크다.
+        # 둘을 분리하지 않으면 매 잡이 6개 TFM 을 전부 실행하며 같은 TRX 를 6번
+        # 덮어쓴다. windows 에서는 이 파일 핸들 경쟁으로 TRX 쓰기가 실패해
+        # "전부 통과했는데 passed=0" 으로 오판된다(실측 2026-10-04).
+        tfm: ['net8.0']
         include:
           - os: ubuntu-latest
             dotnet: '6.0.x'
+            tfm: 'net6.0'
           - os: ubuntu-latest
             dotnet: '7.0.x'
+            tfm: 'net7.0'
           - os: ubuntu-latest
             dotnet: '9.0.x'
+            tfm: 'net9.0'
           - os: ubuntu-latest
             dotnet: '10.0.x'
+            tfm: 'net10.0'
           - os: ubuntu-latest
             dotnet: '11.0.x'
+            tfm: 'net11.0'
 
     steps:
       - uses: actions/checkout@v6
@@ -62,7 +72,7 @@ jobs:
       - name: Unit Tests (Generators)
         run: >-
           dotnet test tests/NuVatis.Generators.Tests/
-          --configuration Release --no-build --verbosity normal
+          --configuration Release --no-build --framework ${{ matrix.tfm }} --verbosity normal
           --logger "trx;LogFileName=generators.trx"
           --collect:"XPlat Code Coverage"
           --results-directory ./TestResults/generators
@@ -70,7 +80,7 @@ jobs:
       - name: Unit Tests (Core)
         run: >-
           dotnet test tests/NuVatis.Tests/
-          --configuration Release --no-build --verbosity normal
+          --configuration Release --no-build --framework ${{ matrix.tfm }} --verbosity normal
           --logger "trx;LogFileName=core.trx"
           --filter "Category!=E2E&Category!=Testcontainers"
           --collect:"XPlat Code Coverage"
@@ -79,7 +89,7 @@ jobs:
       - name: Unit Tests (QueryBuilder)
         run: >-
           dotnet test tests/NuVatis.QueryBuilder.Tests/
-          --configuration Release --no-build --verbosity normal
+          --configuration Release --no-build --framework ${{ matrix.tfm }} --verbosity normal
           --logger "trx;LogFileName=querybuilder.trx"
           --filter "Category!=Integration"
           --collect:"XPlat Code Coverage"
@@ -88,7 +98,7 @@ jobs:
       - name: Unit Tests (QueryBuilder.Tools)
         run: >-
           dotnet test tests/NuVatis.QueryBuilder.Tools.Tests/
-          --configuration Release --no-build --verbosity normal
+          --configuration Release --no-build --framework ${{ matrix.tfm }} --verbosity normal
           --logger "trx;LogFileName=querybuilder-tools.trx"
           --collect:"XPlat Code Coverage"
           --results-directory ./TestResults/querybuilder-tools

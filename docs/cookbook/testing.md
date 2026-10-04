@@ -136,12 +136,20 @@ CI는 트레이트로 테스트를 분류해 단계별로 실행한다. **DB별 
 > 쓰므로 `shell: bash` 를 명시해야 한다. 미지정 시 windows-latest 의 기본 셸인 pwsh 에서
 > `declare` 를 알 수 없어 **테스트는 전부 통과한 상태에서 잡만 red** 가 된다(실측 2026-10-04).
 
-> **스위트마다 `--results-directory` 를 분리해야 한다.** 공통 디렉터리에 TRX 를 쓰면
-> 테스트 호스트와 coverlet 이 파일 핸들을 경쟁해
+> **멀티타겟 프로젝트는 반드시 `--framework` 으로 TFM 을 고정해야 한다.**
+> 이것이 없으면 `dotnet test` 가 6개 TFM 을 전부 실행하며 같은 TRX 를 6번 덮어쓴다
+> (로그에 `Total tests: 422` 가 반복되는 것이 증거다). ubuntu 는 덮어쓰기가 성공하지만
+> windows 는 테스트 호스트가 파일 핸들을 놓지 않아
 > `Failed to write the results file ... being used by another process` 가 발생하고,
-> 재생성된 TRX 의 `passed` 속성을 못 읽어 **전부 통과했는데 `passed=0` 으로 오판**할 수 있다
-> (실측 2026-10-04 — querybuilder 가 실제로 76개 통과인데 0으로 보고됨).
-> 현재 구조는 `./TestResults/<스위트명>/<스위트명>.trx` 이다.
+> **전부 통과한 스위트가 `passed=0` 으로 오판**된다(실측 2026-10-04 — querybuilder 가
+> 실제로 76개 통과했는데 0으로 보고됨).
+>
+> 빌드-유닛 잡의 매트릭스는 `dotnet`(설치할 SDK)과 `tfm`(실행할 프레임워크)을
+> 분리해 잡마다 하나만 실행한다. 결과 디렉터리도 스위트별로 분리한다
+> (`./TestResults/<스위트명>/<스위트명>.trx`).
+>
+> 디렉터리 분리만으로는 충분하지 않다. 같은 TRX 를 6번 덮어쓰는 것 자체가 근본
+> 원인이므로 `--framework` 으로 실행 횟수를 1회로 줄여야 한다.
 
 > **windows 러너는 ubuntu에서 드러나지 않는 결함이 숨는다.** 위 두 건 모두 ubuntu 6개 잡은
 > 정상이고 windows/net8 만 실패했다. 매트릭스에 windows 가 없으면 검증 자체가 통과해 버린다.
