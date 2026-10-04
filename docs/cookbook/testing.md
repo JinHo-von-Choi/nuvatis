@@ -106,18 +106,35 @@ CI는 트레이트로 테스트를 분류해 단계별로 실행한다. **DB별 
 
 | 단계 | 필터 | 최소 통과 개수 |
 |------|------|----------------|
-| Unit (Core) | `Category!=E2E&Category!=Testcontainers` | 390 |
-| Unit (Generators) | (필터 없음) | 340 |
-| Unit (QueryBuilder) | `Category!=Integration` | 70 |
+| Unit (Core) | `Category!=E2E&Category!=Testcontainers` | 415 |
+| Unit (Generators) | (필터 없음) | 165 |
+| Unit (QueryBuilder) | `Category!=Integration` | 72 |
 | E2E PostgreSQL | `Category=E2E&Provider=PostgreSql` | 7 |
 | E2E MySQL | `Category=Testcontainers&Provider=MySql` | 2 |
 | E2E SQL Server | `Category=Testcontainers&Provider=SqlServer` | 5 |
 
 각 단계는 최소 통과 개수를 검증한다. 0건 매칭이 재발하면 잡이 즉시 실패한다. 새 테스트를 추가하거나 제거할 때 임계값을 갱신해야 한다.
 
-Core 유닛의 실측 기준선은 net8.0에서 431개다(7개는 Testcontainers 라 skipped 집계). net6.0 / net7.0에서는 `#if NET8_0_OR_GREATER` 블록(TypeHandler 12 + Registry 2)이 컴파일 제외되므로 임계값은 그 아래에 둔다.
+**임계값은 Release 빌드의 실측값에서 잡는다.** 2026-10-04 v2.8.0 릴리스 시 ubuntu 전 TFM에서
+동일하게 관측된 값이다.
 
-Generators 스위트는 net8.0 기준 346개다.
+| 스위트 | 관측 통과 개수 | 임계값 |
+|--------|----------------|--------|
+| Generators | 173 | 165 |
+| Core (`!E2E & !Testcontainers`) | 422 | 415 |
+| QueryBuilder (`!Integration`) | 76 | 72 |
+| QueryBuilder.Tools | 15 | 14 |
+
+> **Debug 빌드에서는 테스트가 2배로 집계된다.** `dotnet test -c Debug` 는 Generators 346 /
+> QueryBuilder.Tools 30 을 보고하지만 Release 는 173 / 15 다. TRX 에서 고유 테스트 이름
+> 173개가 **전부 정확히 2회씩** 기록되어 있어 실행 중복이며, `dotnet clean` 후에도 재현된다.
+> 임계값을 Debug 수치로 잡으면 검증이 통상적 2분의 1만 요구하게 되어 무의미해지므로
+> **반드시 Release 기준선을 쓴다.** 중복의 근본 원인은 아직 특정하지 못했다 — xunit 러너
+> 또는 테스트 호스트 레벨의 문제로 보인다.
+
+> 두 검증 스텝(`Verify test counts`, `Verify E2E test counts`)은 bash 문법(`declare -A`)을
+> 쓰므로 `shell: bash` 를 명시해야 한다. 미지정 시 windows-latest 의 기본 셸인 pwsh 에서
+> `declare` 를 알 수 없어 **테스트는 전부 통과한 상태에서 잡만 red** 가 된다(실측 2026-10-04).
 
 ### 외부 DB 연결 문자열
 

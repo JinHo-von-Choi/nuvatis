@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **CI `Verify test counts` 스텝이 windows 러너에서 실패**: 스텝이 `declare -A` 같은 bash 문법을 쓰는데 `shell:` 을 명시하지 않아, windows-latest 의 기본 셸인 pwsh 에서 실행되며 잡이 red 가 되었다. **테스트는 전부 통과한 상태였다** — ubuntu 5개 잡(net6~net11)은 정상이고 windows/net8 만 실패했다. `shell: bash` 를 명시해 해결했다.
+  - `Verify E2E test counts` 에도 같은 결함이 있었으나 그 잡은 ubuntu 전용이라 아직 드러나지 않았다. 선점 고쳤다.
+  - 함께 임계값을 Release 실측 기준선으로 갱신했다(기존 150 / 390 / 70 / 15 → 165 / 415 / 72 / 14).
+
 ## [2.8.0] - 2026-10-04
 
 > CI가 green인데 테스트를 실행하지 않던 구멍, `<where>` 가 깨진 SQL을 내던 결함,
@@ -51,7 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `PostgreSqlE2ETests` 기본 연결 문자열을 Docker PostgreSQL 표준값으로 변경했다.
 - 지원 TF 정책: .NET 6.0 / 7.0은 EOL이므로 해당 타겟이 EOL 패키지를 참조하며 보안 패치가 제공되지 않는 사실을 README에 명시했다.
 - `System.CommandLine`이 RC 전 상태라는 사실과 배포 대상이 아니라는 근거를 주석으로 남겼다.
-- **CI 최소 테스트 개수 검증**을 추가했다. 유닛 4개 스위트와 E2E 3개 DB 단계가 최소 통과 개수를 만족하지 않으면 실패한다 — `Provider` 트레이트 누락으로 0건이 매칭되어도 green으로 통과하던 결함을 구조적으로 차단한다.
+- **CI 최소 테스트 개수 검증**을 추가했다. 유닛 4개 스위트와 E2E 3개 DB 단계가 최소 통과 개수를 만족하지 않으면 실패한다 — `Provider` 트레이트 누락으로 0건이 매칭되어도 green으로 통과하던 결함을 구조적으로 차단한다. 임계값은 **Release 빌드** 실측 기준선(generators 173 / core 422 / querybuilder 76 / tools 15)에서 잡았다.
 - **xunit 러너 상향**: `xunit 2.4.2 → 2.9.3`, `xunit.runner.visualstudio 2.4.5 → 3.1.5`. 구 버전에서는 `IAsyncLifetime` 구현 클래스가 VSTest에 등록되지 않아 Testcontainers 계열 9개가 미실행되고 PostgreSQL E2E 7개가 집계되지 않았다. 전체 테스트 387 → 410 (구조 개선 후 423).
 - **테스트 트레이트 재분류**: SQLite 인메모리 E2E 49개를 `Category=E2E` → `Category=SqliteE2E`로 옮겨 CI 유닛 잡에서 실행되도록 했다(338 → 422).
 - **Testcontainers 이미지 환경변수화**: `TC_PG_IMAGE` / `TC_MYSQL_IMAGE` / `TC_MSSQL_IMAGE`을 코드에서 읽도록 해, 주간 잡의 버전 매트릭스가 실제로 해당 DB 버전을 검증한다. 종전에는 6회 실행이 모두 동일 이미지를 사용했다.
