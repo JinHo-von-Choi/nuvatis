@@ -52,14 +52,31 @@
   </ItemGroup>
 
   <ItemGroup Label="CLI Tools">
+    <!--
+      System.CommandLine은 2.0 RC 전(pre-release) 상태다.
+      NuVatis.QueryBuilder.Tools는 배포 대상이 아니고(0.1.0-alpha, publish.yml EXPECTED에 없음)
+      개발용 dotnet global tool이라 정식 RC 전 의존의 영향 범위가 제한적이다.
+      RC가 나오면 벤치마크/테스트로 파싱 동작을 확인한 뒤 교체한다.
+    -->
     <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
   </ItemGroup>
 
   <ItemGroup Label="Testing">
     <PackageVersion Include="Microsoft.NET.Test.Sdk"          Version="17.13.0" />
-    <PackageVersion Include="xunit"                           Version="2.4.2" />
-    <PackageVersion Include="xunit.runner.visualstudio"       Version="2.4.5" />
-    <PackageVersion Include="coverlet.collector"              Version="6.0.0" />
+    <!--
+      xunit.runner.visualstudio 2.4.5(2020)에서는 IAsyncLifetime 테스트 클래스가
+      VSTest에 등록되지 않아 "Result reported for unknown test case"로 보고되고,
+      Testcontainers 기반 클래스는 아예 발견되지 않았다(실측: 16개 미실행).
+      2.9.3 / 3.1.5로 상향해 IAsyncLifetime 클래스가 정상 집계되도록 한다.
+
+      dependabot #74는 xunit 2.9.3 / runner 3.0.2를 제안하나, 3.1.5가 최신 3.x이므로
+      3.1.5를 채택했다(3.1.x에서 3.0.x보다 후속). coverlet는 6.0.0(2022)에서
+      10.1.0으로 올려 CI의 "XPlat Code Coverage" 수집 경로가 그대로 동작하는 것을
+      확인했다(Cobertura 리포트 생성 확인).
+    -->
+    <PackageVersion Include="xunit"                           Version="2.9.3" />
+    <PackageVersion Include="xunit.runner.visualstudio"       Version="3.1.5" />
+    <PackageVersion Include="coverlet.collector"              Version="10.1.0" />
     <PackageVersion Include="Xunit.SkippableFact"             Version="1.5.61" />
     <PackageVersion Include="Testcontainers.PostgreSql"       Version="4.10.0" />
     <PackageVersion Include="Testcontainers.MySql"            Version="4.10.0" />

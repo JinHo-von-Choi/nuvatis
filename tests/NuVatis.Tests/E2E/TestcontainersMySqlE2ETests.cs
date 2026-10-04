@@ -16,7 +16,7 @@ namespace NuVatis.Tests.E2E;
  * @date   2026-02-26
  */
 [Trait("Category", "Testcontainers")]
-[Collection("Testcontainers")]
+[Trait("Provider", "MySql")]
 public class TestcontainersMySqlE2ETests : IAsyncLifetime {
     private MySqlContainer    _container = null!;
     private SqlSessionFactory _factory   = null!;
@@ -36,8 +36,13 @@ public class TestcontainersMySqlE2ETests : IAsyncLifetime {
             return;
         }
 
-        _container = new MySqlBuilder()
-            .WithImage("mysql:8.0")
+        // e2e-testcontainers.yml이 TC_MYSQL_IMAGE로 버전 매트릭스를 주입한다.
+        // 미지정 시 로컬 개발 기본 이미지를 사용한다.
+        var image = Environment.GetEnvironmentVariable("TC_MYSQL_IMAGE") is { Length: > 0 } img
+            ? img
+            : "mysql:8.0";
+
+        _container = new MySqlBuilder(image)
             .WithDatabase("nuvatis_test")
             .WithUsername("test")
             .WithPassword("test1234")

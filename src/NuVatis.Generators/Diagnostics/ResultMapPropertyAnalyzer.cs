@@ -1,7 +1,6 @@
 #nullable enable
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis;
 using NuVatis.Generators.Models;
 

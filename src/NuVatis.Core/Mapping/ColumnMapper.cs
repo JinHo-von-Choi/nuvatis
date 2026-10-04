@@ -1,6 +1,5 @@
 using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
 using NuVatis.Internal;
 
 namespace NuVatis.Mapping;

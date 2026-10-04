@@ -21,7 +21,7 @@ public class QueryBuildTests {
         Assert.Equal(2,  q.Fields.Count);
         Assert.Equal(U,  q.FromTable);
         Assert.NotNull(q.WhereCondition);
-        Assert.Equal(1,  q.OrderByFields.Count);
+        Assert.Single(q.OrderByFields);
         Assert.Equal(10, q.LimitValue);
         Assert.Equal(20, q.OffsetValue);
     }

@@ -18,7 +18,7 @@ namespace NuVatis.Tests.E2E;
  * @date   2026-03-05
  */
 [Trait("Category", "Testcontainers")]
-[Collection("Testcontainers")]
+[Trait("Provider", "SqlServer")]
 public class TestcontainersSqlServerE2ETests : IAsyncLifetime {
     private MsSqlContainer    _container = null!;
     private SqlSessionFactory _factory   = null!;
@@ -50,7 +50,12 @@ public class TestcontainersSqlServerE2ETests : IAsyncLifetime {
             return;
         }
 
-        _container = new MsSqlBuilder("mcr.microsoft.com/mssql/server:2022-latest")
+        // e2e-testcontainers.yml이 TC_MSSQL_IMAGE로 버전 매트릭스를 주입한다.
+        var image = Environment.GetEnvironmentVariable("TC_MSSQL_IMAGE") is { Length: > 0 } img
+            ? img
+            : "mcr.microsoft.com/mssql/server:2022-latest";
+
+        _container = new MsSqlBuilder(image)
             .Build();
 
         await _container.StartAsync();

@@ -16,7 +16,8 @@ namespace NuVatis.Tests.E2E;
  * @author 최진호
  * @date   2026-02-24
  */
-[Trait("Category", "E2E")]
+// SQLite 인메모리 기반 — Docker/외부 DB 불필요. CI 유닛 잡에서 실행된다.
+[Trait("Category", "SqliteE2E")]
 public class FullPipelineE2ETests : IDisposable {
 
     private readonly SqliteConnection _keepAlive;

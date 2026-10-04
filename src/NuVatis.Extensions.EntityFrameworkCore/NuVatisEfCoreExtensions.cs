@@ -1,9 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using NuVatis.Extensions.DependencyInjection;
 using NuVatis.Session;
 
 namespace NuVatis.Extensions.EntityFrameworkCore;
@@ -15,7 +13,7 @@ namespace NuVatis.Extensions.EntityFrameworkCore;
  *
  * 1. DI 자동 통합:
  *    services.AddNuVatis(options => { ... })
- *            .AddNuVatisEntityFrameworkCore<AppDbContext>();
+ *            .AddNuVatisEntityFrameworkCore&lt;AppDbContext&gt;();
  *
  *    ISqlSession이 Scoped로 등록될 때 현재 DbContext의 커넥션/트랜잭션을 자동 공유.
  *

@@ -10,8 +10,8 @@ using NuVatis.QueryBuilder.Rendering;
 // 컨테이너를 컬렉션 수명으로 공유 — 클래스당 기동을 제거한다.
 // ---------------------------------------------------------------------------
 public sealed class SqlServerContainerFixture : IAsyncLifetime {
-    public MsSqlContainer Container { get; } = new MsSqlBuilder()
-        .WithImage("mcr.microsoft.com/mssql/server:2022-latest")
+    // 파라미터 없는 생성자는 폐기 예정(CS0618) — 이미지 문자열을 생성자에 전달한다.
+    public MsSqlContainer Container { get; } = new MsSqlBuilder("mcr.microsoft.com/mssql/server:2022-latest")
         .Build();
 
     public Task InitializeAsync() => Container.StartAsync();

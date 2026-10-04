@@ -37,6 +37,25 @@
   </ItemGroup>
 
   <!--
+    .editorconfig 코드 스타일 규칙을 빌드에서 강제한다.
+    IDE0005(불필요한 using) 등은 GenerateDocumentationFile이 켜져 있어야 Roslyn이
+    빌드 시점에 검사한다(roslyn#41640). 미설정 시 EnableGenerateDocumentationFile 경고로
+    조용히 비활성화된다.
+
+    - NuVatis.Generators는 netstandard2.0 소스 제너레이터이며 소비자가 직접 참조하지 않는다.
+      이식성 유지와 빌드 속도를 위해 XML 문서 생성을 적용하지 않는다.
+      (단일 TFM 프로젝트는 Directory.Build.props 시점에 $(TargetFramework)가 아직 비어 있어
+       TFM 조건으로 걸러낼 수 없으므로 프로젝트 이름으로 제외한다.)
+    - CS1591(XML 주석 누락)은 현재 다수 존재하는 기존 부채이므로 CI를 막지 않도록 NoWarn 한다.
+      문서화는 별도 과제로 정적 점검한다. 나머지 패키지에는 XML 문서가 포함되어 IntelliSense를 제공한다.
+  -->
+  <PropertyGroup Condition="!$(MSBuildProjectName.Contains('Tests')) AND !$(MSBuildProjectName.Contains('Benchmarks')) AND !$(MSBuildProjectName.Contains('Sample')) AND '$(MSBuildProjectName)' != 'NuVatis.Generators'">
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+  <!--
     RS0017: Symbols in PublicAPI.txt not found in the current TF.
     #if NET8_0_OR_GREATER types (DateOnlyTypeHandler, TimeOnlyTypeHandler) are declared
     in Shipped.txt for net8+ coverage, but are absent in net6.0/net7.0 builds.

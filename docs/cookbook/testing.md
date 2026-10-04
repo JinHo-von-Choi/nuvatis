@@ -88,6 +88,60 @@ public class UserMapperE2ETests : IDisposable {
 
 Rollback으로 테스트 데이터를 자동 정리한다.
 
+## 테스트 트레이트 규약
+
+CI는 트레이트로 테스트를 분류해 단계별로 실행한다. **DB별 E2E는 `Category`와 `Provider`를 함께 태그해야 한다** — `Provider`가 없으면 CI 필터가 0건을 매칭해 단계가 green으로 통과하지만 아무 테스트도 실행하지 않는다.
+
+| Category | 대상 | 필요한 환경 |
+|----------|------|-------------|
+| (없음) | 순수 단위 테스트 | 없음 |
+| `SqliteE2E` | SQLite 인메모리 E2E — CI 유닛 잡에서 실행 | 없음 |
+| `E2E` | 외부 DB 서비스 컨테이너 E2E | DB |
+| `Testcontainers` | Testcontainers 기반 E2E | Docker |
+| `Integration` | QueryBuilder 통합 테스트 | Docker |
+
+`Provider` 값: `PostgreSql`, `MySql`, `SqlServer`.
+
+### CI 실행 구성
+
+| 단계 | 필터 | 최소 통과 개수 |
+|------|------|----------------|
+| Unit (Core) | `Category!=E2E&Category!=Testcontainers` | 390 |
+| Unit (Generators) | (필터 없음) | 150 |
+| Unit (QueryBuilder) | `Category!=Integration` | 70 |
+| E2E PostgreSQL | `Category=E2E&Provider=PostgreSql` | 7 |
+| E2E MySQL | `Category=Testcontainers&Provider=MySql` | 2 |
+| E2E SQL Server | `Category=Testcontainers&Provider=SqlServer` | 5 |
+
+각 단계는 최소 통과 개수를 검증한다. 0건 매칭이 재발하면 잡이 즉시 실패한다. 새 테스트를 추가하거나 제거할 때 임계값을 갱신해야 한다.
+
+Core 유닛의 실측 기준선은 net8.0에서 422개다. net6.0 / net7.0에서는 `#if NET8_0_OR_GREATER` 블록(TypeHandler 12 + Registry 2)이 컴파일 제외되어 408개가 되므로 임계값은 그 아래에 둔다.
+
+### 외부 DB 연결 문자열
+
+환경변수로 주입한다. 하드코딩된 포트/계정은 CI와 로컬이 어긋난다.
+
+| 환경변수 | 사용처 |
+|----------|--------|
+| `NUVATIS_TEST_PG_CONNECTION` | `PostgreSqlE2ETests` |
+| `TC_PG_IMAGE` | Testcontainers PostgreSQL 이미지 (기본 `postgres:16-alpine`) |
+| `TC_MYSQL_IMAGE` | Testcontainers MySQL 이미지 (기본 `mysql:8.0`) |
+| `TC_MSSQL_IMAGE` | Testcontainers SQL Server 이미지 |
+
+> Testcontainers 계열은 `IAsyncLifetime`을 구현한다. `xunit.runner.visualstudio`가 3.x 미만이면 이 클래스가 VSTest에 등록되지 않아 조용히 미실행된다(실측). 러너 버전 상향 시 반드시 `Category=Testcontainers` 필터가 0이 아닌지 확인할 것.
+
+## 생성 코드 회귀 방지
+
+Source Generator를 리팩터링할 때 **생성 출력이 1글자도 달라지면 안 된다.** 공백이나 로컬 변수명만 바뀌어도 동작이 달라질 수 있다.
+
+`GeneratorGoldenSnapshotTests`가 4개 코퍼스(속성 매퍼 / `if`·`where`·`set`·`choose` / 중첩 `foreach` / `${}` 치환)의 전체 생성 출력을 SHA-256으로 고정한다. 기존 `GeneratorIntegrationTests`는 `Assert.Contains(부분 문자열)` 기반이라 이런 변화를 잡지 못한다.
+
+- 임계값 해시는 테스트 하단에 상수로 고정돼 있다.
+- **의도한 출력 변경일 때만** `REGRESSION_BASELINE=1`로 실행해 새 해시를 얻고 상수를 갱신한다.
+- 함께 고정되는 내용: `BuildSql_` 정적 방출 경로, `__sb_`/`__params_`/`__idx_` 로컬 변수, `${}`의 SqlIdentifier 런타임 가드, `foreach` 루프, `NuVatisMapperRegistry` / `NuVatisTypeMappers` 생성물.
+
+> 방출 경로가 실제로 태워지는지도 별도 테스트(`GeneratedOutput_ActuallyCoversEmitterPaths`)로 검증한다. XML이 깨져 생성기가 아무것도 내지 않아도 해시는 통과하기 때문이다 — `CS8785` 진단이 포함되지 않았음을 함께 확인한다.
+
 ## 테스트 전략 가이드
 
 | 계층 | 테스트 방식 | 도구 |

@@ -1,0 +1,23 @@
+<Project>
+
+  <!--
+    FastTest 프로필: 로컬에서 멀티타겟 프로젝트를 net8 단일 타겟으로 축소한다.
+
+    두 가지 제약이 있다.
+
+    1) Directory.Build.props는 프로젝트 본문보다 먼저 평가되므로 csproj의
+       <TargetFrameworks>에 밀린다. TFM은 크로스 타겟 디스패치가 빌드 시점에
+       $(TargetFrameworks)를 읽으므로 여기에서 재정의한다.
+
+    2) 이미 단일 TFM(<TargetFramework>만 선언)인 프로젝트에 TargetFrameworks를
+       주입하면 SDK가 크로스 타겟으로 오인해 xunit 어댑터가 출력에 복사되지 않고
+       "No test is available"로 실패한다(실측: NuVatis.QueryBuilder.Tools.Tests).
+       따라서 csproj가 TargetFrameworks를 선언한 프로젝트만 축소한다.
+       이로써 NuVatis.Generators(netstandard2.0), QueryBuilder.Tools,
+       QueryBuilder.Tools.Tests, Benchmarks, Sample은 자연스럽게 제외된다.
+  -->
+  <PropertyGroup Condition="'$(FastTest)' == 'true' AND '$(TargetFrameworks)' != ''">
+    <TargetFrameworks>net8.0</TargetFrameworks>
+  </PropertyGroup>
+
+</Project>

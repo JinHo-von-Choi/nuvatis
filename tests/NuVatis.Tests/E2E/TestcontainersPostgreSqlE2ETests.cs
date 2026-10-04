@@ -18,7 +18,7 @@ namespace NuVatis.Tests.E2E;
  * @date   2026-02-26
  */
 [Trait("Category", "Testcontainers")]
-[Collection("Testcontainers")]
+[Trait("Provider", "PostgreSql")]
 public class TestcontainersPostgreSqlE2ETests : IAsyncLifetime {
     private PostgreSqlContainer _container = null!;
     private SqlSessionFactory   _factory   = null!;
@@ -54,8 +54,13 @@ public class TestcontainersPostgreSqlE2ETests : IAsyncLifetime {
             return;
         }
 
-        _container = new PostgreSqlBuilder()
-            .WithImage("postgres:16-alpine")
+        // e2e-testcontainers.yml이 TC_PG_IMAGE로 버전 매트릭스를 주입한다.
+        // 미지정 시 로컬 개발 기본 이미지를 사용한다.
+        var image = Environment.GetEnvironmentVariable("TC_PG_IMAGE") is { Length: > 0 } img
+            ? img
+            : "postgres:16-alpine";
+
+        _container = new PostgreSqlBuilder(image)
             .WithDatabase("nuvatis_test")
             .WithUsername("test")
             .WithPassword("test")

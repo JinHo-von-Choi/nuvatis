@@ -10,8 +10,15 @@
     <ToolCommandName>nuvatis-gen</ToolCommandName>
     <PackAsTool>true</PackAsTool>
     <Description>dotnet tool — DB 스키마 스캔 후 NuVatis.QueryBuilder 타입 안전 테이블 클래스 생성</Description>
-    <IsPackable>true</IsPackable>
     <Version>0.1.0-alpha</Version>
+    <!--
+      개발용 CLI다. 정식 릴리스(2.x)와 별개 버전(0.1.0-alpha)으로 빌드되며
+      publish.yml EXPECTED 목록에 없어 NuGet.org에 배포되지 않는다.
+      의도된 미출시 상태이므로 IsPackable을 유지하되 CI pack 단계에서
+      14번째 산출물로 생성·업로드된다. 배포 대상에 포함하려면
+      publish.yml EXPECTED에 항목을 추가해야 한다.
+    -->
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>

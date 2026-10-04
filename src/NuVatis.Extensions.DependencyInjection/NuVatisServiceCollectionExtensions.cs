@@ -1,7 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using NuVatis.Configuration;
-using NuVatis.Provider;
 using NuVatis.Session;
 using NuVatis.Statement;
 

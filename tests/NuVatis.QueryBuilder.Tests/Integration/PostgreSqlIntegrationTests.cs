@@ -10,8 +10,9 @@ using NuVatis.QueryBuilder.Rendering;
 // 컨테이너를 컬렉션 수명으로 공유 — 클래스당 기동을 제거한다.
 // ---------------------------------------------------------------------------
 public sealed class PostgreSqlContainerFixture : IAsyncLifetime {
-    public PostgreSqlContainer Container { get; } = new PostgreSqlBuilder()
-        .WithImage("postgres:16-alpine")
+    // Testcontainers.MsSql/PostgreSql/MySql의 파라미터 없는 생성자는 폐기 예정(CS0618).
+    // 이미지 문자열을 생성자에 전달하는 현재 권장 패턴을 사용한다.
+    public PostgreSqlContainer Container { get; } = new PostgreSqlBuilder("postgres:16-alpine")
         .Build();
 
     public Task InitializeAsync() => Container.StartAsync();

@@ -25,12 +25,23 @@ public class SqlIdentifierEmitterTests {
         return new ParsedStatement(id, "Select", null, null, null, root);
     }
 
+    /**
+     * paramTypeMap 기반 컴파일 타임 최적화 로직(SqlIdentifier 타입을 빌드타임에 판별해
+     * 런타임 가드를 생략)을 검증한다.
+     *
+     * 이 로직은 현재 **폐기 예정 경로(EmitBuildSqlMethod)에만** 남아 있고, 제품이 실제로
+     * 방출하는 EmitBuildSqlStaticMethod 경로는 ${} 에 항상 런타임 가드를 넣는다.
+     * 파괴적 변경 없이 public API로 유지되는 한 v3.0까지 검증 대상이므로 이 경로에 둔다.
+     * 제품 경로의 실제 동작은 ParameterEmitterLambdaPathTests가 검증한다.
+     */
+#pragma warning disable CS0618 // 폐기 예정 경로의 동작 검증이 목적
     private static string Emit(
         ParsedStatement stmt,
         IReadOnlyDictionary<string, string>? paramTypeMap = null,
         string prefix = "@") {
         return ParameterEmitter.EmitBuildSqlMethod(stmt, prefix, paramTypeMap);
     }
+#pragma warning restore CS0618
 
     // -----------------------------------------------------------------------
     // 1. SqlIdentifier 타입 → ToString() 직접 호출, 런타임 가드 없음
@@ -271,11 +282,14 @@ public class SqlIdentifierEmitterTests {
     }
 
     // -----------------------------------------------------------------------
-    // 7. 하위 호환: 기존 2-파라미터 시그니처 없어도 빌드 가능 (optional 파라미터 확인)
+    // 7. 폐기 예정 경로: v3.0 제거까지 동작이 유지되는지 확인
+    //    (제품 코드에서 호출되지 않지만 public API로 남아 있어 파괴적 변경 없이
+    //     유지되어야 한다. v3.0에서 메서드와 함께 삭제 예정)
     // -----------------------------------------------------------------------
 
+#pragma warning disable CS0618 // 폐기 예정 API의 하위 호환 동작 검증이 목적
     [Fact]
-    public void LegacyCall_WithoutTypeMap_StillBuilds() {
+    public void DeprecatedCall_WithoutTypeMap_StillBuilds() {
         var node = new ParameterNode("SortColumn", IsStringSubstitution: true);
         var stmt = BuildStatement("legacyCall", node);
 
@@ -285,4 +299,5 @@ public class SqlIdentifierEmitterTests {
         // 기본 동작: 런타임 가드 삽입 (안전한 기본값)
         Assert.Contains("InvalidOperationException", code);
     }
+#pragma warning restore CS0618
 }

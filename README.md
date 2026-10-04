@@ -34,6 +34,9 @@ NuVatis는 Entity Framework의 성능 오버헤드와 인라인 SQL의 유지보
 - WDAC / 코드 서명 정책 환경에서 동작 — EF Core는 런타임 동적 코드 생성(Emit)이 차단되어 실행 불가한 환경에서도 NuVatis는 정상 동작
 - ADO.NET 기반 최소 추상화, 최대 성능
 - .NET 6 / 7 / 8 / 9 / 10 / 11 동시 지원 (멀티 타겟)
+  - ⚠️ **.NET 6.0 / 7.0은 이미 EOL입니다** (2024-11 / 2023-05 종료). 해당 타겟은
+    `Microsoft.Extensions.* 6.*/7.*` 등 EOL 패키지를 함께 참조하므로 보안 패치가 제공되지 않습니다.
+    신규 프로젝트는 .NET 8 이상을 권장합니다. 기존 EOL 타겟 지원 중단 시점은 별도 공지 전에 결정됩니다.
 - `SqlIdentifier` 타입으로 `${}` 문자열 치환 런타임 검증 (SQL Injection 방어)
 
 ## When NOT to Use NuVatis
@@ -481,18 +484,33 @@ NuVatis.Core 패키지에 XML 스키마 파일이 포함되어 있다. IDE에서
 ```bash
 dotnet build
 
-# 단위 테스트만 (빠름, Docker 불필요)
-dotnet test --filter "Category!=Integration"
+# Core 단위 테스트만 (빠름, Docker 불필요)
+#   - SQLite 인메모리 E2E(SqliteE2E) 포함
+#   - 외부 DB 필요 테스트(E2E) / Testcontainers 계열 제외
+dotnet test tests/NuVatis.Tests/ --filter "Category!=E2E&Category!=Testcontainers"
 
-# 전체 테스트 (통합 테스트 포함, Docker 필요)
+# QueryBuilder 단위 테스트만 (Integration은 Testcontainers 필요)
+dotnet test tests/NuVatis.QueryBuilder.Tests/ --filter "Category!=Integration"
+
+# 전체 테스트 (Testcontainers 계열 포함 — Docker 필요)
 dotnet test
 ```
+
+> Testcontainers 기반 E2E는 Docker가 있어야 실행되며, 이미지가 없으면 스킵된다.
+
+### 테스트 트레이트 규약
+
+DB별 E2E는 `Category`와 `Provider`를 함께 태그해야 CI 필터가 매칭된다. 상세 규약과 단계별 최소 통과 개수는
+[Testing Cookbook](docs/cookbook/testing.md#테스트-트레이트-규약)을 참고한다.
+
+`Provider` 값: `PostgreSql`, `MySql`, `SqlServer`. 각 CI 단계는 최소 통과 개수를 검증하므로 0건 실행은 실패로 차단된다.
 
 ### 로컬 개발 — 빠른 테스트 (FastTest 프로필)
 
 ```bash
 # net8 단일 타겟 — 빌드/테스트 속도 대폭 단축 (권장)
-dotnet test NuVatis.sln /p:FastTest=true -f net8.0
+# .NET 8 SDK 하나만 있으면 동작한다 (src 멀티타겟까지 net8.0으로 축소됨)
+dotnet test NuVatis.sln /p:FastTest=true
 
 # 전체 타겟 (net6–11) — CI와 동일
 dotnet test NuVatis.sln
@@ -519,11 +537,11 @@ GitHub Actions 기반 CI/CD 파이프라인:
 
 | Workflow | Trigger | 역할 |
 |----------|---------|------|
-| `ci.yml` | push (main, develop), PR | 빌드, 테스트, 코드 커버리지, 패키지 생성 검증 |
+| `ci.yml` | push (main, develop), PR | 빌드, 테스트(최소 개수 검증), 코드 커버리지, DB E2E, 패키지 13종 개별 검증 |
 | `publish.yml` | `v*` 태그 push | 빌드, 테스트, NuGet.org 배포, GitHub Release 생성 |
-| `benchmark.yml` | push (main), PR | BenchmarkDotNet 성능 벤치마크 실행 및 회귀 감지 |
-| `e2e-testcontainers.yml` | push (main), PR | Testcontainers 기반 PostgreSQL/MySQL 멀티버전 E2E 테스트 |
-| `docs.yml` | push (main, docs/**) | DocFX 문서 빌드 및 GitHub Pages 배포 |
+| `benchmark.yml` | push (main, `src/**`, `benchmarks/**`), 수동 | BenchmarkDotNet 성능 벤치마크 실행 |
+| `e2e-testcontainers.yml` | 주간(일 03:00 UTC), 수동 | Testcontainers 기반 PostgreSQL 13~16 / MySQL 8.0·8.4 멀티버전 E2E |
+| `docs.yml` | push (main, `docs/**`, `src/**/*.cs`, `src/**/*.csproj`), 수동 | DocFX 문서 빌드 및 GitHub Pages 배포 |
 
 NuGet 배포는 Trusted Publishing (OIDC) 방식을 사용한다. API 키를 저장하지 않고, GitHub Actions가 발급하는 단기 OIDC 토큰으로 NuGet.org 임시 API 키를 획득하여 배포한다.
 

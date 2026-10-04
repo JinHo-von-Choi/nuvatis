@@ -306,7 +306,7 @@ public class SecondLevelCacheTests : IDisposable {
     /** --- Thread Safety --- */
 
     [Fact]
-    public void MemoryCacheProvider_ConcurrentAccess_ThreadSafe() {
+    public async Task MemoryCacheProvider_ConcurrentAccess_ThreadSafe() {
         var threadSafeCache = new MemoryCacheProvider();
         threadSafeCache.RegisterNamespace("concurrent", new CacheConfig { Size = 1000 });
 
@@ -318,7 +318,7 @@ public class SecondLevelCacheTests : IDisposable {
             }
         }));
 
-        Task.WaitAll(tasks.ToArray());
+        await Task.WhenAll(tasks);
 
         threadSafeCache.Dispose();
     }

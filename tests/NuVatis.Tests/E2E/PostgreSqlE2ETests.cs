@@ -21,10 +21,20 @@ namespace NuVatis.Tests.E2E;
  * @date   2026-02-24
  */
 [Trait("Category", "E2E")]
+[Trait("Provider", "PostgreSql")]
 public class PostgreSqlE2ETests : IAsyncLifetime {
 
-    private const string TestConnStr =
-        "Host=localhost;Port=35432;Username=bee;Database=nuvatis_test;";
+    // CI는 NUVATIS_TEST_PG_CONNECTION 환경변수를 주입한다(ci.yml e2e-test 잡).
+    // 미지정 시에는 Docker PostgreSQL의 기본 연결을 사용한다.
+    // 포트/계정을 임의로 넣으면 로컬 개발자 누구도 맞출 수 없는 설정이 되므로,
+    // 여기 값은 표준 기본값을 유지한다.
+    private const string DefaultConnStr =
+        "Host=localhost;Port=5432;Username=postgres;Password=postgres;Database=nuvatis_test";
+
+    private static string TestConnStr =>
+        Environment.GetEnvironmentVariable("NUVATIS_TEST_PG_CONNECTION") is { Length: > 0 } cs
+            ? cs
+            : DefaultConnStr;
 
     private SqlSessionFactory? _factory;
     private bool _available;

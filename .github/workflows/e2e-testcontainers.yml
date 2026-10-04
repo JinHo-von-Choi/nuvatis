@@ -46,10 +46,12 @@ jobs:
         env:
           TC_PG_IMAGE: postgres:${{ matrix.pg-version }}-alpine
         run: |
+          # Provider로 DB를 분리해야 버전 매트릭스가 실제로 해당 DB 버전만 검증한다.
+          # Category=Testcontainers 단독 필터는 PG/MySQL/SQL Server 3개 클래스를 모두 돌린다.
           dotnet test tests/NuVatis.Tests/NuVatis.Tests.csproj \
             --configuration Release \
             --no-build \
-            --filter "Category=Testcontainers" \
+            --filter "Category=Testcontainers&Provider=PostgreSql" \
             --logger "console;verbosity=normal"
 
   e2e-mysql:
@@ -77,8 +79,10 @@ jobs:
         env:
           TC_MYSQL_IMAGE: mysql:${{ matrix.mysql-version }}
         run: |
+          # Provider로 DB를 분리해야 버전 매트릭스가 실제로 해당 DB 버전만 검증한다.
+          # Category=Testcontainers 단독 필터는 PG/MySQL/SQL Server 3개 클래스를 모두 돌린다.
           dotnet test tests/NuVatis.Tests/NuVatis.Tests.csproj \
             --configuration Release \
             --no-build \
-            --filter "Category=Testcontainers" \
+            --filter "Category=Testcontainers&Provider=MySql" \
             --logger "console;verbosity=normal"

@@ -72,7 +72,7 @@ jobs:
           dotnet test tests/NuVatis.Tests/
           --configuration Release --no-build --verbosity normal
           --logger "trx;LogFileName=core.trx"
-          --filter "Category!=E2E"
+          --filter "Category!=E2E&Category!=Testcontainers"
           --collect:"XPlat Code Coverage"
           --results-directory ./TestResults
 
@@ -100,6 +100,40 @@ jobs:
           name: test-results-${{ matrix.os }}-${{ matrix.dotnet }}
           path: "**/TestResults/*.trx"
           retention-days: 7
+
+      # 0개 실행의 green 통과를 차단한다. Provider 트레이트 누락으로 E2E 필터가
+      # 0건을 매칭한 채 잡이 성공했던 사례를 재발 방지한다.
+      #
+      # 실측 기준선(net8.0, 2026-10):
+      #   generators 154 / core 422 / querybuilder 76 / querybuilder-tools 15
+      # core는 net6.0·net7.0에서 #if NET8_0_OR_GREATER(TypeHandler 12 + Registry 2)로
+      # 14개가 컴파일 제외되어 408개가 된다. 임계값은 최저치에 여유를 둔다.
+      # 테스트를 의도적으로 제거했다면 이 값을 함께 갱신한다.
+      - name: Verify test counts
+        run: |
+          declare -A MINIMUM=(
+            [generators]=150
+            [core]=390
+            [querybuilder]=70
+            [querybuilder-tools]=15
+          )
+          FAILED=0
+          for KEY in "${!MINIMUM[@]}"; do
+            TRX=$(ls ./TestResults/${KEY}.trx 2>/dev/null | head -1)
+            if [[ -z "${TRX}" ]]; then
+              echo "::error::missing result file for ${KEY}"
+              FAILED=1
+              continue
+            fi
+            PASSED=$(grep -oE 'passed="[0-9]+"' "${TRX}" | head -1 | grep -oE '[0-9]+')
+            if [[ -z "${PASSED}" ]] || [[ ${PASSED} -lt ${MINIMUM[$KEY]} ]]; then
+              echo "::error::${KEY}: passed=${PASSED:-0} < required ${MINIMUM[$KEY]} — 테스트가 누락됐거나 필터가 0건을 매칭함"
+              FAILED=1
+            else
+              echo "ok: ${KEY} passed=${PASSED} (>= ${MINIMUM[$KEY]})"
+            fi
+          done
+          exit ${FAILED}
 
       - name: Upload Coverage to Codecov
         if: matrix.os == 'ubuntu-latest' && matrix.dotnet == '10.0.x'
@@ -187,17 +221,49 @@ jobs:
       - name: E2E Tests (PostgreSQL)
         env:
           NUVATIS_TEST_PG_CONNECTION: "Host=localhost;Port=5432;Database=nuvatis_test;Username=nuvatis_test;Password=nuvatis_test_pass"
-        run: dotnet test tests/NuVatis.Tests/ --configuration Release --no-build --verbosity normal --filter "Category=E2E&Provider=PostgreSql"
+        run: >-
+          dotnet test tests/NuVatis.Tests/ --configuration Release --no-build --verbosity normal
+          --logger "trx;LogFileName=e2e-pg.trx" --results-directory ./TestResults
+          --filter "Category=E2E&Provider=PostgreSql"
 
-      - name: E2E Tests (MySQL)
-        env:
-          NUVATIS_TEST_MYSQL_CONNECTION: "Server=localhost;Port=3306;Database=nuvatis_test;User=nuvatis_test;Password=nuvatis_test_pass"
-        run: dotnet test tests/NuVatis.Tests/ --configuration Release --no-build --verbosity normal --filter "Category=E2E&Provider=MySql"
+      - name: E2E Tests (MySQL — Testcontainers)
+        run: >-
+          dotnet test tests/NuVatis.Tests/ --configuration Release --no-build --verbosity normal
+          --logger "trx;LogFileName=e2e-mysql.trx" --results-directory ./TestResults
+          --filter "Category=Testcontainers&Provider=MySql"
 
-      - name: E2E Tests (SQL Server)
-        env:
-          NUVATIS_TEST_MSSQL_CONNECTION: "Server=localhost,1433;Database=nuvatis_test;User Id=sa;Password=NuVatis_Test_Pass1!;TrustServerCertificate=True"
-        run: dotnet test tests/NuVatis.Tests/ --configuration Release --no-build --verbosity normal --filter "Category=E2E&Provider=SqlServer"
+      - name: E2E Tests (SQL Server — Testcontainers)
+        run: >-
+          dotnet test tests/NuVatis.Tests/ --configuration Release --no-build --verbosity normal
+          --logger "trx;LogFileName=e2e-sqlserver.trx" --results-directory ./TestResults
+          --filter "Category=Testcontainers&Provider=SqlServer"
+
+      # 각 DB E2E가 실제로 실행되었는지 검증한다. 0건 매칭 시 잡이 green으로 통과하는 것을 차단.
+      - name: Verify E2E test counts
+        run: |
+          declare -A MINIMUM=(
+            [e2e-pg]=7
+            [e2e-mysql]=2
+            [e2e-sqlserver]=5
+          )
+          FAILED=0
+          for KEY in e2e-pg e2e-mysql e2e-sqlserver; do
+            TRX=$(ls ./TestResults/${KEY}.trx 2>/dev/null | head -1)
+            if [[ -z "${TRX}" ]]; then
+              echo "::error::missing result file for ${KEY}"
+              FAILED=1
+              continue
+            fi
+            PASSED=$(grep -oE 'passed="[0-9]+"' "${TRX}" | head -1 | grep -oE '[0-9]+')
+            SKIPPED=$(grep -oE 'skipped="[0-9]+"' "${TRX}" | head -1 | grep -oE '[0-9]+')
+            if [[ -z "${PASSED}" ]] || [[ ${PASSED} -lt ${MINIMUM[$KEY]} ]]; then
+              echo "::error::${KEY}: passed=${PASSED:-0} (skipped=${SKIPPED:-0}) < required ${MINIMUM[$KEY]}"
+              FAILED=1
+            else
+              echo "ok: ${KEY} passed=${PASSED} (>= ${MINIMUM[$KEY]})"
+            fi
+          done
+          exit ${FAILED}
 
   querybuilder-integration:
     name: QueryBuilder Integration Tests
@@ -277,12 +343,38 @@ jobs:
 
       - name: Verify package count
         run: |
+          # 개별 패키지명 검증 — 개수 기준(>=9)은 5개가 무시되어도 통과해缺口을 놓친다.
+          # 배포 대상 목록은 publish.yml EXPECTED와 동일하게 유지한다.
+          EXPECTED=(
+            "NuVatis.Core"
+            "NuVatis.Generators"
+            "NuVatis.PostgreSql"
+            "NuVatis.MySql"
+            "NuVatis.SqlServer"
+            "NuVatis.Sqlite"
+            "NuVatis.Oracle"
+            "NuVatis.QueryBuilder"
+            "NuVatis.Extensions.DependencyInjection"
+            "NuVatis.Extensions.OpenTelemetry"
+            "NuVatis.Extensions.EntityFrameworkCore"
+            "NuVatis.Extensions.Aspire"
+            "NuVatis.Testing"
+          )
           COUNT=$(ls ./nupkg/*.nupkg 2>/dev/null | wc -l)
           echo "Generated ${COUNT} package(s)"
-          if [[ ${COUNT} -lt 9 ]]; then
-            echo "::error::Expected at least 9 packages, got ${COUNT}"
+          MISSING=0
+          for PKG in "${EXPECTED[@]}"; do
+            N=$(ls ./nupkg/${PKG}.*.nupkg 2>/dev/null | wc -l)
+            if [[ ${N} -eq 0 ]]; then
+              echo "::error::MISSING package: ${PKG}"
+              MISSING=$((MISSING + 1))
+            fi
+          done
+          if [[ ${MISSING} -gt 0 ]]; then
+            echo "::error::${MISSING} package(s) missing"
             exit 1
           fi
+          echo "All ${#EXPECTED[@]} expected package(s) verified"
 
       - name: Upload NuGet Packages
         uses: actions/upload-artifact@v7

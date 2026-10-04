@@ -11,7 +11,8 @@
 # 동작:
 #   1. BenchmarkDotNet 실행 (SelectOne, SelectList, Insert, BatchInsert)
 #   2. 결과를 GitHub Actions artifact로 저장
-#   3. 이전 결과와 비교하여 성능 회귀 시 경고
+#   3. 결과를 요약 출력 (기준선 대비 회귀 비교는 구현되어 있지 않다 —
+#      90일 보존 artifact를 사람이 비교해야 한다)
 ##############################################################################
 
 name: Benchmark
@@ -76,9 +77,11 @@ jobs:
           path: ./benchmark-results/
           retention-days: 90
 
-      - name: Performance Regression Check
+      - name: Performance Summary
         if: success()
         run: |
+          # 기준선 대비 비교는 수행하지 않는다. 산출물을 출력해 artifact 간 수동 비교에 쓴다.
+          # 자동 게이트를 도입하려면 이전 실행의 JSON을 내려받아 임계값 비교 로직을 추가해야 한다.
           echo "=== Benchmark Results Summary ==="
           if [ -d "./benchmark-results/results" ]; then
             for f in ./benchmark-results/results/*.json; do
