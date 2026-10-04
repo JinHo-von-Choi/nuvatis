@@ -136,6 +136,16 @@ CI는 트레이트로 테스트를 분류해 단계별로 실행한다. **DB별 
 > 쓰므로 `shell: bash` 를 명시해야 한다. 미지정 시 windows-latest 의 기본 셸인 pwsh 에서
 > `declare` 를 알 수 없어 **테스트는 전부 통과한 상태에서 잡만 red** 가 된다(실측 2026-10-04).
 
+> **스위트마다 `--results-directory` 를 분리해야 한다.** 공통 디렉터리에 TRX 를 쓰면
+> 테스트 호스트와 coverlet 이 파일 핸들을 경쟁해
+> `Failed to write the results file ... being used by another process` 가 발생하고,
+> 재생성된 TRX 의 `passed` 속성을 못 읽어 **전부 통과했는데 `passed=0` 으로 오판**할 수 있다
+> (실측 2026-10-04 — querybuilder 가 실제로 76개 통과인데 0으로 보고됨).
+> 현재 구조는 `./TestResults/<스위트명>/<스위트명>.trx` 이다.
+
+> **windows 러너는 ubuntu에서 드러나지 않는 결함이 숨는다.** 위 두 건 모두 ubuntu 6개 잡은
+> 정상이고 windows/net8 만 실패했다. 매트릭스에 windows 가 없으면 검증 자체가 통과해 버린다.
+
 ### 외부 DB 연결 문자열
 
 환경변수로 주입한다. 하드코딩된 포트/계정은 CI와 로컬이 어긋난다.

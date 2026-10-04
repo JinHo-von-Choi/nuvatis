@@ -9,8 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **CI `Verify test counts` 스텝이 windows 러너에서 실패**: 스텝이 `declare -A` 같은 bash 문법을 쓰는데 `shell:` 을 명시하지 않아, windows-latest 의 기본 셸인 pwsh 에서 실행되며 잡이 red 가 되었다. **테스트는 전부 통과한 상태였다** — ubuntu 5개 잡(net6~net11)은 정상이고 windows/net8 만 실패했다. `shell: bash` 를 명시해 해결했다.
-  - `Verify E2E test counts` 에도 같은 결함이 있었으나 그 잡은 ubuntu 전용이라 아직 드러나지 않았다. 선점 고쳤다.
+- **CI `Verify test counts` 스텝이 windows 러너에서 실패 — 서로 다른 원인 2개**: 두 번에 걸쳐 고쳤고, 둘 다 ubuntu 러너에서는 드러나지 않아 태그 push 뒤에야 발견됐다. **테스트는 매번 전부 통과한 상태였다.**
+  1. **셸 미지정**: 스텝이 `declare -A` / `[[ ]]` 등 bash 문법을 쓰는데 `shell:` 이 없어 windows-latest 의 기본 셸인 pwsh 에서 실행됐다. → `shell: bash` 명시. 같은 결함이 있던 `Verify E2E test counts` 와 `Verify package count` 도 ubuntu 전용이라 잠복해 있었으므로 선점 고쳤다.
+  2. **TRX 파일 경합**: 스위트 7개가 모두 같은 `./TestResults` 에 TRX 를 쓰면서 테스트 호스트와 coverlet 이 파일 핸들을 경쟁했다. 로그에 `Failed to write the results file ... being used by another process` 가 남아 `core.trx` 가 재생성됐고, 그 여파로 `querybuilder.trx` 의 `passed` 속성을 읽지 못해 **실제 76개가 전부 통과했는데 `passed=0 < required 72` 로 오판**해 잡이 실패했다. → 스위트마다 `--results-directory` 를 분리해 경합을 원천 차단했다.
   - 함께 임계값을 Release 실측 기준선으로 갱신했다(기존 150 / 390 / 70 / 15 → 165 / 415 / 72 / 14).
 
 ## [2.8.0] - 2026-10-04
