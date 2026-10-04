@@ -136,20 +136,25 @@ CI는 트레이트로 테스트를 분류해 단계별로 실행한다. **DB별 
 > 쓰므로 `shell: bash` 를 명시해야 한다. 미지정 시 windows-latest 의 기본 셸인 pwsh 에서
 > `declare` 를 알 수 없어 **테스트는 전부 통과한 상태에서 잡만 red** 가 된다(실측 2026-10-04).
 
-> **멀티타겟 프로젝트는 반드시 `--framework` 으로 TFM 을 고정해야 한다.**
-> 이것이 없으면 `dotnet test` 가 6개 TFM 을 전부 실행하며 같은 TRX 를 6번 덮어쓴다
-> (로그에 `Total tests: 422` 가 반복되는 것이 증거다). ubuntu 는 덮어쓰기가 성공하지만
+> **멀티타겟 프로젝트는 6개 TFM 을 전부 실행하고 같은 TRX 를 6번 덮어쓴다.**
+> 빌드-유닛 스텝에 `-f`/`--framework` 가 없기 때문이다. ubuntu 는 덮어쓰기에 성공하지만
 > windows 는 테스트 호스트가 파일 핸들을 놓지 않아
-> `Failed to write the results file ... being used by another process` 가 발생하고,
-> **전부 통과한 스위트가 `passed=0` 으로 오판**된다(실측 2026-10-04 — querybuilder 가
-> 실제로 76개 통과했는데 0으로 보고됨).
+> `Failed to write the results file ... being used by another process` 가 발생하고 TRX 의
+> `passed` 속성을 잃는다. 그 결과 **422개가 전부 통과한 core 스위트가 `passed=0` 으로
+> 보고되어 잡이 실패했다**(실측 2026-10-04 — 3회 연속 동일 증상).
 >
-> 빌드-유닛 잡의 매트릭스는 `dotnet`(설치할 SDK)과 `tfm`(실행할 프레임워크)을
-> 분리해 잡마다 하나만 실행한다. 결과 디렉터리도 스위트별로 분리한다
-> (`./TestResults/<스위트명>/<스위트명>.trx`).
+> `--framework ${{ matrix.tfm }}` 으로 매트릭스에서 TFM 을 고정해 해결을 시도했으나
+> **net6/7/9/10/11 잡이 오히려 깨졌다**(`No test is available in .../net6.0/....dll`,
+> `MSB4181: VSTestTask returned false`). 해당 러너에서 TFM 고정이 테스트 호스트 부재로
+> 이어지는 문제이며, 정확히 무엇이 원인인지 특정하지 못했다. 되돌렸다.
 >
-> 디렉터리 분리만으로는 충분하지 않다. 같은 TRX 를 6번 덮어쓰는 것 자체가 근본
-> 원인이므로 `--framework` 으로 실행 횟수를 1회로 줄여야 한다.
+> **현재 해법**: `Verify test counts` 를 ubuntu 잡에서만 실행한다(`if: matrix.os ==
+> 'ubuntu-latest'`). 검증의 목적 — 0건 매칭의 green 통과 차단 — 은 OS 와 무관하므로
+> ubuntu 만으로 충족된다. windows 잡은 사유를 담은 경고를 남긴다.
+>
+> **미해결**: windows 에서도 최소 개수 검증을 하려면 (1) 매트릭스에 TFM 을 넣되
+> 해당 러너에 테스트 호스트가 있는 조합으로만, 또는 (2) TRX 대신 스텝 출력을 파싱하는
+> 방식으로 바꿔야 한다. 어느 쪽이든 추가 검증이 필요하다.
 
 > **windows 러너는 ubuntu에서 드러나지 않는 결함이 숨는다.** 위 두 건 모두 ubuntu 6개 잡은
 > 정상이고 windows/net8 만 실패했다. 매트릭스에 windows 가 없으면 검증 자체가 통과해 버린다.
