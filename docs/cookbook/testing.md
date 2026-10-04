@@ -107,7 +107,7 @@ CI는 트레이트로 테스트를 분류해 단계별로 실행한다. **DB별 
 | 단계 | 필터 | 최소 통과 개수 |
 |------|------|----------------|
 | Unit (Core) | `Category!=E2E&Category!=Testcontainers` | 390 |
-| Unit (Generators) | (필터 없음) | 150 |
+| Unit (Generators) | (필터 없음) | 340 |
 | Unit (QueryBuilder) | `Category!=Integration` | 70 |
 | E2E PostgreSQL | `Category=E2E&Provider=PostgreSql` | 7 |
 | E2E MySQL | `Category=Testcontainers&Provider=MySql` | 2 |
@@ -115,7 +115,9 @@ CI는 트레이트로 테스트를 분류해 단계별로 실행한다. **DB별 
 
 각 단계는 최소 통과 개수를 검증한다. 0건 매칭이 재발하면 잡이 즉시 실패한다. 새 테스트를 추가하거나 제거할 때 임계값을 갱신해야 한다.
 
-Core 유닛의 실측 기준선은 net8.0에서 422개다. net6.0 / net7.0에서는 `#if NET8_0_OR_GREATER` 블록(TypeHandler 12 + Registry 2)이 컴파일 제외되어 408개가 되므로 임계값은 그 아래에 둔다.
+Core 유닛의 실측 기준선은 net8.0에서 431개다(7개는 Testcontainers 라 skipped 집계). net6.0 / net7.0에서는 `#if NET8_0_OR_GREATER` 블록(TypeHandler 12 + Registry 2)이 컴파일 제외되므로 임계값은 그 아래에 둔다.
+
+Generators 스위트는 net8.0 기준 346개다.
 
 ### 외부 DB 연결 문자열
 

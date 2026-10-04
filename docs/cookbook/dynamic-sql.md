@@ -2,7 +2,15 @@
 
 ## 런타임 실행 경로 (v2.3.0+)
 
-v2.3.0부터 `<foreach>`, `<if>`, `<where>`, `<set>`, `<choose>` 등 동적 태그가 포함된 XML Mapper statement는 Source Generator가 빌드타임에 `DynamicSqlBuilder` 람다를 생성한다. 런타임에 XML을 재파싱하거나 리플렉션으로 프로퍼티를 탐색하는 과정이 없다.
+v2.3.0부터 `<foreach>`, `<if>`, `<where>`, `<set>`, `<choose>` 등 동적 태그가 포함된 XML Mapper statement는 Source Generator가 빌드타임에 `DynamicSqlBuilder` 람다를 생성한다. 런타임에 XML을 재파싱하지 않는다.
+
+> **프로퍼티 접근에 대한 정정**: 이전 판본은 "리플렉션으로 프로퍼티를 탐색하는 과정이 없다"고
+> 기술했으나 실제로는 `__getprop_` 지역 함수가 `GetType().GetProperty(...)` 를 호출한다.
+> v2.8.0부터 매핑 파라미터의 정적 타입이 심볼로 해석되면 **해석된 프로퍼티에 대해서만**
+> 직접 접근(`__typed_?.Prop`)을 방출하고, 나머지는 리플렉션에 남긴다. 해석 실패 시
+> 동작이 달라지지 않으므로 성능 특성만 달라진다. 자세한 내용은
+> [`docs/architecture/source-generator.md`](../architecture/source-generator.md#파라미터-직접-접근-v280)를
+> 참고한다.
 
 ```
 XML Mapper (foreach/if/where 포함)
@@ -50,7 +58,22 @@ MappedStatement.DynamicSqlBuilder(parameter) -> (sql, parameters)
 </select>
 ```
 
-`<where>` 태그는 첫 번째 조건의 선행 AND/OR을 자동 제거한다.
+`<where>` 태그는 첫 번째 조건의 선행 AND/OR을 자동 제거하고, **조건 사이에 구분 공백을
+삽입한다.** 그래서 조건이 2개 이상 동시에 참이어도 `WHERE name = @p0 AND age >= @p1`
+형태로 올바른 SQL이 나온다.
+
+```xml
+<!-- Name 과 MinAge 가 모두 있으면 -->
+<!-- SELECT * FROM users WHERE name = @p0 AND age >= @p1 -->
+<where>
+  <if test="Name != null">AND name = #{Name}</if>
+  <if test="MinAge != null">AND age >= #{MinAge}</if>
+</where>
+```
+
+> v2.7.0까지는 조건 사이에 구분자가 없어 2개 이상 조건이 겹칠 때
+> `WHERE name = @p0AND age >= @p1` 같은 **파싱 불가한 SQL**이 생성됐다. v2.8.0에서 수정됐다.
+> 조건이 0개 또는 1개인 경우의 출력은 v2.7.0과 바이트 단위로 동일하다.
 
 ## choose/when/otherwise - Switch-case
 

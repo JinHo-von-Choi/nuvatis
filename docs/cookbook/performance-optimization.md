@@ -113,6 +113,41 @@ var user = session.SelectOne<User>("...");    // 이 시점에 커넥션 획득
 session.Commit();                             // Commit 후 Dispose에서 반환
 ```
 
+## 생성 코드의 파라미터 접근 (v2.8.0~)
+
+XML/어트리뷰트 statement 의 `#{...}` 바인딩은 기본적으로 리플렉션
+(`GetType().GetProperty`) 을 거친다. 매핑 파라미터의 정적 타입이 Roslyn 심볼로
+해석되면 **해석된 프로퍼티에 대해서만** 컴파일된 직접 접근으로 대체된다.
+
+| 측정 범위 | 리플렉션 | 직접 접근 | 개선 |
+|-----------|---------|----------|------|
+| SQL 조립 단독 | 1,536.3 ns | 706.8 ns | 2.17배 |
+| 실제 쿼리까지 포함 | 28,152.3 ns | 26,753.1 ns | **약 5%** |
+
+**"2배" 를 전체 쿼리 성능으로 읽으면 안 된다.** 조립 절감폭 829 ns 이 전체 쿼리의
+약 3% 에 불과하며, 네트워크 DB(왕복 0.5~5 ms)에서는 상대 이득이 1% 미만으로 내려간다.
+
+폴백으로 리플렉션에 남는 경우:
+- 중첩 경로 `#{user.Address.City}`
+- foreach 아이템 `#{it.Name}`
+- 파라미터 타입이 `object` / `dynamic` / 미해결
+
+따라서 **파라미터를 `object` 가 아니라 구체 타입으로 선언**하면 이 최적화가 발동한다.
+
+```csharp
+// 발동함 — OrderQuery 에 Name/MinAge 가 선언돼 있음
+[Select("SELECT * FROM orders WHERE name = #{Name}")]
+object Search(OrderQuery param);
+
+// 발동하지 않음 — object 로 선언해 심볼 해석이 불가능
+[Select("SELECT * FROM orders WHERE name = #{Name}")]
+object Search(object param);
+```
+
+벤치마크는 `benchmarks/NuVatis.Benchmarks/DynamicSqlBuildBenchmark.cs` 에서 재현할 수 있다.
+단, 이 파일은 생성 코드에서 옮긴 미러이므로 생성 출력이 바뀌면 함께 갱신해야 한다
+(기준선 해시는 파일 주석에 기재).
+
 ## 성능 비교 기준
 
 | 시나리오 | 권장 도구 | 이유 |

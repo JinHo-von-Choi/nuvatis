@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.8.0] - 2026-10-04
+
+> CI가 green인데 테스트를 실행하지 않던 구멍, `<where>` 가 깨진 SQL을 내던 결함,
+> 그리고 그 과정에서 실측된 생성 코드 성능 개선을 함께 담는다.
+> **public API 변경 없음** — 모든 Unshipped 항목이 비어 있는 상태에서 확정했다.
+
 ### Fixed
 
 - **`<where>`가 2개 이상 조건에서 파싱 불가한 SQL을 생성**: `<where>` 안의 `<if>`가 2개 이상 동시에 참이면 두 번째 이후의 `AND`/`OR` 접두사가 앞 조건 끝에 공백 없이 붙어 `WHERE name = @p0AND age >= @p1` 형태의 **문법 오류 SQL**이 만들어졌다. 접두사 제거가 누적 문자열의 맨 앞에서 한 번만 일어나는 반면 조건 사이 구분자가 없기 때문이다. MyBatis의 `TextSqlNode`와 동일하게 각 동적 조각 앞에 구분 공백을 삽입하도록 고쳤다 — `ParameterEmitter.EmitWhereNode`(정적 경로)와 `EmitLambdaNode`의 `__wc_` 블록(레지스트리 람다 경로)의 2개 제품 경로가 대상이다.
