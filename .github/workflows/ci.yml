@@ -252,21 +252,28 @@ jobs:
         env:
           NUVATIS_TEST_PG_CONNECTION: "Host=localhost;Port=5432;Database=nuvatis_test;Username=nuvatis_test;Password=nuvatis_test_pass"
         run: >-
-          dotnet test tests/NuVatis.Tests/ --configuration Release --no-build --verbosity normal
+          dotnet test tests/NuVatis.Tests/ --configuration Release --no-build --framework net8.0 --verbosity normal
           --logger "trx;LogFileName=e2e-pg.trx" --results-directory ./TestResults/e2e-pg
           --filter "Category=E2E&Provider=PostgreSql"
 
       - name: E2E Tests (MySQL — Testcontainers)
         run: >-
-          dotnet test tests/NuVatis.Tests/ --configuration Release --no-build --verbosity normal
+          dotnet test tests/NuVatis.Tests/ --configuration Release --no-build --framework net8.0 --verbosity normal
           --logger "trx;LogFileName=e2e-mysql.trx" --results-directory ./TestResults/e2e-mysql
           --filter "Category=Testcontainers&Provider=MySql"
 
       - name: E2E Tests (SQL Server — Testcontainers)
         run: >-
-          dotnet test tests/NuVatis.Tests/ --configuration Release --no-build --verbosity normal
+          dotnet test tests/NuVatis.Tests/ --configuration Release --no-build --framework net8.0 --verbosity normal
           --logger "trx;LogFileName=e2e-sqlserver.trx" --results-directory ./TestResults/e2e-sqlserver
           --filter "Category=Testcontainers&Provider=SqlServer"
+
+      # E2E는 net8.0 하나로 고정한다. 이 잡은 매트릭스가 없고 TFM 을 고정하지 않으면
+      # dotnet test 가 6개 TFM 을 전부 실행한다. 그런데 net6.0/net7.0 어셈블리에는
+      # Category=E2E&Provider=* 테스트가 하나도 없어 "No test matches" 가 되고,
+      # 0건 매칭을 실패로 보는 dotnet test 가 exit 1 을 낸다(실측 2026-10-04 —
+      # net8~net11 은 6~7개 통과, net6/7 은 0건). E2E 가 실제로 실행되는 TFM 은
+      # net8.0 이상이므로 여기를 고정해도 검증 손실이 없다.
 
       # 각 DB E2E가 실제로 실행되었는지 검증한다. 0건 매칭 시 잡이 green으로 통과하는 것을 차단.
       # shell: bash — 아래 스크립트는 bash 문법이다. 이 잡은 현재 ubuntu 전용이라

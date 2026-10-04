@@ -148,6 +148,13 @@ CI는 트레이트로 테스트를 분류해 단계별로 실행한다. **DB별 
 > `MSB4181: VSTestTask returned false`). 해당 러너에서 TFM 고정이 테스트 호스트 부재로
 > 이어지는 문제이며, 정확히 무엇이 원인인지 특정하지 못했다. 되돌렸다.
 >
+ >
+> **E2E 잡도 TFM 을 고정해야 한다.** 같은 이유다. E2E 잡에는 매트릭스가 없어 TFM 이
+> 고정되지 않으면 6개 TFM 이 전부 실행되는데, `net6.0`/`net7.0` 어셈블리에는
+> `Category=E2E&Provider=*` 테스트가 하나도 없어 `No test matches` 가 되고 0건 매칭을
+> 실패로 보는 `dotnet test` 가 exit 1 을 낸다(실측 2026-10-04 — net8~net11 은 6~7개
+> 통과, net6/7 은 0건). E2E 잡 3개 스텝을 `--framework net8.0` 으로 고정했다.
+>
 > **현재 해법**: `Verify test counts` 를 ubuntu 잡에서만 실행한다(`if: matrix.os ==
 > 'ubuntu-latest'`). 검증의 목적 — 0건 매칭의 green 통과 차단 — 은 OS 와 무관하므로
 > ubuntu 만으로 충족된다. windows 잡은 사유를 담은 경고를 남긴다.
