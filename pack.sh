@@ -68,7 +68,7 @@ dotnet test "${SOLUTION}" \
     --configuration Release \
     --verbosity minimal \
     --no-build \
-    || true
+    --filter "Category!=Integration&Category!=E2E&Category!=Testcontainers"
 
 ## 4. Pack
 echo "[4/5] Packing NuGet packages..."
@@ -87,12 +87,12 @@ fi
 echo "[5/5] Verifying packages..."
 MISSING=0
 for PKG in "${EXPECTED_PACKAGES[@]}"; do
-    COUNT=$(ls "${OUTPUT_DIR}"/${PKG}.*.nupkg 2>/dev/null | wc -l)
+    COUNT=$(ls "${OUTPUT_DIR}"/${PKG}.[0-9]*.nupkg 2>/dev/null | wc -l)
     if [[ ${COUNT} -eq 0 ]]; then
         echo "  MISSING: ${PKG}"
         MISSING=$((MISSING + 1))
     else
-        FILE=$(ls "${OUTPUT_DIR}"/${PKG}.*.nupkg)
+        FILE=$(ls "${OUTPUT_DIR}"/${PKG}.[0-9]*.nupkg)
         SIZE=$(du -h "${FILE}" | cut -f1)
         echo "  OK: $(basename "${FILE}") (${SIZE})"
     fi
