@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
         dotnet: ['8.0.x']
         include:
           - os: ubuntu-latest
@@ -63,7 +63,7 @@ jobs:
         run: >-
           dotnet test tests/NuVatis.Generators.Tests/
           --configuration Release --no-build --verbosity normal
-          --logger "trx;LogFileName=generators.trx"
+          --logger "trx;LogFilePrefix=generators"
           --collect:"XPlat Code Coverage"
           --results-directory ./TestResults/generators
 
@@ -71,7 +71,7 @@ jobs:
         run: >-
           dotnet test tests/NuVatis.Tests/
           --configuration Release --no-build --verbosity normal
-          --logger "trx;LogFileName=core.trx"
+          --logger "trx;LogFilePrefix=core"
           --filter "Category!=E2E&Category!=Testcontainers"
           --collect:"XPlat Code Coverage"
           --results-directory ./TestResults/core
@@ -80,7 +80,7 @@ jobs:
         run: >-
           dotnet test tests/NuVatis.QueryBuilder.Tests/
           --configuration Release --no-build --verbosity normal
-          --logger "trx;LogFileName=querybuilder.trx"
+          --logger "trx;LogFilePrefix=querybuilder"
           --filter "Category!=Integration"
           --collect:"XPlat Code Coverage"
           --results-directory ./TestResults/querybuilder
@@ -89,7 +89,7 @@ jobs:
         run: >-
           dotnet test tests/NuVatis.QueryBuilder.Tools.Tests/
           --configuration Release --no-build --verbosity normal
-          --logger "trx;LogFileName=querybuilder-tools.trx"
+          --logger "trx;LogFilePrefix=querybuilder-tools"
           --collect:"XPlat Code Coverage"
           --results-directory ./TestResults/querybuilder-tools
 
@@ -104,69 +104,52 @@ jobs:
       # 0개 실행의 green 통과를 차단한다. Provider 트레이트 누락으로 E2E 필터가
       # 0건을 매칭한 채 잡이 성공했던 사례를 재발 방지한다.
       #
-      # CI 실측 기준선(2026-10-04, ubuntu 전체 5개 TFM에서 동일하게 관측):
-      #   generators 173 / core 422 / querybuilder 76 / querybuilder-tools 15
+      # CI 실측 기준선(2026-10-04, ubuntu 전체 5개 TFM에서 동일하게 관측. generators 는 2026-10-10 CRLF 테스트 2건 추가로 173 에서 175):
+      #   generators 175 / core 422 / querybuilder 76 / querybuilder-tools 15
       # core는 E2E·Testcontainers Category를 제외한 값이고, querybuilder는
       # Integration Category를 제외한 값이다. 임계값은 관측값에 여유를 둔다.
       # 테스트를 의도적으로 제거했다면 이 값을 함께 갱신한다.
       #
-      # windows 러너에서 두 가지 문제가 있었다(모두 2026-10-04 실측).
+      # 멀티타겟 테스트 프로젝트는 TFM 마다 TRX 를 쓴다. LogFilePrefix 를 쓰면 파일명에
+      # TFM 과 타임스탬프가 붙어 TFM 간 파일 핸들 경합("being used by another process")이
+      # 생기지 않는다. LogFileName 고정 방식은 windows 에서 같은 파일을 6번 덮어쓰며 경합했다.
       #
-      # 1) shell 미지정: 이 스크립트는 declare -A 등 bash 문법을 쓰는데 기본 셸이
-      #    pwsh 라 declare 를 알 수 없었다. -> shell: bash 로 해결.
-      # 2) TRX 경합: 스위트들이 같은 ./TestResults 에 TRX 를 쓰면서 테스트 호스트와
-      #    coverlet 이 파일 핸들을 경쟁했다. "Failed to write the results file ...
-      #    being used by another process" 로 core.trx 가 재생성됐고, 그 여파로
-      #    querybuilder.trx 의 passed 속성을 못 읽어 passed=0 으로 오판됐다
-      #    (테스트는 실제로 76개 전부 통과). -> 스위트마다 results-directory 를
-      #    분리해 경합을 원천 차단했다.
-      # windows 에서는 이 스텝을 돌리지 않는다. 멀티타겟 프로젝트에 -f 가 없으면
-      # dotnet test 가 6개 TFM 을 전부 실행하며 같은 TRX 를 6번 덮어쓰는데, ubuntu 는
-      # 덮어쓰기에 성공하는 반면 windows 는 테스트 호스트가 파일 핸들을 놓지 않아
-      #   Failed to write the results file ... being used by another process
-      # 가 발생하고 TRX 의 passed 속성을 잃는다. 그 결과 422개가 전부 통과한 core 스위트가
-      # passed=0 으로 보고되어 잡이 실패했다(실측 2026-10-04, 3회 연속).
+      # net6.0/net7.0 TFM 은 테스트가 0건 실행되므로(TRX total=0) 스위트의 TFM 별 TRX 중
+      # 최대 passed 값을 임계값과 비교한다.
       #
-      # 검증의 목적(0건 매칭의 green 통과 차단)은 OS 와 무관하므로 ubuntu 만으로 충족된다.
-      # windows 는 스텝 자체를 green 으로 두고 결과를 경고로 남긴다.
+      # 이 스크립트는 macOS 기본 bash 3.2 에서도 동작하도록 연관 배열(declare -A)을 쓰지 않는다.
+      # shell: bash 는 windows 러너에서 기본 셸(pwsh)을 대체하기 위해 필요하다.
       - name: Verify test counts
-        if: matrix.os == 'ubuntu-latest'
         shell: bash
         run: |
-          declare -A MINIMUM=(
-            [generators]=165
-            [core]=415
-            [querybuilder]=72
-            [querybuilder-tools]=14
-          )
           FAILED=0
-          for KEY in "${!MINIMUM[@]}"; do
-            TRX=$(ls ./TestResults/${KEY}/${KEY}.trx 2>/dev/null | head -1)
-            if [[ -z "${TRX}" ]]; then
+          for ENTRY in generators:165 core:415 querybuilder:72 querybuilder-tools:14; do
+            KEY="${ENTRY%%:*}"
+            MIN="${ENTRY##*:}"
+            BEST=0
+            FOUND=0
+            for TRX in ./TestResults/${KEY}/*.trx; do
+              [[ -f "${TRX}" ]] || continue
+              FOUND=1
+              # grep 은 미일치 시 exit 1 이고 GitHub Actions 의 bash 는 -e 로 돌아
+              # 루프 중간에 죽어 어떤 키도 보고하지 않는다. TRX 루트 속성명은
+              # skipped 가 아니라 notExecuted 다.
+              PASSED=$(grep -oE 'passed="[0-9]+"' "${TRX}" | head -1 | grep -oE '[0-9]+' || true)
+              if [[ -n "${PASSED}" ]] && [[ ${PASSED} -gt ${BEST} ]]; then
+                BEST=${PASSED}
+              fi
+            done
+            if [[ ${FOUND} -eq 0 ]]; then
               echo "::error::missing result file for ${KEY}"
               FAILED=1
-              continue
-            fi
-            # grep 은 미일치 시 exit 1 이고 GitHub Actions 의 bash 는 -e 로 돌아
-            # 루프 중간에 죽어 어떤 키도 보고하지 않는다. TRX 루트 속성명은
-            # skipped 가 아니라 notExecuted 다.
-            PASSED=$(grep -oE 'passed="[0-9]+"' "${TRX}" | head -1 | grep -oE '[0-9]+' || true)
-            if [[ -z "${PASSED}" ]] || [[ ${PASSED} -lt ${MINIMUM[$KEY]} ]]; then
-              echo "::error::${KEY}: passed=${PASSED:-0} < required ${MINIMUM[$KEY]} — 테스트가 누락됐거나 필터가 0건을 매칭함"
+            elif [[ ${BEST} -lt ${MIN} ]]; then
+              echo "::error::${KEY}: passed=${BEST} < required ${MIN} — 테스트가 누락됐거나 필터가 0건을 매칭함"
               FAILED=1
             else
-              echo "ok: ${KEY} passed=${PASSED} (>= ${MINIMUM[$KEY]})"
+              echo "ok: ${KEY} passed=${BEST} (>= ${MIN})"
             fi
           done
           exit ${FAILED}
-
-      - name: Verify test counts (windows - skipped)
-        if: matrix.os == 'windows-latest'
-        run: >
-          echo "::warning title=Test count verification skipped on Windows::"
-          멀티타겟 프로젝트가 6개 TFM 을 전부 실행하며 같은 TRX 를 덮어써서
-          windows 에서는 TRX 의 passed 속성을 신뢰할 수 없다.
-          0건 매칭 방지는 ubuntu 잡이 담당한다. 사유는 ci.yml 주석 참고.
 
       - name: Upload Coverage to Codecov
         if: matrix.os == 'ubuntu-latest' && matrix.dotnet == '10.0.x'
