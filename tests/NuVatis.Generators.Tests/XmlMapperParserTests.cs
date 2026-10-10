@@ -346,4 +346,28 @@ public class XmlMapperParserTests {
         var sqlText = stmt.RootNode?.ToString() ?? "";
         Assert.DoesNotContain("lastval", sqlText);
     }
+
+    /**
+     * Windows autocrlf 체크아웃으로 CRLF 가 된 매퍼 XML 도 LF 와 동일한 결과로 파싱되어야 한다.
+     */
+    [Theory]
+    [InlineData("\n")]
+    [InlineData("\r\n")]
+    public void Parse_LineEndings_ProduceSameStatementText(string eol) {
+        var xml = string.Join(eol, new[] {
+            "<mapper namespace=\"UserMapper\">",
+            "    <select id=\"GetUser\">",
+            "        SELECT * FROM users",
+            "        WHERE id = 1",
+            "    </select>",
+            "</mapper>"
+        });
+
+        var mapper = XmlMapperParser.Parse(xml, CancellationToken.None);
+
+        var text = Assert.IsType<TextNode>(mapper.Statements.Single().RootNode).Text;
+        Assert.DoesNotContain("\r", text);
+        Assert.Contains("SELECT * FROM users", text);
+        Assert.Contains("WHERE id = 1", text);
+    }
 }
