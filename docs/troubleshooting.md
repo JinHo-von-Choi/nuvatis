@@ -354,6 +354,18 @@ IntelliSense가 즉시 반영되지 않으면 IDE를 재시작하거나 솔루�
 
 ---
 
+## 저장소 로컬 테스트 (기여자)
+
+### `DockerUnavailableException: Failed to connect to Docker endpoint` 로 테스트가 실패한다
+
+`Category=Integration`, `Category=E2E`, `Category=Testcontainers` 테스트는 Docker 로 DB 컨테이너를 띄운다. Docker 가 없는 macOS/Windows 개발 머신에서 필터 없이 `dotnet test NuVatis.sln` 을 실행하면 이 테스트들이 실패한다. CI 와 동일하게 Docker 가 필요 없는 테스트만 실행한다.
+
+```bash
+dotnet test NuVatis.sln -c Release --filter "Category!=Integration&Category!=E2E&Category!=Testcontainers"
+```
+
+SQLite 기반 `Category=SqliteE2E` 는 Docker 없이 실행되므로 위 필터에 포함된다.
+
 ## 자주 묻는 질문 (FAQ)
 
 **Q: Mapper 메서드의 반환 타입으로 어떤 타입을 사용할 수 있나?**

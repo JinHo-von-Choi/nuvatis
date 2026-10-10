@@ -16,7 +16,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
      - 결과적으로 **매트릭스 7개 잡이 모두 동일한 작업을 반복하고 있었고, SDK 버전 차이는 아무것도 검증하지 못했다.** 이제 각 잡이 해당 TFM 을 실제로 검증한다.
   - 함께 임계값을 Release 실측 기준선으로 갱신했다(기존 150 / 390 / 70 / 15 → 165 / 415 / 72 / 14).
   - 5. **검증 스텝의 `grep` 가 `set -e` 에 걸림**: GitHub Actions 의 bash 는 `-e` 로 돌아서, `PASSED=$(grep -oE 'passed="[0-9]+"' ...)` 가 미일치하면 exit 1 인 grep 이 루프 중간에 스크립트를 죽인다. E2E 검증 스텝은 `skipped="..."` 를 찾는데 TRX 루트에 그 속성이 없어(실제 이름은 `notExecuted`) **항상 죽었다.** 트리플이 조용히 죽어 어떤 키도 보고하지 않아, PostgreSQL 7 / MySQL 2 / SQL Server 5가 전부 통과했는데 잡이 실패했다. → 세 `grep` 에 `|| true` 를 붙이고 `notExecuted` 로 정정했다.
-  - **미해결 (windows 최소 개수 검증)**: windows 는 TRX 파일 잠금으로 통과 개수를 신뢰할 수 없어 `Verify test counts` 를 ubuntu 잡에서만 실행하도록 했다. 검증 목적이 OS 무관하므로 기능 손실은 없으나 windows 는 경고만 남긴다. 매트릭스에서 TFM 을 고정해 해결을 시도했지만 net6/7/9/10/11 잡이 테스트 호스트 부재로 깨져 되돌렸다. 정확한 원인은 미특정이다.
+  - **windows 최소 개수 검증 복원**: 위 해결 시도 당시 windows 에서는 검증을 ubuntu 로 한정했으나, 스위트 내부에서 TFM 별 실행이 같은 `LogFileName` 의 TRX 를 덮어쓰며 경합하는 것이 원인이었다. 로거를 `LogFilePrefix` 로 바꿔 TFM·타임스탬프가 붙은 별도 파일로 쓰게 했다(Windows 11 ARM64 로컬 실측에서 `Failed to write the results file` 0건). 검증 스텝은 스위트의 TFM 별 TRX 중 최대 passed 를 임계값과 비교하며 windows 에서도 실행한다. net6.0/net7.0 TFM 은 테스트가 0건 실행(TRX total=0)되므로 최대값 비교가 필요하다.
+- **`pack.sh` 검증 단계가 `NuVatis.QueryBuilder` 에서 실패**: 글롭 `${PKG}.*.nupkg` 가 `NuVatis.QueryBuilder.Tools.*` 까지 매칭해 `du` 가 인자 2개를 받고 종료했다. `${PKG}.[0-9]*.nupkg` 로 한정했다. 또한 `dotnet test ... || true` 가 테스트 실패를 삼키던 것을 제거하고 Docker 가 필요한 카테고리(`Integration`/`E2E`/`Testcontainers`)를 필터로 제외했다. macOS 기본 bash 3.2 에서 전체 실행으로 검증했다.
+
+### Added
+
+- **CI macOS 러너**: `build-and-unit-test` 매트릭스에 `macos-latest` 추가. 검증 스텝은 macOS 기본 bash 3.2 에서도 동작하도록 연관 배열(`declare -A`)을 제거했다.
+- **`.gitattributes`**: `* text=auto eol=lf`, `*.png binary`. Windows `autocrlf` 체크아웃에서도 저장소 기준 줄바꿈을 LF 로 고정한다.
+- **CRLF 매퍼 파싱 테스트**: `XmlMapperParserTests.Parse_LineEndings_ProduceSameStatementText` (LF/CRLF).
+- **로컬 테스트 가이드**: `docs/troubleshooting.md` 에 Docker 없는 환경의 테스트 필터 추가.
+
+### Known Issues
+
+- net6.0/net7.0 테스트 타깃은 macOS·Windows 로컬 모두에서 테스트가 0건 실행된다. CI 의 .NET 6.0.x/7.0.x 잡은 사실상 빌드만 검증한다. 원인 미조사.
 
 ## [2.8.0] - 2026-10-04
 
